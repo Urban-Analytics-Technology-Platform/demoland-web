@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+
+/* https://css-tricks.com/box-sizing/ */
+html {
+    font-family: "Instrument Sans", sans-serif;
+    box-sizing: border-box;
+    background-color: #fcfcfc;
+}
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+/* Override browser default style sheet. */
+body {
+    margin: 0px;
+    padding: 0px;
+}
