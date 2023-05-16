@@ -1,5 +1,22 @@
+<script lang="ts">
+    import { displayIndicator } from '../stores';
+    import { type Indicator } from '../types';
+
+    let currentIndicator: Indicator = "air_quality";
+
+    $: displayIndicator.update((_) => currentIndicator);
+</script>
+
 <div id="sidebar">
     <p><strong>Land Use Demonstrator</strong></p>
+
+    <label><input type=radio bind:group={currentIndicator} value="air_quality" />Air quality</label><br />
+    <label><input type=radio bind:group={currentIndicator} value="house_price" />House prices</label><br />
+    <label><input type=radio bind:group={currentIndicator} value="job_accessibility" />Job accessibility</label><br />
+    <label><input type=radio bind:group={currentIndicator} value="greenspace_accessibility" />Greenspace accessibility</label><br />
+
+    <p><strong>(Currently: White = higher, black = lower)</strong></p>
+
     <p>“In vain have I struggled. It will not do. My feelings will not be repressed. You must allow me to tell you how ardently I admire and love you.”</p>
     <p>Elizabeth’s astonishment was beyond expression. She stared, coloured, doubted, and was silent. This he considered sufficient encouragement, and the avowal of all that he felt and had long felt for her immediately followed. He spoke well; but there were feelings besides those of the heart to be detailed, and he was not more eloquent on the subject of tenderness than of pride. His sense of her inferiority, of its being a degradation, of the family obstacles which judgment had always opposed to inclination, were dwelt on with a warmth which seemed due to the consequence he was wounding, but was very unlikely to recommend his suit.</p>
     <p>In spite of her deeply-rooted dislike, she could not be insensible to the compliment of such a man’s affection, and though her intentions did not vary for an instant, she was at first sorry for the pain he was to receive; till roused to resentment by his subsequent language, she lost all compassion in anger. She tried, however, to compose herself to answer him with patience, when he should have done. He concluded with representing to her the strength of that attachment which in spite of all his endeavours he had found impossible to conquer; and with expressing his hope that it would now be rewarded by her acceptance of his hand. As he said this she could easily see that he had no doubt of a favourable answer. He <i>spoke</i> of apprehension and anxiety, but his countenance expressed real security. Such a circumstance could only exasperate farther; and when he ceased the colour rose into her cheeks and she said,—</p>
