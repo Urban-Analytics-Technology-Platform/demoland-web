@@ -1,39 +1,49 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
-import { allIndicators } from "./indicators";
+import { allIndicators, type Indicator } from "./indicators";
+
+function makeColormap(indicator: Indicator, n: number) {
+    if (indicator === "air_quality") {
+        return colormap({
+            colormap: "oxygen",
+            nshades: n,
+            format: "hex",
+            alpha: 1,
+        }).reverse();
+    } else if (indicator === "house_price") {
+        return colormap({
+            colormap: "density",
+            nshades: n,
+            format: "hex",
+            alpha: 1,
+        });
+    } else if (indicator === "job_accessibility") {
+        return colormap({
+            colormap: "viridis",
+            nshades: n,
+            format: "hex",
+            alpha: 1,
+        });
+    } else if (indicator === "greenspace_accessibility") {
+        return colormap({
+            colormap: "chlorophyll",
+            nshades: n,
+            format: "hex",
+            alpha: 1,
+        }).reverse();
+    }
+}
 
 const colormaps: { [key: string]: string[] } = {
-    "air_quality": colormap({
-        colormap: "oxygen",
-        nshades: 100,
-        format: "hex",
-        alpha: 1,
-    }).reverse(),
-    "house_price": colormap({
-        colormap: "density",
-        nshades: 100,
-        format: "hex",
-        alpha: 1,
-    }),
-    "job_accessibility":
-        colormap({
-            colormap: "viridis",
-            nshades: 100,
-            format: "hex",
-            alpha: 1,
-        }),
-    "greenspace_accessibility":
-        colormap({
-            colormap: "chlorophyll",
-            nshades: 100,
-            format: "hex",
-            alpha: 1,
-        }).reverse(),
+    "air_quality": makeColormap("air_quality", 100),
+    "house_price": makeColormap("house_price", 100),
+    "job_accessibility": makeColormap("job_accessibility", 100),
+    "greenspace_accessibility": makeColormap("greenspace_accessibility", 100),
 }
 
 function getColorFromMap(map: string[], value: number, min: number, max: number) {
     const n = map.length;
-    const i = Math.round(((value - min) / (max - min)) * n);
+    const i = Math.round(((value - min) / (max - min)) * (n - 1));
     return map[i];
 }
 
@@ -88,4 +98,29 @@ export function mergeGeographyWithIndicators(
     });
 
     return geography;
+}
+
+
+// TODO Document
+export function makeChartData(geojson: object, indicator: Indicator, nbars: number) {
+    const colors = makeColormap(indicator, nbars);
+    const rawValues: number[] = geojson["features"].map(feature => feature.properties[indicator]);
+    // quantise rawValues to 1 -> 20
+    const min = Math.min(...rawValues);
+    const max = Math.max(...rawValues);
+    const intValues = rawValues.map(value => Math.round(((value - min) / (max - min)) * (nbars - 1)));
+    // get the counts of each value (y-axis)
+    const counts = new Array(nbars).fill(0);
+    for (const value of intValues) {
+        counts[value]++;
+    }
+    // rescale intValues to have the same scale as input values, but still
+    // quantised to nbars distinct values
+    const values = intValues.map(value => value * (max - min) / (nbars - 1) + min);
+
+    return {
+        counts: counts,
+        values: values,
+        colors: colors,
+    }
 }

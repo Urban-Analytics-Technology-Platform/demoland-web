@@ -7,7 +7,7 @@
     import Sidebar from "./lib/Sidebar.svelte";
     import Indicators from "./lib/Indicators.svelte";
     import { allIndicators, type Indicator } from "./indicators";
-    import { mergeGeographyWithIndicators } from "./makeGeometry";
+    import { mergeGeographyWithIndicators, makeChartData } from "./utils";
 
     // The indicator which should be shown when the page first loads
     export let initialIndicator: Indicator = "air_quality";
@@ -19,10 +19,11 @@
     // The map!
     let map: maplibregl.Map;
     // The data to be sent to the chart
-    let chartData = null;
+    let chartData: { colors: string[]; values: number[]; counts: number[] };
 
     // Generate data for the baseline
     const baseline = mergeGeographyWithIndicators(baselineJsonRaw);
+    chartData = makeChartData(baseline, initialIndicator, 20);
 
     // Setup scripts. We have to use Svelte's 'onMount' because the code in
     // this script is run before the DOM is generated.
@@ -129,6 +130,7 @@
                 );
             }
         }
+        chartData = makeChartData(baseline, newIndicator, 20);
     }
 </script>
 
