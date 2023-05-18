@@ -4,6 +4,7 @@
     import baselineJsonRaw from "../assets/baseline_oa.json?raw";
     import { onMount, onDestroy } from "svelte";
     import Sidebar from "./Sidebar.svelte";
+    import Indicators from "./Indicators.svelte";
     import { allIndicators, type Indicator } from "../indicators";
     import { mergeGeographyWithIndicators } from "../makeGeometry";
 
@@ -83,10 +84,7 @@
                     { source: "newcastle", id: e.features[0].id },
                     { hover: true }
                 );
-                indicatorValues = new Object();
-                for (const indicator of allIndicators) {
-                    indicatorValues[indicator] = e.features[0].properties[indicator];
-                }
+                indicatorValues = e.features[0].properties;
             }
         });
         map.on('mouseleave', 'air_quality-layer', function () {
@@ -121,7 +119,8 @@
     }
 </script>
 
-<Sidebar currentIndicator={initialIndicator} {indicatorValues} on:indicatorChange={updateLayers} />
+<Sidebar />
+<Indicators currentIndicator={initialIndicator} {indicatorValues} on:indicatorChange={updateLayers} />
 <div id="map" />
 
 <style>
