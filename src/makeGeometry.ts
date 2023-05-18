@@ -75,9 +75,7 @@ export function mergeGeographyWithIndicators(
     console.log(minValues);
 
     // Merge geography with indicators
-    geography["features"] = geography["features"].map(function(
-        feature: object
-    ) {
+    geography["features"] = geography["features"].map(function(feature) {
         const oaName = feature["properties"]["OA11CD"];
         const oaValues = indicators[oaName];
         if (oaValues === undefined) {

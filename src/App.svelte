@@ -3,7 +3,7 @@
 </script>
 
 <main>
-    <Map />
+    <Map initialIndicator={"air_quality"} />
 </main>
 
 <style>
