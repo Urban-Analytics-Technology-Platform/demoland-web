@@ -1,11 +1,8 @@
 <script lang="ts">
-    import { displayIndicator } from './stores.ts';
     import Map from './lib/Map.svelte'
-    import Sidebar from './lib/Sidebar.svelte'
 </script>
 
 <main>
-    <Sidebar />
     <Map />
 </main>
 

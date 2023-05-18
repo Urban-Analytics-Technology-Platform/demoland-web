@@ -1,45 +1,18 @@
 <script lang="ts">
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
-    import newcastleJsonRaw from "../assets/newcastle.geojson?raw";
     import baselineJsonRaw from "../assets/baseline_oa.json?raw";
     import { onMount, onDestroy } from "svelte";
-    import { displayIndicator } from '../stores';
-    import { type Indicator } from '../types';
+    import { displayIndicator } from "../stores";
+    import Sidebar from "./Sidebar.svelte";
+    import { allIndicators, } from "../indicators";
+    import { mergeGeographyWithIndicators } from "../makeGeometry";
 
     let map: maplibregl.Map;
-    let allIndicators: Indicator[] = ["air_quality", "house_price", "job_accessibility", "greenspace_accessibility"];
+    const [baseline, minValues, maxValues] = mergeGeographyWithIndicators(
+        baselineJsonRaw
+    );
 
-    // Todo: Document the function
-    function mergeGeographyWithIndicators (geographyRaw: string, indicatorsRaw: string) {
-        const geography = JSON.parse(geographyRaw);
-        const indicators = JSON.parse(indicatorsRaw);
-        geography["features"] = geography["features"].map(function (feature: object) {
-            const oaName = feature["properties"]["geo_code"];
-            const oaValues = indicators[oaName];
-            if (oaValues === undefined) {
-                console.log(`${oaName} not found in values!`);
-            } else {
-                for (const key in oaValues) {
-                    feature["properties"][key] = oaValues[key];
-                }
-            }
-            return feature;
-        });
-        const minValues = new Object();
-        const maxValues = new Object();
-        // TODO write better code
-        for (let indicator of allIndicators) {
-            minValues[indicator] = Math.min(...Object.values(indicators).map((o: object) => o[indicator]));
-            maxValues[indicator] = Math.max(...Object.values(indicators).map((o: object) => o[indicator]));
-        }
-        console.log(minValues);
-        console.log(maxValues);
-        // TODO give this return type some structure
-        return [geography, minValues, maxValues];
-    }
-    const [baseline, minValues, maxValues] = mergeGeographyWithIndicators(newcastleJsonRaw, baselineJsonRaw);
-   
     // Must use onMount because this script is run before the DOM is generated.
     onMount(() => {
         map = new maplibregl.Map({
@@ -61,16 +34,9 @@
                     id: `${indicator}-layer`,
                     type: "fill",
                     source: "newcastle",
-                    layout: {
-                        // visibility: indicator === $displayIndicator ? "visible" : "none",
-                    },
+                    layout: {},
                     paint: {
-                        "fill-color": [
-                            "rgb",
-                            ["*", ["number", 255], ["/", ["-", ["get", indicator], ["number", minValues[indicator]]], ["number", maxValues[indicator] - minValues[indicator]]]],
-                            ["*", ["number", 255], ["/", ["-", ["get", indicator], ["number", minValues[indicator]]], ["number", maxValues[indicator] - minValues[indicator]]]],
-                            ["*", ["number", 255], ["/", ["-", ["get", indicator], ["number", minValues[indicator]]], ["number", maxValues[indicator] - minValues[indicator]]]],
-                            ],
+                        "fill-color": ["get", `${indicator}-color`],
                         "fill-opacity": indicator === $displayIndicator ? 0.8 : 0.01,
                     },
                 });
@@ -83,16 +49,22 @@
     });
 
     // Update layer visibility when displayIndicator changes
-    displayIndicator.subscribe((newIndicator: Indicator) => {
+    function updateLayers(event) {
+        const newIndicator = event.detail.indicator;
         if (map) {
             console.log(`Current indicator: ${newIndicator}`);
             for (const indicator of allIndicators) {
-                map.setPaintProperty(`${indicator}-layer`, 'fill-opacity', indicator === newIndicator ? 0.8 : 0.01);
+                map.setPaintProperty(
+                    `${indicator}-layer`,
+                    "fill-opacity",
+                    indicator === newIndicator ? 0.8 : 0.01
+                );
             }
         }
-    });
+    }
 </script>
 
+<Sidebar on:indicatorChange={updateLayers} />
 <div id="map" />
 
 <style>

@@ -1,19 +1,29 @@
 <script lang="ts">
-    import { displayIndicator } from '../stores';
-    import { type Indicator } from '../types';
+    import { type Indicator } from '../indicators';
+    import { createEventDispatcher } from 'svelte';
 
+    const dispatch = createEventDispatcher();
+    function updateIndicator(event: Event) {
+        dispatch('indicatorChange', {
+            indicator: (event.target as HTMLInputElement).value
+        });
+    }
+
+    let allIndicators: object = {
+        "air_quality": "Air quality",
+        "house_price": "House prices",
+        "job_accessibility": "Job accessibility",
+        "greenspace_accessibility": "Greenspace accessibility"
+    }
     let currentIndicator: Indicator = "air_quality";
-
-    $: displayIndicator.update((_) => currentIndicator);
 </script>
 
 <div id="sidebar">
     <p><strong>Land Use Demonstrator</strong></p>
 
-    <label><input type=radio bind:group={currentIndicator} value="air_quality" />Air quality</label><br />
-    <label><input type=radio bind:group={currentIndicator} value="house_price" />House prices</label><br />
-    <label><input type=radio bind:group={currentIndicator} value="job_accessibility" />Job accessibility</label><br />
-    <label><input type=radio bind:group={currentIndicator} value="greenspace_accessibility" />Greenspace accessibility</label><br />
+    {#each Object.keys(allIndicators) as i}
+        <label><input bind:group={currentIndicator} type=radio on:change={updateIndicator} value={i} />{allIndicators[i]}</label><br />
+    {/each}
 
     <p><strong>(Currently: White = higher, black = lower)</strong></p>
 
@@ -29,12 +39,13 @@
 
 <style>
 div#sidebar {
+    --margin: 40px;
     box-sizing: border-box;
     position: absolute;
-    height: 90vh;
-    width: 20vw;
-    top: 5vh;
-    left: 5vw;
+    height: calc(100vh - (2 * var(--margin)));
+    width: 300px;
+    top: var(--margin);
+    left: var(--margin);
     padding: 20px;
     background-color: #deb4f0;   /* purple */
     z-index: 1;
