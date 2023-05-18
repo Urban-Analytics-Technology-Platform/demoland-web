@@ -65,9 +65,9 @@ div#indicators, div#values {
     top: var(--margin);
     right: var(--margin);
     padding: 20px;
-    background-color: #deb4f0;   /* purple */
+    background-color: #caf0fa;  /* light blue */
     overflow-y: scroll;
-    border: 1px solid green;
+    border: 1px solid black;
 }
 
 div#indicators {

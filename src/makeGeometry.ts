@@ -50,11 +50,8 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  *   { oa_name: { indicator_name: indicator_value, ... }, ... }
  * where the indicator_name's are the same as those in allIndicators.
  *
- * @returns [geography, minValues, maxValues] where geography is an updated
- * GeoJSON file with the indicator values plus associated colours added to the
- * properties of each feature. minValues and maxValues are objects with the same
- * keys as allIndicators, and the values are the minimum and maximum values of
- * the indicator across all OAs.
+ * @returns an updated GeoJSON file with the indicator values plus associated
+ * colours added to the properties of each feature.
  */
 export function mergeGeographyWithIndicators(
     indicatorsRaw: string
@@ -90,6 +87,5 @@ export function mergeGeographyWithIndicators(
         return feature;
     });
 
-    // TODO give this return type some structure
-    return [geography, minValues, maxValues];
+    return geography;
 }
