@@ -5,6 +5,13 @@
 
     let chart: Chart = null;
 
+    function pretty(value: number | string) {
+        if (typeof value === "string") return value;
+        if (value >= 1000000) return `${value / 1000000}M`;
+        if (value >= 1000) return `${value / 1000}K`;
+        return value;
+    }
+
     function destroyChart() {
         if (chart !== null) chart.destroy();
     }
@@ -32,6 +39,9 @@
                         type: "linear",
                         beginAtZero: false,
                         ticks: {
+                            callback: (value) => {
+                                return pretty(value);
+                            },
                             maxRotation: 0,
                             minRotation: 0,
                         },
