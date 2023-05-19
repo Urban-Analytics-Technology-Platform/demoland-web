@@ -31,3 +31,7 @@ h1 {
 h2 {
     font-size: 120%;
 }
+
+.mapboxgl-canvas {
+    left: 0;
+}

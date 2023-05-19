@@ -36,7 +36,6 @@
             zoom: 10.05,
             hash: true,
         });
-        map.resize();
 
         // Add in sources and create layers
         map.on("load", function () {
@@ -78,7 +77,10 @@
                     ],
                 },
             });
+            map.resize();
         });
+
+        window.addEventListener('resize', () => map.resize());
 
         // Add hover functionality.
         // It doesn't matter which of the four indicator layers we add it to;
@@ -150,8 +152,7 @@
     main {
         height: 100vh;
         width: 100vw;
-        max-width: 100%;
-        max-height: 100%;
+        min-height: 700px;
         min-width: 1000px;
     }
 

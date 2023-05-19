@@ -91,7 +91,7 @@ export function mergeGeographyWithIndicators(
             for (const indi in oaValues) {
                 feature["properties"][indi] = oaValues[indi];
                 feature["properties"][`${indi}-color`] =
-                        getColorFromMap(colormaps[indi], oaValues[indi], minValues[indi], maxValues[indi]);
+                    getColorFromMap(colormaps[indi], oaValues[indi], minValues[indi], maxValues[indi]);
             }
         }
         return feature;
@@ -105,7 +105,7 @@ export function mergeGeographyWithIndicators(
 export function makeChartData(geojson: object, indicator: Indicator, nbars: number) {
     const colors = makeColormap(indicator, nbars);
     const rawValues: number[] = geojson["features"].map(feature => feature.properties[indicator]);
-    // quantise rawValues to 1 -> 20
+    // quantise rawValues to 0 -> 19
     const min = Math.min(...rawValues);
     const max = Math.max(...rawValues);
     const intValues = rawValues.map(value => Math.round(((value - min) / (max - min)) * (nbars - 1)));
@@ -114,9 +114,10 @@ export function makeChartData(geojson: object, indicator: Indicator, nbars: numb
     for (const value of intValues) {
         counts[value]++;
     }
-    // rescale intValues to have the same scale as input values, but still
-    // quantised to nbars distinct values
-    const values = intValues.map(value => value * (max - min) / (nbars - 1) + min);
+    // generate the x-axis values, which are 0 -> 19 but rescaled back to the
+    // original range of indicator values
+    const values = Array.from({ length: nbars }, (_, i) => i)
+        .map(value => value * (max - min) / (nbars - 1) + min);
 
     return {
         counts: counts,
