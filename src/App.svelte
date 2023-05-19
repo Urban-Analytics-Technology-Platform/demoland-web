@@ -80,7 +80,7 @@
             map.resize();
         });
 
-        window.addEventListener('resize', () => map.resize());
+        window.addEventListener("resize", () => map.resize());
 
         // Add hover functionality.
         // It doesn't matter which of the four indicator layers we add it to;
@@ -120,30 +120,44 @@
         map.remove();
     });
 
-    // Update layer opacity when the display indicator changes
-    function updateLayers(event: CustomEvent<{ indicator: Indicator }>) {
-        const newIndicator = event.detail.indicator;
-        if (map) {
-            for (const indicator of allIndicators) {
-                map.setPaintProperty(
-                    `${indicator}-layer`,
-                    "fill-opacity",
-                    indicator === newIndicator ? 0.8 : 0.01
-                );
-            }
+    function updateLayers(activeIndicator: Indicator, opacityScale: number) {
+        for (const indicator of allIndicators) {
+            const newOpacity =
+                indicator === activeIndicator
+                    ? 0.8 * opacityScale
+                    : 0.01 * opacityScale;
+            map.setPaintProperty(
+                `${indicator}-layer`,
+                "fill-opacity",
+                newOpacity
+            );
         }
-        chartData = makeChartData(baseline, newIndicator, 20);
+        map.setPaintProperty("line-layer", "line-opacity", opacityScale);
+    }
+
+    function redrawLayers(
+        event: CustomEvent<{ indicator: Indicator; opacity: number }>
+    ) {
+        chartData = makeChartData(baseline, event.detail.indicator, 20);
+        if (map) updateLayers(event.detail.indicator, event.detail.opacity);
+    }
+    function updateGlobalOpacity(
+        event: CustomEvent<{ indicator: Indicator; opacity: number }>
+    ) {
+        if (map) updateLayers(event.detail.indicator, event.detail.opacity);
     }
 </script>
 
 <main>
     <Sidebar />
     <Indicators
+        opacityScale={1}
         currentIndicator={initialIndicator}
         {indicatorValues}
-        on:indicatorChange={updateLayers}
+        on:indicatorChange={redrawLayers}
+        on:opacityChange={updateGlobalOpacity}
     />
-    <Chart currentIndicator={initialIndicator} data={chartData} />
+    <Chart data={chartData} />
 
     <div id="map" />
 </main>

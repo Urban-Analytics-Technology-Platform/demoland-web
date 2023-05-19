@@ -17,7 +17,6 @@
     }
 
     function drawChart(chartData: { colors: string[]; values: number[]; counts: number[] }) {
-        console.log(chartData);
         let canvas = document.getElementById("chart") as HTMLCanvasElement;
         destroyChart();
         chart = new Chart(canvas, {
@@ -65,6 +64,11 @@
     onMount(() => drawChart(data));
     onDestroy(destroyChart);
 
+    // This line fires whenever data is updated (which is needed for
+    // reactivity), but also when the page is first loaded (before the DOM is
+    // generated). Because the canvas can't be found, this will throw an error,
+    // but it can be ignored because the chart will be properly drawn by the
+    // onMount callback.
     $: drawChart(data);
 </script>
 
