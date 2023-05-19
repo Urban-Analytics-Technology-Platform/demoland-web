@@ -19,7 +19,6 @@ div#sidebar {
     padding: 20px;
     background-color: #deb4f0;   /* purple */
     z-index: 1;
-    overflow-y: scroll;
     border: 1px solid black;
 }
 </style>

@@ -94,7 +94,6 @@
         right: var(--margin);
         padding: 20px;
         background-color: #caf0fa; /* light blue */
-        overflow-y: scroll;
         border: 1px solid black;
     }
 
