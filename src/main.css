@@ -4,8 +4,8 @@
 html {
     font-family: "Instrument Sans", sans-serif;
     box-sizing: border-box;
-    background-color: #fcfcfc;
 }
+
 *, *:before, *:after {
     box-sizing: inherit;
 }
@@ -14,6 +14,7 @@ html {
 body {
     margin: 0px;
     padding: 0px;
+    overflow: hidden;
 }
 
 .strong {
@@ -30,8 +31,4 @@ h1 {
 
 h2 {
     font-size: 120%;
-}
-
-.mapboxgl-canvas {
-    left: 0;
 }

@@ -37,9 +37,17 @@
     const baseline = mergeGeographyWithIndicators(baselineJsonRaw);
     chartData = makeChartData(baseline, initialIndicator, 20);
 
+    function resizeContainer() {
+        document.getElementById("map").style.height = `${window.innerHeight}px`;
+        document.getElementById("map").style.width = `${window.innerWidth}px`;
+        if (map) map.resize();
+    }
+
     // Setup scripts. We have to use Svelte's 'onMount' because the code in
     // this script is run before the DOM is generated.
     onMount(() => {
+        // Manually update the size of the containing div to be 100vw/100vh.
+        resizeContainer();
         // Create map
         map = new maplibregl.Map({
             container: "map",
@@ -89,10 +97,7 @@
                     ],
                 },
             });
-            map.resize();
         });
-
-        window.addEventListener("resize", () => map.resize());
 
         // Add hover functionality.
         // It doesn't matter which of the four indicator layers we add it to;
@@ -133,6 +138,8 @@
                 || map.getCenter().lng > 1
                 || map.getCenter().lng < -4
         });
+
+        map.resize();
 
         mapStore.set(map);
     });
@@ -186,17 +193,4 @@
         <Recentre {initialCentre} {initialZoom} />
     {/if}
 </main>
-
-<style>
-    main {
-        height: 100vh;
-        width: 100vw;
-        min-height: 700px;
-        min-width: 1000px;
-    }
-
-    div#map {
-        width: 100%;
-        height: 100%;
-    }
-</style>
+<svelte:window on:resize={resizeContainer} />
