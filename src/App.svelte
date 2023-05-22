@@ -4,10 +4,16 @@
     import baselineJsonRaw from "./assets/baseline_oa.json?raw";
     import { onMount, onDestroy } from "svelte";
     import Chart from "./lib/Chart.svelte";
+    import Recentre from "./lib/Recentre.svelte";
     import Sidebar from "./lib/Sidebar.svelte";
     import Indicators from "./lib/Indicators.svelte";
     import { allIndicators, type Indicator } from "./indicators";
-    import { mergeGeographyWithIndicators, makeChartData } from "./utils";
+    import {
+        mergeGeographyWithIndicators,
+        makeChartData,
+        type ChartData,
+    } from "./utils";
+    import { map as mapStore } from "./stores";
 
     // The indicator which should be shown when the page first loads
     export let initialIndicator: Indicator = "air_quality";
@@ -16,10 +22,16 @@
     let indicatorValues: object | null = null;
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
-    // The map!
+    // The map object
     let map: maplibregl.Map;
     // The data to be sent to the chart
-    let chartData: { colors: string[]; values: number[]; counts: number[] };
+    let chartData: ChartData;
+    // Whether the re-centre button needs to be shown
+    let offcentre: boolean = false;
+    // Initial longitude and latitude
+    let initialCentre: maplibregl.LngLatLike = [-1.59, 54.94];
+    // Initial zoom
+    let initialZoom: number = 10.05;
 
     // Generate data for the baseline
     const baseline = mergeGeographyWithIndicators(baselineJsonRaw);
@@ -31,9 +43,9 @@
         // Create map
         map = new maplibregl.Map({
             container: "map",
-            style: "https://api.maptiler.com/maps/uk-openzoomstack-road/style.json?key=g6kCkRKHQMJqJMcThytt",
-            center: [-1.66, 54.94],
-            zoom: 10.05,
+            style: "https://api.maptiler.com/maps/openstreetmap/style.json?key=g6kCkRKHQMJqJMcThytt",
+            center: initialCentre,
+            zoom: initialZoom,
             hash: true,
         });
 
@@ -114,6 +126,15 @@
             hoveredId = null;
             indicatorValues = null;
         });
+
+        map.on("move", function() {
+            // TODO: Make a more sophisticated check
+            offcentre = map.getZoom() < 6
+                || map.getCenter().lng > 1
+                || map.getCenter().lng < -4
+        });
+
+        mapStore.set(map);
     });
 
     onDestroy(() => {
@@ -160,6 +181,10 @@
     <Chart data={chartData} />
 
     <div id="map" />
+
+    {#if offcentre}
+        <Recentre {initialCentre} {initialZoom} />
+    {/if}
 </main>
 
 <style>
