@@ -13,7 +13,6 @@
         makeChartData,
         type ChartData,
     } from "./utils";
-    import { map as mapStore } from "./stores";
 
     // The indicator which should be shown when the page first loads
     export let initialIndicator: Indicator = "air_quality";
@@ -37,9 +36,16 @@
     const baseline = mergeGeographyWithIndicators(baselineJsonRaw);
     chartData = makeChartData(baseline, initialIndicator, 20);
 
+    // Set div#map to have 100vw and 100vh height
     function resizeContainer() {
-        document.getElementById("map").style.height = `${window.innerHeight}px`;
-        document.getElementById("map").style.width = `${window.innerWidth}px`;
+        if (document.getElementById("map")) {
+            document.getElementById(
+                "map"
+            ).style.height = `${window.innerHeight}px`;
+            document.getElementById(
+                "map"
+            ).style.width = `${window.innerWidth}px`;
+        }
         if (map) map.resize();
     }
 
@@ -132,22 +138,26 @@
             indicatorValues = null;
         });
 
-        map.on("move", function() {
-            // TODO: Make a more sophisticated check
-            offcentre = map.getZoom() < 6
-                || map.getCenter().lng > 1
-                || map.getCenter().lng < -4
+        // Detect whether the map is off-centre. This determines whether the
+        // 're-centre' button is shown or not.
+        // TODO: Make this check more sophisticated
+        map.on("move", function () {
+            offcentre =
+                map.getZoom() < 6 ||
+                map.getCenter().lng > 1 ||
+                map.getCenter().lng < -4;
         });
 
         map.resize();
-
-        mapStore.set(map);
     });
 
     onDestroy(() => {
         map.remove();
     });
 
+    // Update opacity of all map layers according to the currently active
+    // indicator, as well as the value of the opacity slider (which acts as a
+    // constant factor to multiply all layers' opacities by).
     function updateLayers(activeIndicator: Indicator, opacityScale: number) {
         for (const indicator of allIndicators) {
             const newOpacity =
@@ -163,16 +173,29 @@
         map.setPaintProperty("line-layer", "line-opacity", opacityScale);
     }
 
+    /* Event handlers! */
+    // Redraw layers when indicator is changed
     function redrawLayers(
         event: CustomEvent<{ indicator: Indicator; opacity: number }>
     ) {
         chartData = makeChartData(baseline, event.detail.indicator, 20);
         if (map) updateLayers(event.detail.indicator, event.detail.opacity);
     }
+    // Update opacity of all layers when opacity slider is changed
     function updateGlobalOpacity(
         event: CustomEvent<{ indicator: Indicator; opacity: number }>
     ) {
         if (map) updateLayers(event.detail.indicator, event.detail.opacity);
+    }
+    // Recentre map on Newcastle when button is clicked
+    function recentreMap(_: CustomEvent<{}>) {
+        if (map) {
+            map.flyTo({
+                center: initialCentre,
+                zoom: initialZoom,
+                speed: 1.5,
+            });
+        }
     }
 </script>
 
@@ -190,7 +213,7 @@
     <div id="map" />
 
     {#if offcentre}
-        <Recentre {initialCentre} {initialZoom} />
+        <Recentre on:recentreEvent={recentreMap} />
     {/if}
 </main>
 <svelte:window on:resize={resizeContainer} />

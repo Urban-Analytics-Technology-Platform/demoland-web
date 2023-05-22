@@ -74,7 +74,6 @@
 </script>
 
 <div id="chart-container">
-    <h2>Chart</h2>
     <canvas id="chart" />
     <div id="chart-pointers">
         <div id="chart-pointers-left">← {data.less}</div>

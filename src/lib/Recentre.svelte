@@ -1,15 +1,9 @@
 <script lang="ts">
-    export let initialCentre: maplibregl.LngLatLike;
-    export let initialZoom: number;
+    import { createEventDispatcher } from "svelte";
+    const dispatch = createEventDispatcher();
 
-    import { map } from "../stores";
-
-    function recentre() {
-        $map.flyTo({
-            center: initialCentre,
-            zoom: initialZoom,
-            speed: 1.5,
-        });
+    function recentre(_: Event) {
+        dispatch("recentreEvent", {});
     }
 </script>
 
