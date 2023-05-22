@@ -20,6 +20,8 @@
     export let currentIndicator: Indicator = "air_quality";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
+    // The popup shown when hovering over an OA
+    let hoverPopup: maplibregl.Popup | null = null;
     // The numeric ID of the OA that was clicked on.
     let clickedId: number | null = null;
     // The values of the four indicators for the OA which the user has clicked
@@ -130,6 +132,14 @@
                     { source: "newcastle", id: e.features[0].id },
                     { hover: true }
                 );
+                if (hoverPopup !== null) {
+                    hoverPopup.remove();
+                }
+                let bounds = getPolygonBounds(e.features[0].geometry.coordinates[0]);
+                hoverPopup = new maplibregl.Popup()
+                    .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
+                    .setHTML(e.features[0].properties.OA11CD)
+                    .addTo(map);
             }
         });
         map.on("mouseleave", "air_quality-layer", function () {
@@ -138,6 +148,7 @@
                     { source: "newcastle", id: hoveredId },
                     { hover: false }
                 );
+                hoverPopup.remove();
             }
             hoveredId = null;
         });
