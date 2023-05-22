@@ -1,10 +1,10 @@
 <script lang="ts">
     import Chart from "chart.js/auto";
+    import { type ChartData } from "../utils";
     import { onMount, onDestroy } from "svelte";
-    type ChartData = { colors: string[]; values: number[]; counts: number[]; less: string; more: string };
     export let data: ChartData;
 
-    let chart: Chart = null;
+    let chart: Chart | null = null;
 
     function pretty(value: number | string) {
         if (typeof value === "string") return value;
@@ -17,8 +17,13 @@
         if (chart !== null) chart.destroy();
     }
 
-    function drawChart(chartData: { colors: string[]; values: number[]; counts: number[] }) {
-        let canvas = document.getElementById("chart") as HTMLCanvasElement;
+    function drawChart(chartData: ChartData) {
+        let canvas = document.getElementById("chart") as HTMLCanvasElement | null;
+        // DOM not yet created. If this check isn't present, then the $:
+        // drawChart line leads to an error, since that is executed when the
+        // page is first created
+        if (canvas === null) return;
+
         destroyChart();
         chart = new Chart(canvas, {
             type: "bar",

@@ -100,9 +100,10 @@ export function mergeGeographyWithIndicators(
     return geography;
 }
 
+export type ChartData = { colors: string[]; values: number[]; counts: number[]; less: string; more: string };
 
 // TODO Document
-export function makeChartData(geojson: object, indicator: Indicator, nbars: number) {
+export function makeChartData(geojson: object, indicator: Indicator, nbars: number): ChartData {
     const colors = makeColormap(indicator, nbars);
     const rawValues: number[] = geojson["features"].map(feature => feature.properties[indicator]);
     // quantise rawValues to 0 -> 19
