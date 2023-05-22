@@ -18,7 +18,9 @@
     }
 
     function drawChart(chartData: ChartData) {
-        let canvas = document.getElementById("chart") as HTMLCanvasElement | null;
+        let canvas = document.getElementById(
+            "chart"
+        ) as HTMLCanvasElement | null;
         // DOM not yet created. If this check isn't present, then the $:
         // drawChart line leads to an error, since that is executed when the
         // page is first created
@@ -62,7 +64,7 @@
                     legend: {
                         display: false,
                     },
-                }
+                },
             },
         });
     }
@@ -74,37 +76,36 @@
 </script>
 
 <div id="chart-container">
+    <h2>Chart</h2>
     <canvas id="chart" />
     <div id="chart-pointers">
         <div id="chart-pointers-left">← {data.less}</div>
-        <div id="chart-pointers-right">{data.more}  →</div>
+        <div id="chart-pointers-right">{data.more} →</div>
     </div>
 </div>
 
 <style>
-div#chart-container {
-    --margin: 40px;
-    border-radius: 10px;
-    box-sizing: border-box;
-    position: absolute;
-    height: min-content;
-    width: 300px;
-    bottom: var(--margin);
-    right: var(--margin);
-    margin: 0px;
-    padding: 20px;
-    z-index: 1;
-    border: 1px solid black;
-    background-color: #fad7f0; /* pink */
-}
+    div#chart-container {
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid black;
+        background-color: #fad7f0; /* pink */
+    }
 
-div#chart-pointers {
-    display: flex;
-}
-div#chart-pointers-left {
-    margin-right: auto;
-}
-div#chart-pointers-right {
-    margin-left: auto;
-}
+    div#chart-pointers {
+        display: flex;
+    }
+    div#chart-pointers-left {
+        margin-right: auto;
+    }
+    div#chart-pointers-right {
+        margin-left: auto;
+    }
+
+    div#chart-container > :first-child {
+        margin-top: 0 !important;
+    }
+    div#chart-container > :last-child {
+        margin-bottom: 0 !important;
+    }
 </style>

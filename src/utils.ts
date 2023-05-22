@@ -1,5 +1,6 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
+import maplibregl from "maplibre-gl";
 import { allIndicators, type Indicator } from "./indicators";
 
 function makeColormap(indicator: Indicator, n: number) {
@@ -138,4 +139,14 @@ export function makeChartData(geojson: object, indicator: Indicator, nbars: numb
         less: less,
         more: more,
     }
+}
+
+// Obtain the LngLatBoundsLike of a polygon from its coordinates.
+// See: https://maplibre.org/maplibre-gl-js-docs/example/zoomto-linestring/
+export function getPolygonBounds(coordinates: [number, number][]): maplibregl.LngLatLike {
+    console.log(coordinates);
+    const initialBounds = new maplibregl.LngLatBounds(coordinates[0], coordinates[0]);
+    const bounds = coordinates.reduce((bounds, coord) => bounds.extend(coord), initialBounds);
+    console.log(bounds);
+    return bounds;
 }

@@ -4,6 +4,8 @@
 html {
     font-family: "Instrument Sans", sans-serif;
     box-sizing: border-box;
+    font-size: 14px;
+    line-height: 1.3;
 }
 
 *, *:before, *:after {
@@ -19,10 +21,6 @@ body {
 
 .strong {
     font-weight: bold;
-}
-
-h1, h2, h3, h4, h5 {
-    margin-top: 0px;
 }
 
 h1 {

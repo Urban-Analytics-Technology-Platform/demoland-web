@@ -7,20 +7,24 @@
     import Recentre from "./lib/Recentre.svelte";
     import Sidebar from "./lib/Sidebar.svelte";
     import Indicators from "./lib/Indicators.svelte";
+    import Values from "./lib/Values.svelte";
     import { allIndicators, type Indicator } from "./indicators";
     import {
         mergeGeographyWithIndicators,
         makeChartData,
         type ChartData,
+        getPolygonBounds,
     } from "./utils";
 
-    // The indicator which should be shown when the page first loads
-    export let initialIndicator: Indicator = "air_quality";
-    // The values of the four indicators for the OA which the user has hovered
-    // over. Null if no OA is being hovered over.
-    let indicatorValues: object | null = null;
+    // The currently active indicator
+    export let currentIndicator: Indicator = "air_quality";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
+    // The numeric ID of the OA that was clicked on.
+    let clickedId: number | null = null;
+    // The values of the four indicators for the OA which the user has clicked
+    // over. Null if no OA has been clicked on.
+    let clickedValues: object | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be sent to the chart
@@ -34,7 +38,7 @@
 
     // Generate data for the baseline
     const baseline = mergeGeographyWithIndicators(baselineJsonRaw);
-    chartData = makeChartData(baseline, initialIndicator, 20);
+    chartData = makeChartData(baseline, currentIndicator, 20);
 
     // Set div#map to have 100vw and 100vh height
     function resizeContainer() {
@@ -84,7 +88,7 @@
                     paint: {
                         "fill-color": ["get", `${indicator}-color`],
                         "fill-opacity":
-                            indicator === initialIndicator ? 0.8 : 0.01,
+                            indicator === currentIndicator ? 0.8 : 0.01,
                     },
                 });
             }
@@ -97,8 +101,10 @@
                     "line-color": "#000000",
                     "line-width": [
                         "case",
-                        ["boolean", ["feature-state", "hover"], false],
+                        ["boolean", ["feature-state", "click"], false],
                         3,
+                        ["boolean", ["feature-state", "hover"], false],
+                        1.5,
                         0.1,
                     ],
                 },
@@ -124,7 +130,6 @@
                     { source: "newcastle", id: e.features[0].id },
                     { hover: true }
                 );
-                indicatorValues = e.features[0].properties;
             }
         });
         map.on("mouseleave", "air_quality-layer", function () {
@@ -135,7 +140,51 @@
                 );
             }
             hoveredId = null;
-            indicatorValues = null;
+        });
+
+        // Add click functionality
+        map.on("click", "air_quality-layer", function (e) {
+            // preventDefault usage: see https://stackoverflow.com/a/54413030
+            // This prevents the 'normal' onclick behaviour (above) when the
+            // user clicks on an OA
+            e.preventDefault();
+            if (e.features.length > 0) {
+                // Clicked on an OA
+                if (clickedId !== null) {
+                    map.setFeatureState(
+                        { source: "newcastle", id: clickedId },
+                        { click: false }
+                    );
+                }
+                clickedId = e.features[0].id as number;
+                map.setFeatureState(
+                    { source: "newcastle", id: clickedId },
+                    { click: true }
+                );
+                clickedValues = e.features[0].properties;
+                // Centre map on that OA if the new div would obscure it.
+                const newDivWouldObscureOA = false;  // TODO!
+                if (newDivWouldObscureOA) {
+                    map.flyTo({
+                        center: getPolygonBounds(e.features[0].geometry.coordinates[0]).getCenter(),
+                        speed: 0.2,
+                    });
+                }
+            }
+        });
+        map.on("click", function(e) {
+            if (e.defaultPrevented === false) {
+                // Clicked outside an OA
+                console.log(clickedId);
+                if (clickedId !== null) {
+                    map.setFeatureState(
+                        { source: "newcastle", id: clickedId },
+                        { click: false }
+                    );
+                    clickedId = null;
+                }
+                clickedValues = null;
+            }
         });
 
         // Detect whether the map is off-centre. This determines whether the
@@ -178,6 +227,7 @@
     function redrawLayers(
         event: CustomEvent<{ indicator: Indicator; opacity: number }>
     ) {
+        currentIndicator = event.detail.indicator;
         chartData = makeChartData(baseline, event.detail.indicator, 20);
         if (map) updateLayers(event.detail.indicator, event.detail.opacity);
     }
@@ -200,20 +250,43 @@
 </script>
 
 <main>
-    <Sidebar />
-    <Indicators
-        opacityScale={1}
-        currentIndicator={initialIndicator}
-        {indicatorValues}
-        on:indicatorChange={redrawLayers}
-        on:opacityChange={updateGlobalOpacity}
-    />
-    <Chart data={chartData} />
-
     <div id="map" />
+
+    <Sidebar />
 
     {#if offcentre}
         <Recentre on:recentreEvent={recentreMap} />
     {/if}
+    
+    <div id="right-container">
+        <Indicators
+            opacityScale={1}
+            {currentIndicator}
+            on:indicatorChange={redrawLayers}
+            on:opacityChange={updateGlobalOpacity}
+        />
+        <Chart data={chartData} />
+        {#if clickedId !== null}
+            <Values {currentIndicator} values={clickedValues} />
+        {/if}
+    </div>
 </main>
 <svelte:window on:resize={resizeContainer} />
+
+<style>
+    div#right-container {
+        --margin: 40px;
+        box-sizing: border-box;
+        position: absolute;
+        height: min-content;
+        width: 300px;
+        top: var(--margin);
+        right: var(--margin);
+        margin: 0px;
+        padding: 0px;
+        z-index: 1;
+        display: flex;
+        flex-flow: column nowrap;
+        gap: 20px;
+    }
+</style>
