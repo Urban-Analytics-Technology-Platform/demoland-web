@@ -119,9 +119,22 @@ export function makeChartData(geojson: object, indicator: Indicator, nbars: numb
     const values = Array.from({ length: nbars }, (_, i) => i)
         .map(value => value * (max - min) / (nbars - 1) + min);
 
+    let less: string; let more: string;
+    if (indicator === "air_quality") {
+        less = "cleaner"; more = "more polluted";
+    } else if (indicator === "house_price") {
+        less = "cheaper"; more = "more expensive";
+    } else if (indicator === "job_accessibility") {
+        less = "poorer"; more = "better";
+    } else if (indicator === "greenspace_accessibility") {
+        less = "poorer"; more = "better";
+    }
+
     return {
         counts: counts,
         values: values,
         colors: colors,
+        less: less,
+        more: more,
     }
 }

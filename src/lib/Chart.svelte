@@ -1,7 +1,8 @@
 <script lang="ts">
     import Chart from "chart.js/auto";
     import { onMount, onDestroy } from "svelte";
-    export let data: { colors: string[]; values: number[]; counts: number[] };
+    type ChartData = { colors: string[]; values: number[]; counts: number[]; less: string; more: string };
+    export let data: ChartData;
 
     let chart: Chart = null;
 
@@ -64,33 +65,42 @@
     onMount(() => drawChart(data));
     onDestroy(destroyChart);
 
-    // This line fires whenever data is updated (which is needed for
-    // reactivity), but also when the page is first loaded (before the DOM is
-    // generated). Because the canvas can't be found, this will throw an error,
-    // but it can be ignored because the chart will be properly drawn by the
-    // onMount callback.
     $: drawChart(data);
 </script>
 
 <div id="chart-container">
     <h2>Chart</h2>
     <canvas id="chart" />
+    <div id="chart-pointers">
+        <div id="chart-pointers-left">← {data.less}</div>
+        <div id="chart-pointers-right">{data.more}  →</div>
+    </div>
 </div>
 
 <style>
-    div#chart-container {
-        --margin: 40px;
-        border-radius: 10px;
-        box-sizing: border-box;
-        position: absolute;
-        height: min-content;
-        width: 300px;
-        bottom: var(--margin);
-        right: var(--margin);
-        margin: 0px;
-        padding: 20px;
-        z-index: 1;
-        border: 1px solid black;
-        background-color: #fad7f0; /* pink */
-    }
+div#chart-container {
+    --margin: 40px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    position: absolute;
+    height: min-content;
+    width: 300px;
+    bottom: var(--margin);
+    right: var(--margin);
+    margin: 0px;
+    padding: 20px;
+    z-index: 1;
+    border: 1px solid black;
+    background-color: #fad7f0; /* pink */
+}
+
+div#chart-pointers {
+    display: flex;
+}
+div#chart-pointers-left {
+    margin-right: auto;
+}
+div#chart-pointers-right {
+    margin-left: auto;
+}
 </style>
