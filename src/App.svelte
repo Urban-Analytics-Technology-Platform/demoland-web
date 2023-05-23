@@ -200,12 +200,14 @@
 
         // Detect whether the map is off-centre. This determines whether the
         // 're-centre' button is shown or not.
-        // TODO: Make this check more sophisticated
         map.on("move", function () {
+            const bounds = map.getBounds();
             offcentre =
                 map.getZoom() < 6 ||
-                map.getCenter().lng > 1 ||
-                map.getCenter().lng < -4;
+                bounds.getWest() > -1.35 ||
+                bounds.getEast() < -1.855 ||
+                bounds.getNorth() < 54.8 ||
+                bounds.getSouth() > 55.08;
         });
 
         map.resize();
