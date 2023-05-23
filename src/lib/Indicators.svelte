@@ -64,6 +64,7 @@
     input[type="range"] {
         display: inline-block;
         vertical-align: middle;
+        width: 140px;
     }
 
     div#indicators > :first-child {
