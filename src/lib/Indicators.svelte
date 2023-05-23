@@ -1,29 +1,28 @@
 <script lang="ts">
     import { allIndicators, type Indicator } from "../constants";
     import { createEventDispatcher } from "svelte";
-
+    export let activeIndicator: Indicator;
+    export let opacity: number;
     const dispatch = createEventDispatcher();
 
-    function update(indicatorChanged: boolean) {
-        const eventType = indicatorChanged
-            ? "indicatorChange"
-            : "opacityChange";
-        return (_: Event) => {
-            dispatch(eventType, {
-                indicator: activeIndicator,
-                opacity: opacity,
-            });
-        };
+    function changeIndicator() {
+        dispatch("changeIndicator", {
+            indicator: activeIndicator,
+        });
+    }
+    function changeOpacity() {
+        dispatch("changeOpacity", {
+            opacity: opacity,
+        });
     }
 
+    // TODO refactor this into constants.ts
     let indicatorTexts: object = {
         air_quality: "Air quality",
         house_price: "House prices",
         job_accessibility: "Job accessibility",
         greenspace_accessibility: "Greenspace accessibility",
     };
-    export let activeIndicator: Indicator;
-    export let opacity: number = 1;
 </script>
 
 <div id="indicators">
@@ -33,7 +32,7 @@
             ><input
                 bind:group={activeIndicator}
                 type="radio"
-                on:change={update(true)}
+                on:change={changeIndicator}
                 value={indi}
             />{indicatorTexts[indi]}</label
         ><br />
@@ -46,7 +45,7 @@
             max="1"
             step="0.05"
             bind:value={opacity}
-            on:input={update(false)}
+            on:input={changeOpacity}
         />
     </p>
 </div>

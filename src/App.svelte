@@ -80,7 +80,7 @@
 
         // Add in sources and create layers
         map.on("load", function () {
-            redrawLayers(mapData);
+            drawLayers(mapData);
         });
 
         // Add hover functionality.
@@ -188,40 +188,9 @@
         map.remove();
     });
 
-    // Update opacity of all map layers according to the currently active
-    // indicator, as well as the value of the opacity slider (which acts as a
-    // constant factor to multiply all layers' opacities by).
-    function updateLayers(activeIndicator: Indicator, opacityScale: number) {
-        for (const indicator of allIndicators) {
-            const newOpacity =
-                indicator === activeIndicator
-                    ? 0.8 * opacityScale
-                    : 0.01 * opacityScale;
-            map.setPaintProperty(
-                `${indicator}-layer`,
-                "fill-opacity",
-                newOpacity
-            );
-        }
-        map.setPaintProperty("line-layer", "line-opacity", opacityScale);
-    }
-
-    function redrawLayers(mapData: GeoJSON.GeoJsonObject) {
-        for (const indicator of allIndicators) {
-            const layerName = `${indicator}-layer`;
-            if (map.getLayer(layerName) !== undefined) {
-                map.setPaintProperty(layerName, "fill-opacity", 0.01);
-                map.removeLayer(`${indicator}-layer`);
-            }
-        }
-        if (map.getLayer("line-layer") !== undefined) {
-            map.setPaintProperty("line-layer", "line-opacity", 0.01);
-            map.removeLayer("line-layer");
-        }
-        if (map.getSource("newcastle") !== undefined) {
-            map.removeSource("newcastle");
-        }
-
+    // Draw the map layers. This is called when the map is first created, and also
+    // whenever the scenario is changed.
+    function drawLayers(mapData: GeoJSON.GeoJsonObject) {
         map.addSource("newcastle", {
             type: "geojson",
             data: mapData,
@@ -232,6 +201,19 @@
             // enabling the hover functionality.
             generateId: true,
         });
+        // The choice to use four different layers here --- one per indicator
+        // --- seems to be suboptimal at first glance. Indeed, virtually all
+        // the same functionality can be accomplished by using only one layer,
+        // and toggling fill-color when the active indicator is changed.
+        // However, fill-color is a data-driven property, and these do not work
+        // with transitions: see
+        // https://github.com/mapbox/mapbox-gl-js/issues/3170. So, changing the
+        // fill-color leads to a 'flickering' effect when the active indicator
+        // is changed. The way around it is to use fill-opacity (which is not
+        // data-driven) for four different layers. The only real drawback is
+        // performance, but I haven't really noticed any issues so far.
+
+        // We first generate all layers with an opacity of 0.01.
         for (const indicator of allIndicators) {
             const layerName = `${indicator}-layer`;
             map.addLayer({
@@ -242,6 +224,10 @@
                 paint: {
                     "fill-color": ["get", `${indicator}-color`],
                     "fill-opacity": 0.01,
+                    // Suppressing a known bug:
+                    // https://github.com/maplibre/maplibre-gl-js/issues/1708
+                    // @ts-ignore
+                    "fill-opacity-transition": {"duration": 400},
                 },
             });
         }
@@ -261,21 +247,65 @@
                     0.1,
                 ],
                 "line-opacity": 0.01,
+                // Suppressing a known bug:
+                // https://github.com/maplibre/maplibre-gl-js/issues/1708
+                // @ts-ignore
+                "line-opacity-transition": {"duration": 400},
             },
         });
-        // setTimeout makes it look smoother
-        setTimeout(function() {
+
+        // Then, we fade the ones we want in, after a small delay to allow for loading.
+        setTimeout(function () {
             for (const indicator of allIndicators) {
                 const layerName = `${indicator}-layer`;
-                map.setPaintProperty(layerName, "fill-opacity", indicator === activeIndicator ? (0.8 * opacity) : (0.01 * opacity));
+                map.setPaintProperty(
+                    layerName,
+                    "fill-opacity",
+                    indicator === activeIndicator
+                        ? 0.8 * opacity
+                        : 0.01 * opacity
+                );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
-        }, 50);
+        }, 100);
+    }
+
+    function redrawLayers(mapData: GeoJSON.GeoJsonObject) {
+        // Fade out existing layers if necessary
+        for (const indicator of allIndicators) {
+            const layerName = `${indicator}-layer`;
+            if (map.getLayer(layerName) !== undefined) {
+                map.setPaintProperty(layerName, "fill-opacity", 0.01);
+                map.removeLayer(`${indicator}-layer`);
+            }
+        }
+        if (map.getLayer("line-layer") !== undefined) {
+            map.setPaintProperty("line-layer", "line-opacity", 0.01);
+            map.removeLayer("line-layer");
+        }
+        if (map.getSource("newcastle") !== undefined) {
+            map.removeSource("newcastle");
+        }
+        drawLayers(mapData);
+    }
+
+    // Update opacity of all map layers according to the currently active
+    // indicator, as well as the value of the opacity slider (which acts as a
+    // constant factor to multiply all layers' opacities by).
+    function updateLayers() {
+        for (const indicator of allIndicators) {
+            map.setPaintProperty(
+                `${indicator}-layer`,
+                "fill-opacity",
+                indicator === activeIndicator ? 0.8 * opacity : 0.01 * opacity
+            );
+        }
+        map.setPaintProperty("line-layer", "line-opacity", opacity);
     }
 
     /* Event handlers! */
     // Redraw layers when scenario is changed
-    function redrawLayersScenario(
+    function updateScenario(
         event: CustomEvent<{ scenarioName: ScenarioName }>
     ) {
         scenarioName = event.detail.scenarioName;
@@ -286,19 +316,17 @@
         }
     }
     // Redraw layers when indicator is changed
-    function redrawLayersIndicator(
-        event: CustomEvent<{ indicator: Indicator; opacity: number }>
+    function updateIndicator(
+        event: CustomEvent<{ indicator: Indicator }>
     ) {
         activeIndicator = event.detail.indicator;
         chartData = makeChartData(mapData, event.detail.indicator, 20);
-        if (map) updateLayers(event.detail.indicator, event.detail.opacity);
+        if (map) updateLayers();
     }
     // Update opacity of all layers when opacity slider is changed
-    function updateGlobalOpacity(
-        event: CustomEvent<{ indicator: Indicator; opacity: number }>
-    ) {
+    function updateOpacity(event: CustomEvent<{ opacity: number }>) {
         opacity = event.detail.opacity;
-        if (map) updateLayers(event.detail.indicator, event.detail.opacity);
+        if (map) updateLayers();
     }
     // Recentre map on Newcastle when button is clicked
     function recentreMap(_: CustomEvent<{}>) {
@@ -316,10 +344,7 @@
     <div id="map" />
 
     <div id="other-content-container">
-        <Sidebar
-            {scenarioName}
-            on:changeScenario={redrawLayersScenario}
-        />
+        <Sidebar {scenarioName} on:changeScenario={updateScenario} />
 
         {#if offcentre}
             <Recentre on:recentreEvent={recentreMap} />
@@ -329,12 +354,12 @@
             <Indicators
                 {opacity}
                 {activeIndicator}
-                on:indicatorChange={redrawLayersIndicator}
-                on:opacityChange={updateGlobalOpacity}
+                on:changeIndicator={updateIndicator}
+                on:changeOpacity={updateOpacity}
             />
             <Chart data={chartData} />
             {#if clickedId !== null}
-                <Values currentIndicator={activeIndicator} values={clickedValues} />
+                <Values {activeIndicator} values={clickedValues} />
             {/if}
         </div>
     </div>
