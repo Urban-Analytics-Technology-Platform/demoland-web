@@ -1,23 +1,26 @@
 <script lang="ts">
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
-    import baselineJsonRaw from "./assets/baseline_oa.json?raw";
     import { onMount, onDestroy } from "svelte";
     import Chart from "./lib/Chart.svelte";
     import Recentre from "./lib/Recentre.svelte";
     import Sidebar from "./lib/Sidebar.svelte";
     import Indicators from "./lib/Indicators.svelte";
     import Values from "./lib/Values.svelte";
-    import { allIndicators, type Indicator } from "./indicators";
     import {
-        mergeGeographyWithIndicators,
+        allIndicators,
+        type Indicator,
+        type ScenarioName,
+    } from "./constants";
+    import {
+        makeCombinedGeoJSON,
         makeChartData,
         type ChartData,
         getGeometryBounds,
     } from "./utils";
 
     // The currently active indicator
-    export let currentIndicator: Indicator = "air_quality";
+    let currentIndicator: Indicator = "air_quality";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
@@ -29,6 +32,8 @@
     let clickedValues: object | null = null;
     // The map object
     let map: maplibregl.Map;
+    // The data to be plotted on the map
+    let mapData: GeoJSON.GeoJsonObject;
     // The data to be sent to the chart
     let chartData: ChartData;
     // Whether the re-centre button needs to be shown
@@ -37,10 +42,12 @@
     let initialCentre: maplibregl.LngLatLike = [-1.59, 54.94];
     // Initial zoom
     let initialZoom: number = 10.05;
+    // Initial scenario to show
+    let currentScenarioName: ScenarioName = "baseline";
 
     // Generate data for the baseline
-    const baseline = mergeGeographyWithIndicators(baselineJsonRaw);
-    chartData = makeChartData(baseline, currentIndicator, 20);
+    mapData = makeCombinedGeoJSON(currentScenarioName);
+    chartData = makeChartData(mapData, currentIndicator, 20);
 
     // Set div#map to have 100vw and 100vh height
     function resizeContainer() {
@@ -71,46 +78,7 @@
 
         // Add in sources and create layers
         map.on("load", function () {
-            map.addSource("newcastle", {
-                type: "geojson",
-                data: baseline,
-                // When setting the feature ID to be the OA label (a string),
-                // mapLibre wipes them as it can't be converted to a number.
-                // See https://github.com/maplibre/maplibre-gl-js/issues/1043.
-                // Th generateId option generates numeric ids for each feature,
-                // enabling the hover functionality.
-                generateId: true,
-            });
-            for (const indicator of allIndicators) {
-                map.addLayer({
-                    id: `${indicator}-layer`,
-                    type: "fill",
-                    source: "newcastle",
-                    layout: {},
-                    paint: {
-                        "fill-color": ["get", `${indicator}-color`],
-                        "fill-opacity":
-                            indicator === currentIndicator ? 0.8 : 0.01,
-                    },
-                });
-            }
-            map.addLayer({
-                id: "line-layer",
-                type: "line",
-                source: "newcastle",
-                layout: {},
-                paint: {
-                    "line-color": "#000000",
-                    "line-width": [
-                        "case",
-                        ["boolean", ["feature-state", "click"], false],
-                        3,
-                        ["boolean", ["feature-state", "hover"], false],
-                        1.5,
-                        0.1,
-                    ],
-                },
-            });
+            redrawLayers(mapData);
         });
 
         // Add hover functionality.
@@ -174,19 +142,20 @@
                 );
                 clickedValues = e.features[0].properties;
                 // Centre map on that OA if the new div would obscure it.
-                const newDivWouldObscureOA = false;  // TODO!
+                const newDivWouldObscureOA = false; // TODO!
                 if (newDivWouldObscureOA) {
                     map.flyTo({
-                        center: getPolygonBounds(e.features[0].geometry.coordinates[0]).getCenter(),
+                        center: getGeometryBounds(
+                            e.features[0].geometry
+                        ).getCenter(),
                         speed: 0.2,
                     });
                 }
             }
         });
-        map.on("click", function(e) {
+        map.on("click", function (e) {
             if (e.defaultPrevented === false) {
                 // Clicked outside an OA
-                console.log(clickedId);
                 if (clickedId !== null) {
                     map.setFeatureState(
                         { source: "newcastle", id: clickedId },
@@ -235,13 +204,79 @@
         map.setPaintProperty("line-layer", "line-opacity", opacityScale);
     }
 
+    function redrawLayers(mapData: GeoJSON.GeoJsonObject) {
+        for (const indicator of allIndicators) {
+            if (map.getLayer(`${indicator}-layer`) !== undefined) {
+                map.removeLayer(`${indicator}-layer`);
+            }
+        }
+        if (map.getLayer("line-layer") !== undefined) {
+            map.removeLayer("line-layer");
+        }
+        if (map.getSource("newcastle") !== undefined) {
+            map.removeSource("newcastle");
+        }
+
+        // TODO: Do we need to overwrite instead of addSource?
+        map.addSource("newcastle", {
+            type: "geojson",
+            data: mapData,
+            // When setting the feature ID to be the OA label (a string),
+            // mapLibre wipes them as it can't be converted to a number.
+            // See https://github.com/maplibre/maplibre-gl-js/issues/1043.
+            // The generateId option generates numeric ids for each feature,
+            // enabling the hover functionality.
+            generateId: true,
+        });
+        for (const indicator of allIndicators) {
+            map.addLayer({
+                id: `${indicator}-layer`,
+                type: "fill",
+                source: "newcastle",
+                layout: {},
+                paint: {
+                    "fill-color": ["get", `${indicator}-color`],
+                    "fill-opacity": indicator === currentIndicator ? 0.8 : 0.01,
+                },
+            });
+        }
+        map.addLayer({
+            id: "line-layer",
+            type: "line",
+            source: "newcastle",
+            layout: {},
+            paint: {
+                "line-color": "#000000",
+                "line-width": [
+                    "case",
+                    ["boolean", ["feature-state", "click"], false],
+                    3,
+                    ["boolean", ["feature-state", "hover"], false],
+                    1.5,
+                    0.1,
+                ],
+            },
+        });
+    }
+
     /* Event handlers! */
+    // Redraw layers when scenario is changed
+    function redrawLayersScenario(
+        event: CustomEvent<{ scenarioName: ScenarioName }>
+    ) {
+        currentScenarioName = event.detail.scenarioName;
+        mapData = makeCombinedGeoJSON(currentScenarioName);
+        chartData = makeChartData(mapData, currentIndicator, 20);
+        if (map) {
+            redrawLayers(mapData);
+        }
+    }
     // Redraw layers when indicator is changed
-    function redrawLayers(
+    function redrawLayersIndicator(
         event: CustomEvent<{ indicator: Indicator; opacity: number }>
     ) {
         currentIndicator = event.detail.indicator;
-        chartData = makeChartData(baseline, event.detail.indicator, 20);
+        chartData = makeChartData(mapData, event.detail.indicator, 20);
         if (map) updateLayers(event.detail.indicator, event.detail.opacity);
     }
     // Update opacity of all layers when opacity slider is changed
@@ -266,17 +301,20 @@
     <div id="map" />
 
     <div id="other-content-container">
-        <Sidebar />
+        <Sidebar
+            {currentScenarioName}
+            on:changeScenario={redrawLayersScenario}
+        />
 
         {#if offcentre}
             <Recentre on:recentreEvent={recentreMap} />
         {/if}
-        
+
         <div id="right-container">
             <Indicators
                 opacityScale={1}
                 {currentIndicator}
-                on:indicatorChange={redrawLayers}
+                on:indicatorChange={redrawLayersIndicator}
                 on:opacityChange={updateGlobalOpacity}
             />
             <Chart data={chartData} />

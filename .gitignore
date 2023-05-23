@@ -1,7 +1,10 @@
 # Big files that aren't actually needed for the web app
-src/assets/oa*.geojson
-src/assets/*.py
-src/assets/*.csv
+src/assets/*
+!src/assets/baseline_oa.json
+!src/assets/newcastle.json
+!src/assets/scenario1_oa.json
+!src/assets/scenario2_oa.json
+!src/assets/README.md
 
 # Logs
 logs

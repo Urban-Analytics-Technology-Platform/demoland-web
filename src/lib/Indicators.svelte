@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { allIndicators, type Indicator } from "../indicators";
+    import { allIndicators, type Indicator } from "../constants";
     import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();

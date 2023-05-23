@@ -1,7 +1,7 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type Indicator } from "./indicators";
+import { allIndicators, type Indicator, allScenarios, type ScenarioName } from "./constants";
 
 function makeColormap(indicator: Indicator, n: number) {
     if (indicator === "air_quality") {
@@ -56,20 +56,18 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  * It also proves easier to encode the colours for each indicator here, because
  * otherwise it results in some really complicated expressions in MapLibre.
  * 
- * @param {string} indicatorsRaw: the raw JSON string of the indicator data.
- * This JSON should be structured in the following format:
- *   { oa_name: { indicator_name: indicator_value, ... }, ... }
- * where the indicator_name's are the same as those in allIndicators.
+ * @param {ScenarioName} scenarioName: the name of the scenario being used.
  *
  * @returns an updated GeoJSON file with the indicator values plus associated
  * colours added to the properties of each feature.
  */
-export function mergeGeographyWithIndicators(
-    indicatorsRaw: string
-) {
-    const indicators = JSON.parse(indicatorsRaw);
+export function makeCombinedGeoJSON(
+    scenarioName: ScenarioName,
+): GeoJSON.GeoJsonObject {
+    const scenario = allScenarios.find(s => s.name === scenarioName);
+    const indicators = scenario.values;
 
-    // Calculate min and max values. TODO write better code
+    // Calculate min and max values.
     const minValues = new Object();
     const maxValues = new Object();
     for (let indicator of allIndicators) {
@@ -80,7 +78,6 @@ export function mergeGeographyWithIndicators(
             ...Object.values(indicators).map((o: object) => o[indicator])
         );
     }
-    console.log(minValues);
 
     // Merge geography with indicators
     geography["features"] = geography["features"].map(function(feature) {
@@ -98,7 +95,8 @@ export function mergeGeographyWithIndicators(
         return feature;
     });
 
-    return geography;
+    // TODO: Figure out how to not cast here
+    return geography as GeoJSON.GeoJsonObject;
 }
 
 export type ChartData = { colors: string[]; values: number[]; counts: number[]; less: string; more: string };

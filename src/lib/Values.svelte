@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { allIndicators, type Indicator } from "../indicators";
+    import { allIndicators, type Indicator } from "../constants";
     export let currentIndicator: Indicator;
     export let values: object | null = null;
 </script>

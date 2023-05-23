@@ -3,6 +3,7 @@
 - `baseline_oa.csv` = calculated baseline values for OAs, exported from notebook as csv, five columns: `geo_code`, `air_quality`, `house_price`, `job_accessibility`, `greenspace_accessibility`
   - 3795 OAs in total
 - `baseline_oa.json` = the same as above but converted to JSON using `csv_to_json.py`
+- `scenario1_oa.json` and `scenario2_oa.json` = fully synthetic data obtained by performing KDE on baseline values, to be used for testing purposes only
 
 - `newcastle.geojson` = the above OAs exported from the data in OneDrive demoland folder `/processed/interpolated/all_oa.parquet`
     
