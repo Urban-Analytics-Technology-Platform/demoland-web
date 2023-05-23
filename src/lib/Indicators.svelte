@@ -58,6 +58,7 @@
         padding: 20px;
         background-color: #caf0fa; /* light blue */
         border: 1px solid black;
+        pointer-events: auto;
     }
 
     input[type="range"] {

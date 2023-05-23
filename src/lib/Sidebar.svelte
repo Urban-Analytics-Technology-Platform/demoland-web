@@ -22,19 +22,18 @@
 
 <style>
     div#sidebar {
-        --margin: 40px;
         border-radius: 10px;
         opacity: 90%;
         box-sizing: border-box;
-        position: absolute;
-        height: min-content;
-        width: 300px;
-        top: var(--margin);
-        left: var(--margin);
+        width: 280px;
+        min-width: 280px;
         padding: 20px;
         background-color: #deb4f0; /* purple */
-        z-index: 1;
         border: 1px solid black;
+
+        margin-left: 0px;
+        margin-right: auto;
+        pointer-events: auto;
     }
     div#sidebar > :first-child {
         margin-top: 0 !important;

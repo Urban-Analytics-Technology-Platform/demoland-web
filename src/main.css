@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap');
 
 /* https://css-tricks.com/box-sizing/ */
 html {
-    font-family: "Instrument Sans", sans-serif;
+    font-family: "IBM Plex Sans", sans-serif;
     box-sizing: border-box;
     font-size: 14px;
     line-height: 1.3;

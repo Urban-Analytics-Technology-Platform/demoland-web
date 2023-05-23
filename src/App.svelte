@@ -265,41 +265,57 @@
 <main>
     <div id="map" />
 
-    <Sidebar />
+    <div id="other-content-container">
+        <Sidebar />
 
-    {#if offcentre}
-        <Recentre on:recentreEvent={recentreMap} />
-    {/if}
-    
-    <div id="right-container">
-        <Indicators
-            opacityScale={1}
-            {currentIndicator}
-            on:indicatorChange={redrawLayers}
-            on:opacityChange={updateGlobalOpacity}
-        />
-        <Chart data={chartData} />
-        {#if clickedId !== null}
-            <Values {currentIndicator} values={clickedValues} />
+        {#if offcentre}
+            <Recentre on:recentreEvent={recentreMap} />
         {/if}
+        
+        <div id="right-container">
+            <Indicators
+                opacityScale={1}
+                {currentIndicator}
+                on:indicatorChange={redrawLayers}
+                on:opacityChange={updateGlobalOpacity}
+            />
+            <Chart data={chartData} />
+            {#if clickedId !== null}
+                <Values {currentIndicator} values={clickedValues} />
+            {/if}
+        </div>
     </div>
 </main>
 <svelte:window on:resize={resizeContainer} />
 
 <style>
-    div#right-container {
-        --margin: 40px;
-        box-sizing: border-box;
+    div#other-content-container {
+        --padding: 20px;
         position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100vw;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: flex-start;
+        padding: var(--padding);
+        gap: var(--padding);
+        pointer-events: none;
+    }
+
+    div#right-container {
+        box-sizing: border-box;
         height: min-content;
-        width: 300px;
-        top: var(--margin);
-        right: var(--margin);
+        width: 250px;
+        min-width: 250px;
         margin: 0px;
         padding: 0px;
-        z-index: 1;
         display: flex;
         flex-flow: column nowrap;
         gap: 20px;
+
+        margin-left: auto;
+        margin-right: 0px;
+        pointer-events: auto;
     }
 </style>

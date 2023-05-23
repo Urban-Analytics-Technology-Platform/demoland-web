@@ -90,6 +90,7 @@
         padding: 20px;
         border: 1px solid black;
         background-color: #fad7f0; /* pink */
+        pointer-events: auto;
     }
 
     div#chart-pointers {

@@ -26,15 +26,10 @@
         border-radius: 10px;
         opacity: 90%;
         box-sizing: border-box;
-        height: min-content;
-        width: 300px;
-        top: var(--margin);
-        right: var(--margin);
         padding: 20px;
         background-color: #cbf5da; /* light green */
         border: 1px solid black;
-        margin-bottom: 20px;
-        padding: 20px;
+        pointer-events: auto;
     }
 
     div#values > :first-child {
