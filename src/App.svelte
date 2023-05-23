@@ -20,7 +20,7 @@
     } from "./utils";
 
     // The currently active indicator
-    let currentIndicator: Indicator = "air_quality";
+    let activeIndicator: Indicator = "air_quality";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
@@ -43,11 +43,13 @@
     // Initial zoom
     let initialZoom: number = 10.05;
     // Initial scenario to show
-    let currentScenarioName: ScenarioName = "baseline";
+    let scenarioName: ScenarioName = "baseline";
+    // Initial opacity
+    let opacity: number = 1;
 
     // Generate data for the baseline
-    mapData = makeCombinedGeoJSON(currentScenarioName);
-    chartData = makeChartData(mapData, currentIndicator, 20);
+    mapData = makeCombinedGeoJSON(scenarioName);
+    chartData = makeChartData(mapData, activeIndicator, 20);
 
     // Set div#map to have 100vw and 100vh height
     function resizeContainer() {
@@ -206,18 +208,20 @@
 
     function redrawLayers(mapData: GeoJSON.GeoJsonObject) {
         for (const indicator of allIndicators) {
-            if (map.getLayer(`${indicator}-layer`) !== undefined) {
+            const layerName = `${indicator}-layer`;
+            if (map.getLayer(layerName) !== undefined) {
+                map.setPaintProperty(layerName, "fill-opacity", 0.01);
                 map.removeLayer(`${indicator}-layer`);
             }
         }
         if (map.getLayer("line-layer") !== undefined) {
+            map.setPaintProperty("line-layer", "line-opacity", 0.01);
             map.removeLayer("line-layer");
         }
         if (map.getSource("newcastle") !== undefined) {
             map.removeSource("newcastle");
         }
 
-        // TODO: Do we need to overwrite instead of addSource?
         map.addSource("newcastle", {
             type: "geojson",
             data: mapData,
@@ -229,14 +233,15 @@
             generateId: true,
         });
         for (const indicator of allIndicators) {
+            const layerName = `${indicator}-layer`;
             map.addLayer({
-                id: `${indicator}-layer`,
+                id: layerName,
                 type: "fill",
                 source: "newcastle",
                 layout: {},
                 paint: {
                     "fill-color": ["get", `${indicator}-color`],
-                    "fill-opacity": indicator === currentIndicator ? 0.8 : 0.01,
+                    "fill-opacity": 0.01,
                 },
             });
         }
@@ -255,8 +260,17 @@
                     1.5,
                     0.1,
                 ],
+                "line-opacity": 0.01,
             },
         });
+        // setTimeout makes it look smoother
+        setTimeout(function() {
+            for (const indicator of allIndicators) {
+                const layerName = `${indicator}-layer`;
+                map.setPaintProperty(layerName, "fill-opacity", indicator === activeIndicator ? (0.8 * opacity) : (0.01 * opacity));
+            }
+            map.setPaintProperty("line-layer", "line-opacity", opacity);
+        }, 50);
     }
 
     /* Event handlers! */
@@ -264,9 +278,9 @@
     function redrawLayersScenario(
         event: CustomEvent<{ scenarioName: ScenarioName }>
     ) {
-        currentScenarioName = event.detail.scenarioName;
-        mapData = makeCombinedGeoJSON(currentScenarioName);
-        chartData = makeChartData(mapData, currentIndicator, 20);
+        scenarioName = event.detail.scenarioName;
+        mapData = makeCombinedGeoJSON(scenarioName);
+        chartData = makeChartData(mapData, activeIndicator, 20);
         if (map) {
             redrawLayers(mapData);
         }
@@ -275,7 +289,7 @@
     function redrawLayersIndicator(
         event: CustomEvent<{ indicator: Indicator; opacity: number }>
     ) {
-        currentIndicator = event.detail.indicator;
+        activeIndicator = event.detail.indicator;
         chartData = makeChartData(mapData, event.detail.indicator, 20);
         if (map) updateLayers(event.detail.indicator, event.detail.opacity);
     }
@@ -283,6 +297,7 @@
     function updateGlobalOpacity(
         event: CustomEvent<{ indicator: Indicator; opacity: number }>
     ) {
+        opacity = event.detail.opacity;
         if (map) updateLayers(event.detail.indicator, event.detail.opacity);
     }
     // Recentre map on Newcastle when button is clicked
@@ -302,7 +317,7 @@
 
     <div id="other-content-container">
         <Sidebar
-            {currentScenarioName}
+            {scenarioName}
             on:changeScenario={redrawLayersScenario}
         />
 
@@ -312,14 +327,14 @@
 
         <div id="right-container">
             <Indicators
-                opacityScale={1}
-                {currentIndicator}
+                {opacity}
+                {activeIndicator}
                 on:indicatorChange={redrawLayersIndicator}
                 on:opacityChange={updateGlobalOpacity}
             />
             <Chart data={chartData} />
             {#if clickedId !== null}
-                <Values {currentIndicator} values={clickedValues} />
+                <Values currentIndicator={activeIndicator} values={clickedValues} />
             {/if}
         </div>
     </div>

@@ -10,8 +10,8 @@
             : "opacityChange";
         return (_: Event) => {
             dispatch(eventType, {
-                indicator: currentIndicator,
-                opacity: opacityScale,
+                indicator: activeIndicator,
+                opacity: opacity,
             });
         };
     }
@@ -22,8 +22,8 @@
         job_accessibility: "Job accessibility",
         greenspace_accessibility: "Greenspace accessibility",
     };
-    export let currentIndicator: Indicator;
-    export let opacityScale: number = 1;
+    export let activeIndicator: Indicator;
+    export let opacity: number = 1;
 </script>
 
 <div id="indicators">
@@ -31,7 +31,7 @@
     {#each allIndicators as indi}
         <label
             ><input
-                bind:group={currentIndicator}
+                bind:group={activeIndicator}
                 type="radio"
                 on:change={update(true)}
                 value={indi}
@@ -45,7 +45,7 @@
             min="0"
             max="1"
             step="0.05"
-            bind:value={opacityScale}
+            bind:value={opacity}
             on:input={update(false)}
         />
     </p>

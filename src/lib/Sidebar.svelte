@@ -3,14 +3,14 @@
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    export let currentScenarioName: ScenarioName;
+    export let scenarioName: ScenarioName;
     function changeScenario(_: Event) {
         dispatch("changeScenario", {
-            scenarioName: currentScenarioName,
+            scenarioName: scenarioName,
         });
     }
 
-    $: currentScenario = allScenarios.find(s => s.name === currentScenarioName);
+    $: scenario = allScenarios.find(s => s.name === scenarioName);
 </script>
 
 <div id="sidebar">
@@ -23,16 +23,16 @@
     </p>
     <p>
         Choose a scenario:
-        <select id="scenario" bind:value={currentScenarioName} on:change={changeScenario}>
+        <select id="scenario" bind:value={scenarioName} on:change={changeScenario}>
             {#each allScenarios as scenario}
                 <option value={scenario.name}>{scenario.short}</option>
             {/each}
         </select>
     </p>
     <p>
-        <b>{currentScenario.short}:</b> {currentScenario.description[0]}
+        <b>{scenario.short}:</b> {scenario.description[0]}
     </p>
-    {#each currentScenario.description.slice(1) as para}
+    {#each scenario.description.slice(1) as para}
         <p>{para}</p>
     {/each}
 </div>
