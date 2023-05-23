@@ -13,7 +13,7 @@
         mergeGeographyWithIndicators,
         makeChartData,
         type ChartData,
-        getPolygonBounds,
+        getGeometryBounds,
     } from "./utils";
 
     // The currently active indicator
@@ -135,7 +135,7 @@
                 if (hoverPopup !== null) {
                     hoverPopup.remove();
                 }
-                let bounds = getPolygonBounds(e.features[0].geometry.coordinates[0]);
+                let bounds = getGeometryBounds(e.features[0].geometry);
                 hoverPopup = new maplibregl.Popup()
                     .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
                     .setHTML(e.features[0].properties.OA11CD)

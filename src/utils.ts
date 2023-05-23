@@ -141,9 +141,33 @@ export function makeChartData(geojson: object, indicator: Indicator, nbars: numb
     }
 }
 
-// Obtain the LngLatBoundsLike of a polygon from its coordinates.
-// See: https://maplibre.org/maplibre-gl-js-docs/example/zoomto-linestring/
-export function getPolygonBounds(coordinates: [number, number][]): maplibregl.LngLatLike {
-    const initialBounds = new maplibregl.LngLatBounds(coordinates[0], coordinates[0]);
-    return coordinates.reduce((bounds, coord) => bounds.extend(coord), initialBounds);
+// Obtain the LngLatBoundsLike of a Polygon or MultiPolygon geometry object from its coordinates.
+export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLatBounds {
+    // Helper function which acts on a list of positions.
+    function getBoundsFromPositionList(positions: GeoJSON.Position[]): maplibregl.LngLatBounds {
+        const initialBounds = new maplibregl.LngLatBounds(positions[0], positions[0]);
+        return positions.reduce(function(bounds, posn) {
+            // GeoJSON Positions are defined as number[] because they may in
+            // principle contain x,y,z (+more) coordinates. We only care about x
+            // and y here.
+            const coords: maplibregl.LngLatLike = [posn[0], posn[1]];
+            return bounds.extend(coords);
+        }, initialBounds);
+    }
+
+    const geometryType = geometry["type"];
+    if (geometryType == "Polygon") {
+        // For a Polygon, the first element of the coordinates array is the
+        // outer ring, which is the only thing we need.
+        return getBoundsFromPositionList(geometry["coordinates"][0]);
+    }
+    else if (geometryType == "MultiPolygon") {
+        // For a MultiPolygon, we just need to get the bounds of each Polygon
+        // and then combine them.
+        const boundsList = geometry["coordinates"].map(polygon => getBoundsFromPositionList(polygon[0]));
+        return boundsList.reduce((bounds, b) => bounds.extend(b));
+    }
+    else {
+        throw new Error(`Unsupported geometry type: ${geometryType}`);
+    }
 }
