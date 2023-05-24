@@ -48,7 +48,7 @@
     let opacity: number = 1;
 
     // Generate data for the baseline
-    mapData = makeCombinedGeoJSON(scenarioName);
+    mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
     chartData = makeChartData(mapData, activeIndicator, 20);
 
     // Set div#map to have 100vw and 100vh height
@@ -323,7 +323,7 @@
         // This has to be here and not in the $: reactive bit because
         // redrawLayers depends on it (and reactive statements are executed
         // only at the end).
-        mapData = makeCombinedGeoJSON(scenarioName);
+        mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         if (map) {
             redrawLayers(mapData);
             // TODO: very hacky. Can we make this cleaner?
@@ -350,11 +350,11 @@
     function updateCompareScenario() {
         console.log("scenario changed to: " + compareScenarioName);
         // TODO: Fix the below
-        // mapData = makeCombinedGeoJSON(scenarioName);
-        // chartData = makeChartData(mapData, activeIndicator, 20);
-        // if (map) {
-        //     redrawLayers(mapData);
-        // }
+        mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
+        chartData = makeChartData(mapData, activeIndicator, 20);
+        if (map) {
+            redrawLayers(mapData);
+        }
     }
     // Recentre map on Newcastle when button is clicked
     function recentreMap(_: CustomEvent<{}>) {

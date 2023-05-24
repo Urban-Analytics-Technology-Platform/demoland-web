@@ -57,24 +57,33 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  * otherwise it results in some really complicated expressions in MapLibre.
  * 
  * @param {ScenarioName} scenarioName: the name of the scenario being used.
+ * @param {ScenarioName} compareScenarioName: the name of the scenario being
+ * compared against.
  *
  * @returns an updated GeoJSON file with the indicator values plus associated
  * colours added to the properties of each feature.
  */
 export function makeCombinedGeoJSON(
     scenarioName: ScenarioName,
+    compareScenarioName: ScenarioName,
 ): GeoJSON.FeatureCollection {
     const scenario = allScenarios.find(s => s.name === scenarioName);
+    const compareScenario = (compareScenarioName === undefined) ? scenario : allScenarios.find(s => s.name === compareScenarioName);
 
     // Calculate min and max values.
+    // TODO: Use global min and max values (i.e. read from all scenarios) so
+    // that colours don't change depending on what scenario we're in / comparing
+    // against, that would be very counterintuitive.
     const minValues = new Object();
     const maxValues = new Object();
     for (let indicator of allIndicators) {
         minValues[indicator.name] = Math.min(
-            ...Object.values(scenario.values).map((o: object) => o[indicator.name])
+            ...Object.values(scenario.values).map((o: object) => o[indicator.name]),
+            ...Object.values(compareScenario.values).map((o: object) => o[indicator.name]),
         );
         maxValues[indicator.name] = Math.max(
-            ...Object.values(scenario.values).map((o: object) => o[indicator.name])
+            ...Object.values(scenario.values).map((o: object) => o[indicator.name]),
+            ...Object.values(compareScenario.values).map((o: object) => o[indicator.name]),
         );
     }
 
@@ -82,6 +91,7 @@ export function makeCombinedGeoJSON(
     geography["features"] = geography["features"].map(function(feature) {
         const oaName = feature["properties"]["OA11CD"];
         const oaValues = scenario.values[oaName];
+        const compareOaValues = compareScenario.values[oaName];
         if (oaValues === undefined) {
             console.log(`${oaName} not found in values!`);
         } else {
@@ -89,24 +99,30 @@ export function makeCombinedGeoJSON(
                 feature["properties"][indi] = oaValues[indi];
                 feature["properties"][`${indi}-color`] =
                     getColorFromMap(colormaps[indi], oaValues[indi], minValues[indi], maxValues[indi]);
+                feature["properties"][`${indi}-cmp`] = compareOaValues[indi];
+                feature["properties"][`${indi}-cmp-color`] =
+                    getColorFromMap(colormaps[indi], compareOaValues[indi], minValues[indi], maxValues[indi]);
             }
         }
         return feature;
     });
 
+    console.log(scenarioName, compareScenarioName);
+    console.log(geography.features[0]);
     // TODO: Figure out how to not cast here
     return geography as GeoJSON.FeatureCollection;
 }
 
-export type ChartData = { colors: string[]; values: number[]; counts: number[] };
+export type ChartData = { colors: string[]; values: number[]; counts: number[]; compareCounts: number[] };
 
 // TODO Document
 export function makeChartData(geojson: GeoJSON.FeatureCollection, indicator: IndicatorName, nbars: number): ChartData {
     const colors = makeColormap(indicator, nbars);
     const rawValues: number[] = geojson.features.map(feature => feature.properties[indicator]);
+    const compareRawValues : number[] = geojson.features.map(feature => feature.properties[`${indicator}-cmp`]);
     // quantise rawValues to 0 -> 19
-    const min = Math.min(...rawValues);
-    const max = Math.max(...rawValues);
+    const min = Math.min(...rawValues, ...compareRawValues);
+    const max = Math.max(...rawValues, ...compareRawValues);
     const intValues = rawValues.map(value => Math.round(((value - min) / (max - min)) * (nbars - 1)));
     // get the counts of each value (y-axis)
     const counts = new Array(nbars).fill(0);
@@ -118,8 +134,15 @@ export function makeChartData(geojson: GeoJSON.FeatureCollection, indicator: Ind
     const values = Array.from({ length: nbars }, (_, i) => i)
         .map(value => value * (max - min) / (nbars - 1) + min);
 
+    const compareIntValues = compareRawValues.map(value => Math.round(((value - min) / (max - min)) * (nbars - 1)));
+    const compareCounts = new Array(nbars).fill(0);
+    for (const value of compareIntValues) {
+        compareCounts[value]++;
+    }
+
     return {
         counts: counts,
+        compareCounts: compareCounts,
         values: values,
         colors: colors,
     }

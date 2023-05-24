@@ -40,6 +40,17 @@
                         data: chartData.counts,
                         backgroundColor: chartData.colors,
                         borderWidth: 0,
+                        grouped: false,
+                    },
+                    // TODO: Don't show comparison dataset if scenario and
+                    // comparescenario are the same
+                    {
+                        data: chartData.compareCounts.map(count => -count),
+                        backgroundColor: 'rgba(1, 1, 1, 0)',  // transparent
+                        borderWidth: 5,
+                        borderColor: '#ff878d',
+                        barPercentage: 1,
+                        grouped: false,
                     },
                 ],
             },
