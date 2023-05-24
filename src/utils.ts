@@ -1,9 +1,9 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type Indicator, allScenarios, type ScenarioName } from "./constants";
+import { allIndicators, type IndicatorName, allScenarios, type ScenarioName } from "./constants";
 
-function makeColormap(indicator: Indicator, n: number) {
+function makeColormap(indicator: IndicatorName, n: number) {
     if (indicator === "air_quality") {
         return colormap({
             colormap: "oxygen",
@@ -63,26 +63,25 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  */
 export function makeCombinedGeoJSON(
     scenarioName: ScenarioName,
-): GeoJSON.GeoJsonObject {
+): GeoJSON.FeatureCollection {
     const scenario = allScenarios.find(s => s.name === scenarioName);
-    const indicators = scenario.values;
 
     // Calculate min and max values.
     const minValues = new Object();
     const maxValues = new Object();
     for (let indicator of allIndicators) {
-        minValues[indicator] = Math.min(
-            ...Object.values(indicators).map((o: object) => o[indicator])
+        minValues[indicator.name] = Math.min(
+            ...Object.values(scenario.values).map((o: object) => o[indicator.name])
         );
-        maxValues[indicator] = Math.max(
-            ...Object.values(indicators).map((o: object) => o[indicator])
+        maxValues[indicator.name] = Math.max(
+            ...Object.values(scenario.values).map((o: object) => o[indicator.name])
         );
     }
 
     // Merge geography with indicators
     geography["features"] = geography["features"].map(function(feature) {
         const oaName = feature["properties"]["OA11CD"];
-        const oaValues = indicators[oaName];
+        const oaValues = scenario.values[oaName];
         if (oaValues === undefined) {
             console.log(`${oaName} not found in values!`);
         } else {
@@ -96,15 +95,15 @@ export function makeCombinedGeoJSON(
     });
 
     // TODO: Figure out how to not cast here
-    return geography as GeoJSON.GeoJsonObject;
+    return geography as GeoJSON.FeatureCollection;
 }
 
-export type ChartData = { colors: string[]; values: number[]; counts: number[]; less: string; more: string };
+export type ChartData = { colors: string[]; values: number[]; counts: number[] };
 
 // TODO Document
-export function makeChartData(geojson: object, indicator: Indicator, nbars: number): ChartData {
+export function makeChartData(geojson: GeoJSON.FeatureCollection, indicator: IndicatorName, nbars: number): ChartData {
     const colors = makeColormap(indicator, nbars);
-    const rawValues: number[] = geojson["features"].map(feature => feature.properties[indicator]);
+    const rawValues: number[] = geojson.features.map(feature => feature.properties[indicator]);
     // quantise rawValues to 0 -> 19
     const min = Math.min(...rawValues);
     const max = Math.max(...rawValues);
@@ -119,23 +118,10 @@ export function makeChartData(geojson: object, indicator: Indicator, nbars: numb
     const values = Array.from({ length: nbars }, (_, i) => i)
         .map(value => value * (max - min) / (nbars - 1) + min);
 
-    let less: string; let more: string;
-    if (indicator === "air_quality") {
-        less = "cleaner"; more = "more polluted";
-    } else if (indicator === "house_price") {
-        less = "cheaper"; more = "more expensive";
-    } else if (indicator === "job_accessibility") {
-        less = "poorer"; more = "better";
-    } else if (indicator === "greenspace_accessibility") {
-        less = "poorer"; more = "better";
-    }
-
     return {
         counts: counts,
         values: values,
         colors: colors,
-        less: less,
-        more: more,
     }
 }
 

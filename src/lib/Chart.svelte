@@ -1,8 +1,10 @@
 <script lang="ts">
     import Chart from "chart.js/auto";
     import { type ChartData } from "../utils";
+    import { type IndicatorName, allIndicators } from "../constants";
     import { onMount, onDestroy } from "svelte";
     export let data: ChartData;
+    export let activeIndicator: IndicatorName;
 
     let chart: Chart | null = null;
 
@@ -81,8 +83,8 @@
     <h2>Chart</h2>
     <canvas id="chart" />
     <div id="chart-pointers">
-        <div id="chart-pointers-left">← {data.less}</div>
-        <div id="chart-pointers-right">{data.more} →</div>
+        <div id="chart-pointers-left">← {allIndicators.find(i => i.name === activeIndicator).less}</div>
+        <div id="chart-pointers-right">{allIndicators.find(i => i.name === activeIndicator).more} →</div>
     </div>
 </div>
 

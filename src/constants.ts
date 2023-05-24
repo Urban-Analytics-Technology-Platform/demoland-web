@@ -2,13 +2,35 @@ import baselineVals from "./assets/baseline_oa.json";
 import scenario1Vals from "./assets/scenario1_oa.json";
 import scenario2Vals from "./assets/scenario2_oa.json";
 
-export type Indicator = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
+export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
+
+export type Indicator = {name: IndicatorName, short: string, less: string, more: string};
 
 export let allIndicators: Indicator[] = [
-    "air_quality",
-    "house_price",
-    "job_accessibility",
-    "greenspace_accessibility",
+    {
+        "name": "air_quality",
+        "short": "Air quality",
+        "less": "cleaner",
+        "more": "more polluted",
+    },
+    {
+        "name": "house_price",
+        "short": "House prices",
+        "less": "cheaper",
+        "more": "more expensive",
+    },
+    {
+        "name": "job_accessibility",
+        "short": "Job accessibility",
+        "less": "lower",
+        "more": "higher",
+    },
+    {
+        "name": "greenspace_accessibility",
+        "short": "Greenspace accessibility",
+        "less": "lower",
+        "more": "higher",
+    },
 ];
 
 

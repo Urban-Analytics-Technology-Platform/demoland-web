@@ -9,7 +9,7 @@
     import Values from "./lib/Values.svelte";
     import {
         allIndicators,
-        type Indicator,
+        type IndicatorName,
         type ScenarioName,
     } from "./constants";
     import {
@@ -20,7 +20,7 @@
     } from "./utils";
 
     // The currently active indicator
-    let activeIndicator: Indicator = "air_quality";
+    let activeIndicator: IndicatorName = "air_quality";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
@@ -215,19 +215,19 @@
 
         // We first generate all layers with an opacity of 0.01.
         for (const indicator of allIndicators) {
-            const layerName = `${indicator}-layer`;
+            const layerName = `${indicator.name}-layer`;
             map.addLayer({
                 id: layerName,
                 type: "fill",
                 source: "newcastle",
                 layout: {},
                 paint: {
-                    "fill-color": ["get", `${indicator}-color`],
+                    "fill-color": ["get", `${indicator.name}-color`],
                     "fill-opacity": 0.01,
                     // Suppressing a known bug:
                     // https://github.com/maplibre/maplibre-gl-js/issues/1708
                     // @ts-ignore
-                    "fill-opacity-transition": {"duration": 400},
+                    "fill-opacity-transition": { duration: 400 },
                 },
             });
         }
@@ -250,18 +250,18 @@
                 // Suppressing a known bug:
                 // https://github.com/maplibre/maplibre-gl-js/issues/1708
                 // @ts-ignore
-                "line-opacity-transition": {"duration": 400},
+                "line-opacity-transition": { duration: 400 },
             },
         });
 
         // Then, we fade the ones we want in, after a small delay to allow for loading.
         setTimeout(function () {
             for (const indicator of allIndicators) {
-                const layerName = `${indicator}-layer`;
+                const layerName = `${indicator.name}-layer`;
                 map.setPaintProperty(
                     layerName,
                     "fill-opacity",
-                    indicator === activeIndicator
+                    indicator.name === activeIndicator
                         ? 0.8 * opacity
                         : 0.01 * opacity
                 );
@@ -273,10 +273,10 @@
     function redrawLayers(mapData: GeoJSON.GeoJsonObject) {
         // Fade out existing layers if necessary
         for (const indicator of allIndicators) {
-            const layerName = `${indicator}-layer`;
+            const layerName = `${indicator.name}-layer`;
             if (map.getLayer(layerName) !== undefined) {
                 map.setPaintProperty(layerName, "fill-opacity", 0.01);
-                map.removeLayer(`${indicator}-layer`);
+                map.removeLayer(`${indicator.name}-layer`);
             }
         }
         if (map.getLayer("line-layer") !== undefined) {
@@ -295,9 +295,11 @@
     function updateLayers() {
         for (const indicator of allIndicators) {
             map.setPaintProperty(
-                `${indicator}-layer`,
+                `${indicator.name}-layer`,
                 "fill-opacity",
-                indicator === activeIndicator ? 0.8 * opacity : 0.01 * opacity
+                indicator.name === activeIndicator
+                    ? 0.8 * opacity
+                    : 0.01 * opacity
             );
         }
         map.setPaintProperty("line-layer", "line-opacity", opacity);
@@ -357,7 +359,7 @@
                 on:changeIndicator={updateIndicator}
                 on:changeOpacity={updateOpacity}
             />
-            <Chart data={chartData} />
+            <Chart data={chartData} {activeIndicator} />
             {#if clickedId !== null}
                 <Values {activeIndicator} values={clickedValues} />
             {/if}

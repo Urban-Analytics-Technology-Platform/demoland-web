@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { allIndicators, type Indicator } from "../constants";
-    export let activeIndicator: Indicator;
+    import { allIndicators, type IndicatorName } from "../constants";
+    export let activeIndicator: IndicatorName;
     export let values: object | null = null;
 </script>
 
@@ -8,14 +8,14 @@
     <div id="values">
         <h2>Output area: {values["OA11CD"]}</h2>
         {#each allIndicators as indi}
-            {#if indi === activeIndicator}
+            {#if indi.name === activeIndicator}
                 <span
                     style={"font-weight: bold; color: " +
                         values[`${indi}-color`]}
-                    >{indi}: {values[indi].toFixed(2)}</span
+                    >{indi}: {values[indi.name].toFixed(2)}</span
                 ><br />
             {:else}
-                {indi}: {values[indi].toFixed(2)}<br />
+                {indi}: {values[indi.name].toFixed(2)}<br />
             {/if}
         {/each}
     </div>
