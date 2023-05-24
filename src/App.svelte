@@ -33,7 +33,7 @@
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
-    let mapData: GeoJSON.GeoJsonObject;
+    let mapData: GeoJSON.FeatureCollection;
     // The data to be sent to the chart
     let chartData: ChartData;
     // Whether the re-centre button needs to be shown
@@ -64,6 +64,17 @@
             ).style.width = `${window.innerWidth}px`;
         }
         if (map) map.resize();
+    }
+
+    // Returns true if the centre of the given OA overlaps with either the left or right sidebars
+    function oaInWindowEdge(oaBounds: maplibregl.LngLatBounds, mapBounds: maplibregl.LngLatBounds) {
+        const lng = oaBounds.getCenter().lng;
+        const w = mapBounds.getWest();
+        const e = mapBounds.getEast();
+        const x = window.innerWidth * (lng - w) / (e - w)
+        // 300 = padding of other-content-container + width of sidebar
+        // 270 = padding of other-content-container + width of right-container
+        return x < 300 || x > window.innerWidth - 270;
     }
 
     // Setup scripts. We have to use Svelte's 'onMount' because the code in
@@ -146,13 +157,11 @@
                 );
                 clickedValues = e.features[0].properties;
                 // Centre map on that OA if the new div would obscure it.
-                const newDivWouldObscureOA = false; // TODO!
-                if (newDivWouldObscureOA) {
+                const oaBounds = getGeometryBounds(e.features[0].geometry);
+                if (oaInWindowEdge(oaBounds, map.getBounds())) {
                     map.flyTo({
-                        center: getGeometryBounds(
-                            e.features[0].geometry
-                        ).getCenter(),
-                        speed: 0.2,
+                        center: oaBounds.getCenter(),
+                        speed: 0.5,
                     });
                 }
             }
@@ -414,6 +423,6 @@
 
         margin-left: auto;
         margin-right: 0px;
-        pointer-events: auto;
+        pointer-events: none;
     }
 </style>
