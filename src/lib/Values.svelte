@@ -1,21 +1,22 @@
 <script lang="ts">
     import { allIndicators, type IndicatorName } from "../constants";
     export let activeIndicator: IndicatorName;
-    export let values: object | null = null;
+    export let feature: GeoJSON.Feature | undefined;
 </script>
 
-{#if values !== null}
+{#if feature !== null}
     <div id="values">
-        <h2>Output area: {values["OA11CD"]}</h2>
+        <h2>Output area: {feature.properties.OA11CD}</h2>
+
         {#each allIndicators as indi}
             {#if indi.name === activeIndicator}
                 <span
                     style={"font-weight: bold; color: " +
-                        values[`${indi}-color`]}
-                    >{indi.short}: {values[indi.name].toFixed(2)}</span
+                        feature.properties[`${indi.name}-color`]}
+                    >{indi.short}: {feature.properties[indi.name].toFixed(2)}</span
                 ><br />
             {:else}
-                {indi.short}: {values[indi.name].toFixed(2)}<br />
+                {indi.short}: {feature.properties[indi.name].toFixed(2)}<br />
             {/if}
         {/each}
     </div>

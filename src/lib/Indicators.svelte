@@ -6,14 +6,10 @@
     const dispatch = createEventDispatcher();
 
     function changeIndicator() {
-        dispatch("changeIndicator", {
-            indicator: activeIndicator,
-        });
+        dispatch("changeIndicator", {});
     }
     function changeOpacity() {
-        dispatch("changeOpacity", {
-            opacity: opacity,
-        });
+        dispatch("changeOpacity", {});
     }
 </script>
 

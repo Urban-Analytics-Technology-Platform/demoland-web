@@ -7,14 +7,10 @@
     export let compareScenarioName: ScenarioName;
 
     function changeScenario(_: Event) {
-        dispatch("changeScenario", {
-            scenarioName: scenarioName,
-        });
+        dispatch("changeScenario", {});
     }
     function changeCompareScenario(_: Event) {
-        dispatch("changeCompareScenario", {
-            compareScenarioName: compareScenarioName,
-        });
+        dispatch("changeCompareScenario", {});
     }
 
     $: scenario = allScenarios.find(s => s.name === scenarioName);

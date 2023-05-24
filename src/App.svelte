@@ -25,11 +25,9 @@
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
     let hoverPopup: maplibregl.Popup | null = null;
-    // The numeric ID of the OA that was clicked on.
-    let clickedId: number | null = null;
-    // The values of the four indicators for the OA which the user has clicked
-    // over. Null if no OA has been clicked on.
-    let clickedValues: object | null = null;
+    // The feature corresponding to the OA that was clicked on. Null if no OA
+    // was clicked on.
+    let clicked: GeoJSON.Feature | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
@@ -67,11 +65,14 @@
     }
 
     // Returns true if the centre of the given OA overlaps with either the left or right sidebars
-    function oaInWindowEdge(oaBounds: maplibregl.LngLatBounds, mapBounds: maplibregl.LngLatBounds) {
+    function oaInWindowEdge(
+        oaBounds: maplibregl.LngLatBounds,
+        mapBounds: maplibregl.LngLatBounds
+    ) {
         const lng = oaBounds.getCenter().lng;
         const w = mapBounds.getWest();
         const e = mapBounds.getEast();
-        const x = window.innerWidth * (lng - w) / (e - w)
+        const x = (window.innerWidth * (lng - w)) / (e - w);
         // 300 = padding of other-content-container + width of sidebar
         // 270 = padding of other-content-container + width of right-container
         return x < 300 || x > window.innerWidth - 270;
@@ -144,20 +145,19 @@
             e.preventDefault();
             if (e.features.length > 0) {
                 // Clicked on an OA
-                if (clickedId !== null) {
+                if (clicked !== null) {
                     map.setFeatureState(
-                        { source: "newcastle", id: clickedId },
+                        { source: "newcastle", id: clicked.id },
                         { click: false }
                     );
                 }
-                clickedId = e.features[0].id as number;
+                clicked = e.features[0];
                 map.setFeatureState(
-                    { source: "newcastle", id: clickedId },
+                    { source: "newcastle", id: clicked.id },
                     { click: true }
                 );
-                clickedValues = e.features[0].properties;
                 // Centre map on that OA if the new div would obscure it.
-                const oaBounds = getGeometryBounds(e.features[0].geometry);
+                const oaBounds = getGeometryBounds(clicked.geometry);
                 if (oaInWindowEdge(oaBounds, map.getBounds())) {
                     map.flyTo({
                         center: oaBounds.getCenter(),
@@ -169,14 +169,13 @@
         map.on("click", function (e) {
             if (e.defaultPrevented === false) {
                 // Clicked outside an OA
-                if (clickedId !== null) {
+                if (clicked.id !== null) {
                     map.setFeatureState(
-                        { source: "newcastle", id: clickedId },
+                        { source: "newcastle", id: clicked.id },
                         { click: false }
                     );
-                    clickedId = null;
+                    clicked = null;
                 }
-                clickedValues = null;
             }
         });
 
@@ -304,35 +303,51 @@
     // indicator, as well as the value of the opacity slider (which acts as a
     // constant factor to multiply all layers' opacities by).
     function updateLayers() {
-        for (const indicator of allIndicators) {
-            map.setPaintProperty(
-                `${indicator.name}-layer`,
-                "fill-opacity",
-                indicator.name === activeIndicator
-                    ? 0.8 * opacity
-                    : 0.01 * opacity
-            );
+        if (map !== null) {
+            for (const indicator of allIndicators) {
+                map.setPaintProperty(
+                    `${indicator.name}-layer`,
+                    "fill-opacity",
+                    indicator.name === activeIndicator
+                        ? 0.8 * opacity
+                        : 0.01 * opacity
+                );
+            }
+            map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
-        map.setPaintProperty("line-layer", "line-opacity", opacity);
     }
 
     /* Event handlers! */
     // Redraw layers when scenario is changed
-    function updateScenario(
-        event: CustomEvent<{ scenarioName: ScenarioName }>
-    ) {
-        scenarioName = event.detail.scenarioName;
+    function updateScenario() {
+        // This has to be here and not in the $: reactive bit because
+        // redrawLayers depends on it (and reactive statements are executed
+        // only at the end).
         mapData = makeCombinedGeoJSON(scenarioName);
-        chartData = makeChartData(mapData, activeIndicator, 20);
         if (map) {
             redrawLayers(mapData);
+            // TODO: very hacky. Can we make this cleaner?
+            if (clicked !== null) {
+                // the ID needs to be stored separately because id's are only
+                // generated when calling map.addSource, it's not in mapData itself
+
+                // One possible workaround is to use numeric ids for the
+                // features in the base geojson
+                const theId = clicked.id;
+                clicked = mapData.features.find(
+                    (feature) =>
+                        feature.properties.OA11CD === clicked.properties.OA11CD
+                );
+                clicked.id = theId;
+                map.setFeatureState(
+                    { source: "newcastle", id: clicked.id },
+                    { click: true }
+                );
+            }
         }
     }
     // Redraw layers when compareScenario is changed
-    function updateCompareScenario(
-        event: CustomEvent<{ compareScenarioName: ScenarioName }>
-    ) {
-        compareScenarioName = event.detail.compareScenarioName;
+    function updateCompareScenario() {
         console.log("scenario changed to: " + compareScenarioName);
         // TODO: Fix the below
         // mapData = makeCombinedGeoJSON(scenarioName);
@@ -340,17 +355,6 @@
         // if (map) {
         //     redrawLayers(mapData);
         // }
-    }
-    // Redraw layers when indicator is changed
-    function updateIndicator(event: CustomEvent<{ indicator: IndicatorName }>) {
-        activeIndicator = event.detail.indicator;
-        chartData = makeChartData(mapData, event.detail.indicator, 20);
-        if (map) updateLayers();
-    }
-    // Update opacity of all layers when opacity slider is changed
-    function updateOpacity(event: CustomEvent<{ opacity: number }>) {
-        opacity = event.detail.opacity;
-        if (map) updateLayers();
     }
     // Recentre map on Newcastle when button is clicked
     function recentreMap(_: CustomEvent<{}>) {
@@ -362,6 +366,8 @@
             });
         }
     }
+
+    $: chartData = makeChartData(mapData, activeIndicator, 20);
 </script>
 
 <main>
@@ -369,8 +375,8 @@
 
     <div id="other-content-container">
         <Sidebar
-            {scenarioName}
-            {compareScenarioName}
+            bind:scenarioName
+            bind:compareScenarioName
             on:changeScenario={updateScenario}
             on:changeCompareScenario={updateCompareScenario}
         />
@@ -381,14 +387,14 @@
 
         <div id="right-container">
             <Indicators
-                {opacity}
-                {activeIndicator}
-                on:changeIndicator={updateIndicator}
-                on:changeOpacity={updateOpacity}
+                bind:activeIndicator
+                bind:opacity
+                on:changeIndicator={updateLayers}
+                on:changeOpacity={updateLayers}
             />
             <Chart data={chartData} {activeIndicator} />
-            {#if clickedId !== null}
-                <Values {activeIndicator} values={clickedValues} />
+            {#if clicked !== null}
+                <Values {activeIndicator} feature={clicked} />
             {/if}
         </div>
     </div>
