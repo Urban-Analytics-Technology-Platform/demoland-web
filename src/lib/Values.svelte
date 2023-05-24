@@ -12,10 +12,10 @@
                 <span
                     style={"font-weight: bold; color: " +
                         values[`${indi}-color`]}
-                    >{indi}: {values[indi.name].toFixed(2)}</span
+                    >{indi.short}: {values[indi.name].toFixed(2)}</span
                 ><br />
             {:else}
-                {indi}: {values[indi.name].toFixed(2)}<br />
+                {indi.short}: {values[indi.name].toFixed(2)}<br />
             {/if}
         {/each}
     </div>
