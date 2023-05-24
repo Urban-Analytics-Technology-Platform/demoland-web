@@ -44,6 +44,8 @@
     let initialZoom: number = 10.05;
     // Initial scenario to show
     let scenarioName: ScenarioName = "baseline";
+    // Scenario to compare against
+    let compareScenarioName: ScenarioName = "baseline";
     // Initial opacity
     let opacity: number = 1;
 
@@ -317,10 +319,21 @@
             redrawLayers(mapData);
         }
     }
-    // Redraw layers when indicator is changed
-    function updateIndicator(
-        event: CustomEvent<{ indicator: Indicator }>
+    // Redraw layers when compareScenario is changed
+    function updateCompareScenario(
+        event: CustomEvent<{ compareScenarioName: ScenarioName }>
     ) {
+        compareScenarioName = event.detail.compareScenarioName;
+        console.log("scenario changed to: " + compareScenarioName);
+        // TODO: Fix the below
+        // mapData = makeCombinedGeoJSON(scenarioName);
+        // chartData = makeChartData(mapData, activeIndicator, 20);
+        // if (map) {
+        //     redrawLayers(mapData);
+        // }
+    }
+    // Redraw layers when indicator is changed
+    function updateIndicator(event: CustomEvent<{ indicator: IndicatorName }>) {
         activeIndicator = event.detail.indicator;
         chartData = makeChartData(mapData, event.detail.indicator, 20);
         if (map) updateLayers();
@@ -346,7 +359,12 @@
     <div id="map" />
 
     <div id="other-content-container">
-        <Sidebar {scenarioName} on:changeScenario={updateScenario} />
+        <Sidebar
+            {scenarioName}
+            {compareScenarioName}
+            on:changeScenario={updateScenario}
+            on:changeCompareScenario={updateCompareScenario}
+        />
 
         {#if offcentre}
             <Recentre on:recentreEvent={recentreMap} />
