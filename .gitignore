@@ -1,16 +1,3 @@
-# Big files that aren't actually needed for the web app
-src/assets/*
-!src/assets/baseline_prediction.json
-!src/assets/newcastle.json
-!src/assets/scenario1.json
-!src/assets/scenario2.json
-!src/assets/scenario3.json
-!src/assets/scenario4.json
-!src/assets/scenario5.json
-!src/assets/scenario6.json
-!src/assets/scenario7.json
-!src/assets/README.md
-
 # Logs
 logs
 *.log
