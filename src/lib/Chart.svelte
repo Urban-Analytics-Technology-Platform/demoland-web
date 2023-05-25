@@ -24,6 +24,7 @@
         counts: number[];
         datasets: any[];
         showLegend: boolean;
+        tickStepSize: number;
     };
 
     // Generate data for the chart.
@@ -45,21 +46,23 @@
     ): ChartData {
         const colors = makeColormap(indi, nbars);
         const rawValues: number[] = getValues(indi, scen);
-        // quantise rawValues to 0 -> 19
+        // quantise rawValues to 0 -> nbars-1. The second map is to ensure that
+        // the largest value gets rounded down to nbars-1 instead of nbars.
         const min = minValues.get(indi);
         const max = maxValues.get(indi);
-        const intValues = rawValues.map((value) =>
-            Math.round(((value - min) / (max - min)) * (nbars - 1))
-        );
+        const intValues = rawValues
+            .map((value) => Math.floor(((value - min) / (max - min)) * nbars))
+            .map((value) => Math.min(value, nbars - 1));
         // get the counts of each value (y-axis)
         const counts = new Array(nbars).fill(0);
         for (const value of intValues) {
             counts[value]++;
         }
-        // generate the x-axis values, which are 0 -> nbars-1 but rescaled back
-        // to the original range of indi values
-        const labels = Array.from({ length: nbars }, (_, i) => i).map(
-            (value) => (value * (max - min)) / (nbars - 1) + min
+        // generate the x-axis values, which are 0.5 -> nbars - 0.5 in steps of
+        // 1, then rescale back to the original range of indi values
+        const labels = Array.from(
+            { length: nbars },
+            (_, i) => ((i + 0.5) * (max - min)) / nbars + min
         );
 
         let datasets = [
@@ -95,12 +98,27 @@
             });
         }
 
+        // Manually calculate tick step size, because it seems that chart.js's
+        // automatic calculation is not quite as polished as matplotlib.
+        function calculateTickStepSize(max: number, min: number): number {
+            let s = (max - min) / 4; // Assuming we want 5 ticks (ish)
+            console.log(s);
+            if (s < 0.5) return 0.5;
+            if (s < 1) return 1;
+            if (s > 10) {
+                let orderOfMagnitude = 10 ** Math.floor(Math.log10(s));
+                return Math.round(s / orderOfMagnitude) * orderOfMagnitude;
+            }
+            return Math.round(s);
+        }
+
         return {
             datasets: datasets,
             counts: counts,
             labels: labels,
             colors: colors,
             showLegend: cmpScen !== null,
+            tickStepSize: calculateTickStepSize(max, min),
         };
     }
 
@@ -139,8 +157,8 @@
                 scales: {
                     x: {
                         type: "linear",
-                        beginAtZero: false,
                         ticks: {
+                            stepSize: chartData.tickStepSize,
                             callback: pretty,
                             maxRotation: 0,
                             minRotation: 0,
@@ -176,6 +194,8 @@
         const chartData = makeChartData(indi, scen, cmpScen);
         chart.data.datasets = chartData.datasets;
         chart.data.labels = chartData.labels;
+        // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
+        chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
         chart.options.plugins.legend.display = chartData.showLegend;
         chart.update("none");
     }
@@ -191,7 +211,7 @@
 </script>
 
 <div id="chart-container">
-    <h2>Chart</h2>
+    <h2>{allIndicators.find((i) => i.name === activeIndicator).short}</h2>
     <div id="chart-canvas">
         <canvas id="chart" />
     </div>
