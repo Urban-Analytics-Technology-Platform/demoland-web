@@ -1,10 +1,15 @@
-import baselineVals from "./assets/baseline_oa.json";
-import scenario1Vals from "./assets/scenario1_oa.json";
-import scenario2Vals from "./assets/scenario2_oa.json";
+import baselineVals from "./assets/baseline_prediction.json";
+import scenario1Vals from "./assets/scenario1.json";
+import scenario2Vals from "./assets/scenario2.json";
+import scenario3Vals from "./assets/scenario3.json";
+import scenario4Vals from "./assets/scenario4.json";
+import scenario5Vals from "./assets/scenario5.json";
+import scenario6Vals from "./assets/scenario6.json";
+import scenario7Vals from "./assets/scenario7.json";
 
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
 
-export type Indicator = {name: IndicatorName, short: string, less: string, more: string};
+export type Indicator = { name: IndicatorName, short: string, less: string, more: string };
 
 export let allIndicators: Indicator[] = [
     {
@@ -35,9 +40,9 @@ export let allIndicators: Indicator[] = [
 
 export type OA = string;
 
-export type ScenarioName = "baseline" | "scenario1" | "scenario2";
+export type ScenarioName = "baseline" | "scenario1" | "scenario2" | "scenario3" | "scenario4" | "scenario5" | "scenario6" | "scenario7";
 
-function makeValuesMapFromJson(json : object) {
+function makeValuesMapFromJson(json: object) {
     let map = new Map<OA, Map<IndicatorName, number>>();
     for (const oa in json) {
         let oaMap = new Map<IndicatorName, number>();
@@ -76,6 +81,50 @@ export let allScenarios: Scenario[] = [
         "values": makeValuesMapFromJson(scenario2Vals),
         "description": ["Mr. Rochester continued, hardily and recklessly: “Bigamy is an ugly word!—I meant, however, to be a bigamist; but fate has out-manoeuvred me, or Providence has checked me,—perhaps the last. I am little better than a devil at this moment; and, as my pastor there would tell me, deserve no doubt the sternest judgments of God, even to the quenchless fire and deathless worm. Gentlemen, my plan is broken up:—what this lawyer and his client say is true: I have been married, and the woman to whom I was married lives! You say you never heard of a Mrs. Rochester at the house up yonder, Wood; but I daresay you have many a time inclined your ear to gossip about the mysterious lunatic kept there under watch and ward. Some have whispered to you that she is my bastard half-sister: some, my cast-off mistress. I now inform you that she is my wife, whom I married fifteen years ago,—Bertha Mason by name.ˮ"],
     },
+    {
+        "name": "scenario3",
+        "short": "Scenario 3",
+        "values": makeValuesMapFromJson(scenario3Vals),
+        "description": ["Mr. Rochester continued, hardily and recklessly: “Bigamy is an ugly word!—I meant, however, to be a bigamist; but fate has out-manoeuvred me, or Providence has checked me,—perhaps the last. I am little better than a devil at this moment; and, as my pastor there would tell me, deserve no doubt the sternest judgments of God, even to the quenchless fire and deathless worm. Gentlemen, my plan is broken up:—what this lawyer and his client say is true: I have been married, and the woman to whom I was married lives! You say you never heard of a Mrs. Rochester at the house up yonder, Wood; but I daresay you have many a time inclined your ear to gossip about the mysterious lunatic kept there under watch and ward. Some have whispered to you that she is my bastard half-sister: some, my cast-off mistress. I now inform you that she is my wife, whom I married fifteen years ago,—Bertha Mason by name.ˮ"],
+    },
+    {
+        "name": "scenario4",
+        "short": "Scenario 4",
+        "values": makeValuesMapFromJson(scenario4Vals),
+        "description": ["“What were the use of my creation, if I were entirely contained here? My great miseries in this world have been Heathcliff’s miseries, and I watched and felt each from the beginning: my great thought in living is himself. If all else perished, and he remained, I should still continue to be; and if all else remained, and he were annihilated, the universe would turn to a mighty stranger: I should not seem a part of it. My love for Linton is like the foliage in the woods: time will change it, I’m well aware, as winter changes the trees. My love for Heathcliff resembles the eternal rocks beneath: a source of little visible delight, but necessary. Nelly, I 𝑎𝑚 Heathcliff! He’s always, always in my mind: not as a pleasure, any more than I am always a pleasure to myself, but as my own being.ˮ"],
+    },
+    {
+        "name": "scenario5",
+        "short": "Scenario 5",
+        "values": makeValuesMapFromJson(scenario5Vals),
+        "description": ["“You know that song 'If a body catch a body comin' through the rye'? I'd like--ˮ",
+            "“It's 'If a body meet a body coming through the rye'!ˮ old Phoebe said. “It's a poem. By Robert Burns.ˮ",
+            "“I know it's a poem by Robert Burns.ˮ",
+            "She was right, though. It is “If a body meet a body coming through the rye.ˮ I didn't know it then, though."
+        ],
+    },
+    {
+        "name": "scenario6",
+        "short": "Scenario 6",
+        "values": makeValuesMapFromJson(scenario6Vals),
+        "description": [
+            "All that had been said before had sounded so like a recantation that these words were too great a shock. Raskolnikov shuddered as though he had been stabbed.",
+            "“Then... who then... is the murderer?” he asked in a breathless voice, unable to restrain himself.",
+            "Porfiry Petrovitch sank back in his chair, as though he were amazed at the question.",
+            "“Who is the murderer?” he repeated, as though unable to believe his ears. “Why, you, Rodion Romanovitch! You are the murderer,” he added, almost in a whisper, in a voice of genuine conviction.",
+            "Raskolnikov leapt from the sofa, stood up for a few seconds and sat down again without uttering a word. His face twitched convulsively.",
+        ],
+    },
+    {
+        "name": "scenario7",
+        "short": "Scenario 7",
+        "values": makeValuesMapFromJson(scenario7Vals),
+        "description": [
+            "“You are right. It does relate to him, and I will tell you directly;” (resuming her work, and seeming resolved against looking up.) “He has been here this very morning, on a most extraordinary errand. It is impossible to express our surprize. He came to speak to his father on a subject,—to announce an attachment—”",
+            "She stopped to breathe. Emma thought first of herself, and then of Harriet.",
+            "“More than an attachment, indeed,” resumed Mrs. Weston; “an engagement—a positive engagement.—What will you say, Emma—what will any body say, when it is known that Frank Churchill and Miss Fairfax are engaged;—nay, that they have been long engaged!”",
+        ],
+    }
 ];
 
 // Calculate global minimum and maximum values for each indicator
