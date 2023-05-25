@@ -4,7 +4,7 @@
     const dispatch = createEventDispatcher();
 
     export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName;
+    export let compareScenarioName: ScenarioName | null;
 
     function changeScenario(_: Event) {
         dispatch("changeScenario", {});
@@ -35,6 +35,7 @@
     {#if scenarioName !== "baseline"}
         <p>Compare with:
             <select id="scenario" bind:value={compareScenarioName} on:change={changeCompareScenario}>
+                <option value={null}>None</option>
                 {#each allScenarios as compareScenario}
                     {#if compareScenario.name !== scenarioName}
                         <option value={compareScenario.name}>{compareScenario.short}</option>

@@ -1,9 +1,9 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName } from "./constants";
+import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, minValues, maxValues } from "./constants";
 
-function makeColormap(indicator: IndicatorName, n: number) {
+export function makeColormap(indicator: IndicatorName, n: number) {
     if (indicator === "air_quality") {
         return colormap({
             colormap: "oxygen",
@@ -33,6 +33,12 @@ function makeColormap(indicator: IndicatorName, n: number) {
             alpha: 1,
         }).reverse();
     }
+}
+
+// Get all values for a given indicator in a given scenario.
+export function getValues(indicator: IndicatorName, scenarioName: ScenarioName): number[] {
+    const scenario = allScenarios.find(s => s.name === scenarioName);
+    return [...scenario.values.values()].map(m => m.get(indicator));
 }
 
 const colormaps: { [key: string]: string[] } = {
@@ -65,87 +71,41 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  */
 export function makeCombinedGeoJSON(
     scenarioName: ScenarioName,
-    compareScenarioName: ScenarioName,
+    compareScenarioName: ScenarioName | null,
 ): GeoJSON.FeatureCollection {
     const scenario = allScenarios.find(s => s.name === scenarioName);
-    const compareScenario = (compareScenarioName === undefined) ? scenario : allScenarios.find(s => s.name === compareScenarioName);
-
-    // Calculate min and max values.
-    // TODO: Use global min and max values (i.e. read from all scenarios) so
-    // that colours don't change depending on what scenario we're in / comparing
-    // against, that would be very counterintuitive.
-    const minValues = new Object();
-    const maxValues = new Object();
-    for (let indicator of allIndicators) {
-        minValues[indicator.name] = Math.min(
-            ...Object.values(scenario.values).map((o: object) => o[indicator.name]),
-            ...Object.values(compareScenario.values).map((o: object) => o[indicator.name]),
-        );
-        maxValues[indicator.name] = Math.max(
-            ...Object.values(scenario.values).map((o: object) => o[indicator.name]),
-            ...Object.values(compareScenario.values).map((o: object) => o[indicator.name]),
-        );
-    }
 
     // Merge geography with indicators
     geography["features"] = geography["features"].map(function(feature) {
         const oaName = feature["properties"]["OA11CD"];
-        const oaValues = scenario.values[oaName];
-        const compareOaValues = compareScenario.values[oaName];
+        const oaValues = scenario.values.get(oaName);
         if (oaValues === undefined) {
-            console.log(`${oaName} not found in values!`);
-        } else {
-            for (const indi in oaValues) {
-                feature["properties"][indi] = oaValues[indi];
-                feature["properties"][`${indi}-color`] =
-                    getColorFromMap(colormaps[indi], oaValues[indi], minValues[indi], maxValues[indi]);
-                feature["properties"][`${indi}-cmp`] = compareOaValues[indi];
-                feature["properties"][`${indi}-cmp-color`] =
-                    getColorFromMap(colormaps[indi], compareOaValues[indi], minValues[indi], maxValues[indi]);
+            throw new Error(`${oaName} not found in values!`);
+        }
+        for (const indi of allIndicators) {
+            const n = indi.name;
+            feature["properties"][n] = oaValues.get(n);
+            feature["properties"][`${n}-color`] =
+                getColorFromMap(colormaps[n], oaValues.get(n), minValues.get(n), maxValues.get(n));
+        }
+        if (compareScenarioName !== null) {
+            const cScenario = allScenarios.find(s => s.name === compareScenarioName);
+            const cOaValues = cScenario.values.get(oaName);
+            if (cOaValues === undefined) {
+                throw new Error(`${oaName} not found in compare values!`);
+            }
+            for (const indi of allIndicators) {
+                const n = indi.name;
+                feature["properties"][`${n}-cmp`] = cOaValues.get(n);
+                feature["properties"][`${n}-cmp-color`] =
+                    getColorFromMap(colormaps[n], cOaValues.get(n), minValues.get(n), maxValues.get(n));
             }
         }
         return feature;
     });
 
-    console.log(scenarioName, compareScenarioName);
-    console.log(geography.features[0]);
     // TODO: Figure out how to not cast here
     return geography as GeoJSON.FeatureCollection;
-}
-
-export type ChartData = { colors: string[]; values: number[]; counts: number[]; compareCounts: number[] };
-
-// TODO Document
-export function makeChartData(geojson: GeoJSON.FeatureCollection, indicator: IndicatorName, nbars: number): ChartData {
-    const colors = makeColormap(indicator, nbars);
-    const rawValues: number[] = geojson.features.map(feature => feature.properties[indicator]);
-    const compareRawValues : number[] = geojson.features.map(feature => feature.properties[`${indicator}-cmp`]);
-    // quantise rawValues to 0 -> 19
-    const min = Math.min(...rawValues, ...compareRawValues);
-    const max = Math.max(...rawValues, ...compareRawValues);
-    const intValues = rawValues.map(value => Math.round(((value - min) / (max - min)) * (nbars - 1)));
-    // get the counts of each value (y-axis)
-    const counts = new Array(nbars).fill(0);
-    for (const value of intValues) {
-        counts[value]++;
-    }
-    // generate the x-axis values, which are 0 -> 19 but rescaled back to the
-    // original range of indicator values
-    const values = Array.from({ length: nbars }, (_, i) => i)
-        .map(value => value * (max - min) / (nbars - 1) + min);
-
-    const compareIntValues = compareRawValues.map(value => Math.round(((value - min) / (max - min)) * (nbars - 1)));
-    const compareCounts = new Array(nbars).fill(0);
-    for (const value of compareIntValues) {
-        compareCounts[value]++;
-    }
-
-    return {
-        counts: counts,
-        compareCounts: compareCounts,
-        values: values,
-        colors: colors,
-    }
 }
 
 // Obtain the LngLatBoundsLike of a Polygon or MultiPolygon geometry object from its coordinates.

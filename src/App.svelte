@@ -14,8 +14,6 @@
     } from "./constants";
     import {
         makeCombinedGeoJSON,
-        makeChartData,
-        type ChartData,
         getGeometryBounds,
     } from "./utils";
 
@@ -32,8 +30,6 @@
     let map: maplibregl.Map;
     // The data to be plotted on the map
     let mapData: GeoJSON.FeatureCollection;
-    // The data to be sent to the chart
-    let chartData: ChartData;
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
     // Initial longitude and latitude
@@ -42,14 +38,13 @@
     let initialZoom: number = 10.05;
     // Initial scenario to show
     let scenarioName: ScenarioName = "baseline";
-    // Scenario to compare against
-    let compareScenarioName: ScenarioName = "baseline";
+    // Scenario to compare against. Null to not compare.
+    let compareScenarioName: ScenarioName | null = null;
     // Initial opacity
     let opacity: number = 1;
 
     // Generate data for the baseline
     mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
-    chartData = makeChartData(mapData, activeIndicator, 20);
 
     // Set div#map to have 100vw and 100vh height
     function resizeContainer() {
@@ -348,10 +343,9 @@
     }
     // Redraw layers when compareScenario is changed
     function updateCompareScenario() {
-        console.log("scenario changed to: " + compareScenarioName);
+        console.log("TODO TODO scenario changed to: " + compareScenarioName);
         // TODO: Fix the below
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
-        chartData = makeChartData(mapData, activeIndicator, 20);
         if (map) {
             redrawLayers(mapData);
         }
@@ -366,8 +360,6 @@
             });
         }
     }
-
-    $: chartData = makeChartData(mapData, activeIndicator, 20);
 </script>
 
 <main>
@@ -392,7 +384,7 @@
                 on:changeIndicator={updateLayers}
                 on:changeOpacity={updateLayers}
             />
-            <Chart data={chartData} {activeIndicator} />
+            <Chart {activeIndicator} {scenarioName} {compareScenarioName} />
             {#if clicked !== null}
                 <Values {activeIndicator} feature={clicked} />
             {/if}
