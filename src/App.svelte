@@ -21,7 +21,7 @@
     let hoverPopup: maplibregl.Popup | null = null;
     // The feature corresponding to the OA that was clicked on. Null if no OA
     // was clicked on.
-    let clicked: GeoJSON.Feature | null = null;
+    let clickedFeature: GeoJSON.Feature | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
@@ -136,19 +136,19 @@
             e.preventDefault();
             if (e.features.length > 0) {
                 // Clicked on an OA
-                if (clicked !== null) {
+                if (clickedFeature !== null) {
                     map.setFeatureState(
-                        { source: "newcastle", id: clicked.id },
+                        { source: "newcastle", id: clickedFeature.id },
                         { click: false }
                     );
                 }
-                clicked = e.features[0];
+                clickedFeature = e.features[0];
                 map.setFeatureState(
-                    { source: "newcastle", id: clicked.id },
+                    { source: "newcastle", id: clickedFeature.id },
                     { click: true }
                 );
                 // Centre map on that OA if the new div would obscure it.
-                const oaBounds = getGeometryBounds(clicked.geometry);
+                const oaBounds = getGeometryBounds(clickedFeature.geometry);
                 if (oaInWindowEdge(oaBounds, map.getBounds())) {
                     map.flyTo({
                         center: oaBounds.getCenter(),
@@ -160,12 +160,12 @@
         map.on("click", function (e) {
             if (e.defaultPrevented === false) {
                 // Clicked outside an OA
-                if (clicked.id !== null) {
+                if (clickedFeature.id !== null) {
                     map.setFeatureState(
-                        { source: "newcastle", id: clicked.id },
+                        { source: "newcastle", id: clickedFeature.id },
                         { click: false }
                     );
-                    clicked = null;
+                    clickedFeature = null;
                 }
             }
         });
@@ -195,12 +195,7 @@
         map.addSource("newcastle", {
             type: "geojson",
             data: mapData,
-            // When setting the feature ID to be the OA label (a string),
-            // mapLibre wipes them as it can't be converted to a number.
-            // See https://github.com/maplibre/maplibre-gl-js/issues/1043.
-            // The generateId option generates numeric ids for each feature,
-            // enabling the hover functionality.
-            generateId: true,
+            promoteId: "id",
         });
         // The choice to use four different layers here --- one per indicator
         // --- seems to be suboptimal at first glance. Indeed, virtually all
@@ -308,6 +303,19 @@
         }
     }
 
+    function updateClickedFeature(mapData: GeoJSON.FeatureCollection) {
+        if (clickedFeature !== null) {
+            const theId = clickedFeature.id;
+            clickedFeature = mapData.features.find(
+                (feature) => feature.id === theId
+            );
+            map.setFeatureState(
+                { source: "newcastle", id: theId },
+                { click: true }
+            );
+        }
+    }
+
     /* Event handlers! */
     // Redraw layers when scenario is changed
     function updateScenario() {
@@ -317,33 +325,16 @@
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         if (map) {
             redrawLayers(mapData);
-            // TODO: very hacky. Can we make this cleaner?
-            if (clicked !== null) {
-                // the ID needs to be stored separately because id's are only
-                // generated when calling map.addSource, it's not in mapData itself
-
-                // One possible workaround is to use numeric ids for the
-                // features in the base geojson
-                const theId = clicked.id;
-                clicked = mapData.features.find(
-                    (feature) =>
-                        feature.properties.OA11CD === clicked.properties.OA11CD
-                );
-                clicked.id = theId;
-                map.setFeatureState(
-                    { source: "newcastle", id: clicked.id },
-                    { click: true }
-                );
-            }
+            updateClickedFeature(mapData);
         }
     }
     // Redraw layers when compareScenario is changed
     function updateCompareScenario() {
-        console.log("TODO TODO scenario changed to: " + compareScenarioName);
-        // TODO: Fix the below
+        console.log("TODO compareScenario changed to: " + compareScenarioName);
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         if (map) {
             redrawLayers(mapData);
+            updateClickedFeature(mapData);
         }
     }
     // Recentre map on Newcastle when button is clicked
@@ -371,7 +362,12 @@
 
         <div id="recentre">
             {#if offcentre}
-                <input type="button" value="Centre map" id="recentre" on:click={recentreMap} />
+                <input
+                    type="button"
+                    value="Centre map"
+                    id="recentre"
+                    on:click={recentreMap}
+                />
             {/if}
         </div>
 
@@ -383,12 +379,11 @@
                 on:changeOpacity={updateLayers}
             />
             <Chart {activeIndicator} {scenarioName} {compareScenarioName} />
-            {#if clicked !== null}
-                <Values {activeIndicator} feature={clicked} />
+            {#if clickedFeature !== null}
+                <Values {compareScenarioName} feature={clickedFeature} />
             {/if}
         </div>
     </div>
-
 </main>
 <svelte:window on:resize={resizeContainer} />
 

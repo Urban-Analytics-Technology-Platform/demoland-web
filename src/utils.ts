@@ -76,16 +76,16 @@ export function makeCombinedGeoJSON(
     const scenario = allScenarios.find(s => s.name === scenarioName);
 
     // Merge geography with indicators
-    geography["features"] = geography["features"].map(function(feature) {
-        const oaName = feature["properties"]["OA11CD"];
+    geography.features = geography.features.map(function(feature) {
+        const oaName = feature.properties.OA11CD;
         const oaValues = scenario.values.get(oaName);
         if (oaValues === undefined) {
             throw new Error(`${oaName} not found in values!`);
         }
         for (const indi of allIndicators) {
             const n = indi.name;
-            feature["properties"][n] = oaValues.get(n);
-            feature["properties"][`${n}-color`] =
+            feature.properties[n] = oaValues.get(n);
+            feature.properties[`${n}-color`] =
                 getColorFromMap(colormaps[n], oaValues.get(n), minValues.get(n), maxValues.get(n));
         }
         if (compareScenarioName !== null) {
@@ -96,11 +96,13 @@ export function makeCombinedGeoJSON(
             }
             for (const indi of allIndicators) {
                 const n = indi.name;
-                feature["properties"][`${n}-cmp`] = cOaValues.get(n);
-                feature["properties"][`${n}-cmp-color`] =
+                feature.properties[`${n}-cmp`] = cOaValues.get(n);
+                feature.properties[`${n}-cmp-color`] =
                     getColorFromMap(colormaps[n], cOaValues.get(n), minValues.get(n), maxValues.get(n));
             }
         }
+        
+        feature.id = feature.properties.id;
         return feature;
     });
 
