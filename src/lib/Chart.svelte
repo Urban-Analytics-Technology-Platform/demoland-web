@@ -4,6 +4,7 @@
         type IndicatorName,
         allIndicators,
         type ScenarioName,
+        allScenarios,
         minValues,
         maxValues,
     } from "../constants";
@@ -22,6 +23,7 @@
         labels: number[];
         counts: number[];
         datasets: any[];
+        showLegend: boolean;
     };
 
     // Generate data for the chart.
@@ -62,6 +64,7 @@
 
         let datasets = [
             {
+                label: allScenarios.find((s) => s.name === scen).short,
                 data: counts,
                 backgroundColor: colors,
                 borderWidth: 0,
@@ -80,6 +83,7 @@
                 compareCounts[value]++;
             }
             datasets.push({
+                label: allScenarios.find((s) => s.name === cmpScen).short,
                 data: compareCounts,
                 // @ts-ignore backgroundColor can be string or string[]
                 backgroundColor: "rgba(1, 1, 1, 0)",
@@ -96,6 +100,7 @@
             counts: counts,
             labels: labels,
             colors: colors,
+            showLegend: cmpScen !== null,
         };
     }
 
@@ -129,6 +134,7 @@
                 datasets: chartData.datasets,
             },
             options: {
+                maintainAspectRatio: false,
                 events: [],
                 scales: {
                     x: {
@@ -138,6 +144,7 @@
                             callback: pretty,
                             maxRotation: 0,
                             minRotation: 0,
+                            font: { family: "IBM Plex Sans" },
                         },
                         grid: {
                             display: false,
@@ -149,7 +156,11 @@
                 },
                 plugins: {
                     legend: {
-                        display: false,
+                        display: chartData.showLegend,
+                        labels: {
+                            boxWidth: 20,
+                            font: { family: "IBM Plex Sans" },
+                        },
                     },
                 },
             },
@@ -165,6 +176,7 @@
         const chartData = makeChartData(indi, scen, cmpScen);
         chart.data.datasets = chartData.datasets;
         chart.data.labels = chartData.labels;
+        chart.options.plugins.legend.display = chartData.showLegend;
         chart.update("none");
     }
 
@@ -180,7 +192,9 @@
 
 <div id="chart-container">
     <h2>Chart</h2>
-    <canvas id="chart" />
+    <div id="chart-canvas">
+        <canvas id="chart" />
+    </div>
     <div id="chart-pointers">
         <div id="chart-pointers-left">
             ← {allIndicators.find((i) => i.name === activeIndicator).less}
@@ -198,6 +212,10 @@
         border: 1px solid black;
         background-color: #fad7f0; /* pink */
         pointer-events: auto;
+    }
+
+    div#chart-canvas {
+        height: 150px;
     }
 
     div#chart-pointers {
