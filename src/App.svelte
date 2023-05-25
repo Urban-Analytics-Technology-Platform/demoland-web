@@ -3,7 +3,6 @@
     import maplibregl from "maplibre-gl";
     import { onMount, onDestroy } from "svelte";
     import Chart from "./lib/Chart.svelte";
-    import Recentre from "./lib/Recentre.svelte";
     import Sidebar from "./lib/Sidebar.svelte";
     import Indicators from "./lib/Indicators.svelte";
     import Values from "./lib/Values.svelte";
@@ -12,10 +11,7 @@
         type IndicatorName,
         type ScenarioName,
     } from "./constants";
-    import {
-        makeCombinedGeoJSON,
-        getGeometryBounds,
-    } from "./utils";
+    import { makeCombinedGeoJSON, getGeometryBounds } from "./utils";
 
     // The currently active indicator
     let activeIndicator: IndicatorName = "air_quality";
@@ -351,7 +347,7 @@
         }
     }
     // Recentre map on Newcastle when button is clicked
-    function recentreMap(_: CustomEvent<{}>) {
+    function recentreMap() {
         if (map) {
             map.flyTo({
                 center: initialCentre,
@@ -373,9 +369,11 @@
             on:changeCompareScenario={updateCompareScenario}
         />
 
-        {#if offcentre}
-            <Recentre on:recentreEvent={recentreMap} />
-        {/if}
+        <div id="recentre">
+            {#if offcentre}
+                <input type="button" value="Centre map" id="recentre" on:click={recentreMap} />
+            {/if}
+        </div>
 
         <div id="right-container">
             <Indicators
@@ -390,6 +388,7 @@
             {/if}
         </div>
     </div>
+
 </main>
 <svelte:window on:resize={resizeContainer} />
 
@@ -406,6 +405,23 @@
         padding: var(--padding);
         gap: var(--padding);
         pointer-events: none;
+    }
+
+    div#recentre {
+        margin-left: auto;
+        margin-right: auto;
+        pointer-events: auto;
+        min-width: 95px;
+    }
+
+    input#recentre {
+        font-size: 14px;
+        text-decoration: underline;
+        border-radius: 10px;
+        opacity: 90%;
+        box-sizing: border-box;
+        padding: 5px;
+        background-color: #e8e8e8; /* grey */
     }
 
     div#right-container {
