@@ -1,16 +1,21 @@
 <script lang="ts">
-    import { type ScenarioName, allScenarios } from "../constants";
+    import { type ScenarioName, allScenarios, type CompareView, allCompareViews } from "../constants";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
+    export let compareView: CompareView;
 
+    // TODO Can we not do this?
     function changeScenario(_: Event) {
         dispatch("changeScenario", {});
     }
     function changeCompareScenario(_: Event) {
         dispatch("changeCompareScenario", {});
+    }
+    function changeCompareView(_: Event) {
+        dispatch("changeCompareView", {});
     }
 
     $: scenario = allScenarios.find(s => s.name === scenarioName);
@@ -34,7 +39,7 @@
     </p>
     {#if scenarioName !== "baseline"}
         <p>Compare with:
-            <select id="scenario" bind:value={compareScenarioName} on:change={changeCompareScenario}>
+            <select id="compare" bind:value={compareScenarioName} on:change={changeCompareScenario}>
                 <option value={null}>None</option>
                 {#each allScenarios as compareScenario}
                     {#if compareScenario.name !== scenarioName}
@@ -43,6 +48,15 @@
                 {/each}
             </select>
         </p>
+        {#if compareScenarioName !== null}
+            <p>View:
+                <select id="view" bind:value={compareView} on:change={changeCompareView}>
+                    {#each allCompareViews as view}
+                        <option value={view.value}>{view.description}</option>
+                    {/each}
+                </select>
+            </p>
+        {/if}
     {/if}
     <p>
         <b>{scenario.short}:</b> {scenario.description[0]}

@@ -10,6 +10,7 @@
         allIndicators,
         type IndicatorName,
         type ScenarioName,
+        type CompareView,
     } from "./constants";
     import { makeCombinedGeoJSON, getGeometryBounds } from "./utils";
 
@@ -36,6 +37,8 @@
     let scenarioName: ScenarioName = "baseline";
     // Scenario to compare against. Null to not compare.
     let compareScenarioName: ScenarioName | null = null;
+    // Method to visualise scenario comparison
+    let compareView: CompareView = "original";
     // Initial opacity
     let opacity: number = 1;
 
@@ -218,7 +221,13 @@
                 source: "newcastle",
                 layout: {},
                 paint: {
-                    "fill-color": ["get", `${indicator.name}-color`],
+                    "fill-color": [
+                        "get",
+                        compareScenarioName === null ||
+                        compareView === "original"
+                            ? `${indicator.name}-color`
+                            : `${indicator.name}-diff-color`,
+                    ],
                     "fill-opacity": 0.01,
                     // Suppressing a known bug:
                     // https://github.com/maplibre/maplibre-gl-js/issues/1708
@@ -291,6 +300,12 @@
     function updateLayers() {
         if (map !== null) {
             for (const indicator of allIndicators) {
+                map.setPaintProperty(`${indicator.name}-layer`, "fill-color", [
+                    "get",
+                    compareScenarioName === null || compareView === "original"
+                        ? `${indicator.name}-color`
+                        : `${indicator.name}-diff-color`,
+                ]);
                 map.setPaintProperty(
                     `${indicator.name}-layer`,
                     "fill-opacity",
@@ -337,6 +352,12 @@
             updateClickedFeature(mapData);
         }
     }
+    // Redraw layers when compareView is changed
+    function updateCompareView() {
+        if (map) {
+            updateLayers();
+        }
+    }
     // Recentre map on Newcastle when button is clicked
     function recentreMap() {
         if (map) {
@@ -356,8 +377,10 @@
         <Sidebar
             bind:scenarioName
             bind:compareScenarioName
+            bind:compareView
             on:changeScenario={updateScenario}
             on:changeCompareScenario={updateCompareScenario}
+            on:changeCompareView={updateCompareView}
         />
 
         <div id="recentre">

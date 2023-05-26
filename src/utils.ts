@@ -46,6 +46,7 @@ const colormaps: { [key: string]: string[] } = {
     "house_price": makeColormap("house_price", 100),
     "job_accessibility": makeColormap("job_accessibility", 100),
     "greenspace_accessibility": makeColormap("greenspace_accessibility", 100),
+    "diff": colormap({ colormap: "RdBu", nshades: 100, format: "hex", alpha: 1 }),
 }
 
 function getColorFromMap(map: string[], value: number, min: number, max: number) {
@@ -75,6 +76,25 @@ export function makeCombinedGeoJSON(
 ): GeoJSON.FeatureCollection {
     const scenario = allScenarios.find(s => s.name === scenarioName);
 
+    // Precalculate differences between scenarios being compared
+    let maxDiffExtent: Map<IndicatorName, number> = new Map();
+    if (compareScenarioName !== null) {
+        const scenario = allScenarios.find(s => s.name === scenarioName);
+        const cScenario = allScenarios.find(s => s.name === compareScenarioName);
+        for (const indi of allIndicators) {
+            const n = indi.name;
+            let diffs: number[] = [];
+            for (const oa of scenario.values.keys()) {
+                diffs.push(scenario.values.get(oa).get(n) - cScenario.values.get(oa).get(n));
+            }
+            const min = Math.min(...diffs);
+            const max = Math.max(...diffs);
+            const maxDiff = Math.max(Math.abs(min), Math.abs(max));
+            maxDiffExtent.set(n, maxDiff === 0 ? 1 : maxDiff);
+        }
+        console.log(maxDiffExtent);
+    }
+
     // Merge geography with indicators
     geography.features = geography.features.map(function(feature) {
         const oaName = feature.properties.OA11CD;
@@ -99,14 +119,19 @@ export function makeCombinedGeoJSON(
                 feature.properties[`${n}-cmp`] = cOaValues.get(n);
                 feature.properties[`${n}-cmp-color`] =
                     getColorFromMap(colormaps[n], cOaValues.get(n), minValues.get(n), maxValues.get(n));
+                feature.properties[`${n}-diff`] = cOaValues.get(n) - oaValues.get(n);
+                feature.properties[`${n}-diff-color`] =
+                    getColorFromMap(colormaps["diff"], cOaValues.get(n) - oaValues.get(n), -maxDiffExtent.get(n), maxDiffExtent.get(n));
             }
         }
-        
+
+        // @ts-ignore GeoJSON types don't seem to recognise feature id
         feature.id = feature.properties.id;
         return feature;
     });
 
     // TODO: Figure out how to not cast here
+    console.log(geography.features[0]);
     return geography as GeoJSON.FeatureCollection;
 }
 

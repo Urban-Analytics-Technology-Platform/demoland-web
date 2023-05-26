@@ -7,11 +7,18 @@ import scenario5Vals from "./assets/scenario5.json";
 import scenario6Vals from "./assets/scenario6.json";
 import scenario7Vals from "./assets/scenario7.json";
 
+export type CompareView = "original" | "difference";
+
+export const allCompareViews: { value: CompareView, description: string }[] = [
+    { "value": "original", "description": "Original" },
+    { "value": "difference", "description": "Difference" },
+]
+
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
 
 export type Indicator = { name: IndicatorName, short: string, less: string, more: string };
 
-export let allIndicators: Indicator[] = [
+export const allIndicators: Indicator[] = [
     {
         "name": "air_quality",
         "short": "Air quality",
@@ -56,7 +63,7 @@ function makeValuesMapFromJson(json: object) {
 
 export type Scenario = { name: ScenarioName, short: string, values: Map<OA, Map<IndicatorName, number>>, description: string[] };
 
-export let allScenarios: Scenario[] = [
+export const allScenarios: Scenario[] = [
     {
         "name": "baseline",
         "short": "Baseline",
