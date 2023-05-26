@@ -15,8 +15,8 @@
         } else {
             const pctChange =
                 cmpVal === 0 ? 0 : (100 * (val - cmpVal)) / cmpVal;
-            const sign = pctChange >= 0 ? "+" : "";
-            return `${val.toFixed(2)} (${sign}${pctChange.toFixed(1)}%)`;
+            const sign = pctChange >= 0 ? "+" : "−";  // this is a minus sign instead of hyphen!
+            return `${val.toFixed(2)} (${sign}${Math.abs(pctChange).toFixed(1)}%)`;
         }
     }
 
