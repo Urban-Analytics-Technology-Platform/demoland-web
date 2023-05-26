@@ -146,4 +146,3 @@ for (const indicator of allIndicators) {
     minValues.set(indicator.name, Math.min(...values));
     maxValues.set(indicator.name, Math.max(...values));
 }
-console.log(minValues, maxValues);

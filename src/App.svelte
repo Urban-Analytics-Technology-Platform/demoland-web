@@ -72,7 +72,7 @@
         return x < 300 || x > window.innerWidth - 270;
     }
 
-    // Setup scripts. We have to use Svelte's 'onMount' because the code in
+    // Setup functions. We have to use Svelte's 'onMount' because the code in
     // this script is run before the DOM is generated.
     onMount(() => {
         // Manually update the size of the containing div to be 100vw/100vh.
@@ -192,8 +192,9 @@
         map.remove();
     });
 
-    // Draw the map layers. This is called when the map is first created, and also
-    // whenever the scenario is changed.
+    // Draw the map layers. This should only be called when the map is
+    // initialised. After it's been set up, we don't need to redraw the layers,
+    // we just update the underlying data or styles.
     function drawLayers(mapData: GeoJSON.GeoJsonObject) {
         map.addSource("newcastle", {
             type: "geojson",
@@ -275,15 +276,21 @@
         }, 200);
     }
 
-    function redrawLayers(mapData: GeoJSON.FeatureCollection) {
-        if (map !== null) {
+    // Update underlying data. This should be called whenever the indicator
+    // values are changed (i.e. when the scenarios are changed).
+    function updateMapData(mapData: GeoJSON.FeatureCollection) {
+        if (map) {
             (map.getSource("newcastle") as maplibregl.GeoJSONSource).setData(mapData);
             updateLayers();
+            updateClickedFeature(mapData);
         }
     }
 
+    // Update layer styles. This should be called whenever the user wants to
+    // view different parts of the same data (e.g. when changing indicator, or
+    // compareView).
     function updateLayers() {
-        if (map !== null) {
+        if (map) {
             for (const indicator of allIndicators) {
                 map.setPaintProperty(`${indicator.name}-layer`, "fill-color", [
                     "get",
@@ -324,14 +331,8 @@
             compareScenarioName = null;
             compareView = "original";
         }
-        // This has to be here and not in the $: reactive bit because
-        // redrawLayers depends on it (and reactive statements are executed
-        // only at the end).
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
-        if (map) {
-            redrawLayers(mapData);
-            updateClickedFeature(mapData);
-        }
+        updateMapData(mapData);
     }
     // Redraw layers when compareScenario is changed
     function updateCompareScenario() {
@@ -340,16 +341,7 @@
             compareView = "original";
         }
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
-        if (map) {
-            redrawLayers(mapData);
-            updateClickedFeature(mapData);
-        }
-    }
-    // Redraw layers when compareView is changed
-    function updateCompareView() {
-        if (map) {
-            updateLayers();
-        }
+        updateMapData(mapData);
     }
     // Recentre map on Newcastle when button is clicked
     function recentreMap() {
@@ -373,7 +365,7 @@
             bind:compareView
             on:changeScenario={updateScenario}
             on:changeCompareScenario={updateCompareScenario}
-            on:changeCompareView={updateCompareView}
+            on:changeCompareView={updateLayers}
         />
 
         <div id="recentre">
@@ -396,7 +388,7 @@
             />
             <Chart {activeIndicator} {scenarioName} {compareScenarioName} />
             {#if clickedFeature !== null}
-                <Values {compareScenarioName} feature={clickedFeature} />
+                <Values {activeIndicator} {compareView} {compareScenarioName} feature={clickedFeature} />
             {/if}
         </div>
     </div>

@@ -102,7 +102,6 @@
         // automatic calculation is not quite as polished as matplotlib.
         function calculateTickStepSize(max: number, min: number): number {
             let s = (max - min) / 4; // Assuming we want 5 ticks (ish)
-            console.log(s);
             if (s < 0.5) return 0.5;
             if (s < 1) return 1;
             if (s > 10) {

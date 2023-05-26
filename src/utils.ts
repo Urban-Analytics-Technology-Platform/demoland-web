@@ -92,7 +92,6 @@ export function makeCombinedGeoJSON(
             const maxDiff = Math.max(Math.abs(min), Math.abs(max));
             maxDiffExtent.set(n, maxDiff === 0 ? 1 : maxDiff);
         }
-        console.log(maxDiffExtent);
     }
 
     // Merge geography with indicators
@@ -131,7 +130,6 @@ export function makeCombinedGeoJSON(
     });
 
     // TODO: Figure out how to not cast here
-    console.log(geography.features[0]);
     return geography as GeoJSON.FeatureCollection;
 }
 

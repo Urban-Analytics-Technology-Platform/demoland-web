@@ -3,35 +3,54 @@
         allIndicators,
         type IndicatorName,
         type ScenarioName,
+        type CompareView,
     } from "../constants";
     export let feature: GeoJSON.Feature | undefined;
+    export let activeIndicator: IndicatorName;
     export let compareScenarioName: ScenarioName | null;
+    export let compareView: CompareView;
 
-    function getText(n: IndicatorName, csn: ScenarioName | null): string {
-        let val = feature.properties[n];
-        let cmpVal = feature.properties[`${n}-cmp`];
-        if (csn === null) {
-            return val.toFixed(2);
+    let oaName: string;
+
+    function getText(
+        indicator: IndicatorName,
+    ): string {
+        function boldIf(p: boolean, s: string): string {
+            return p ? `<b>${s}</b>` : s;
+        }
+        let val = feature.properties[indicator];
+        let cmpVal = feature.properties[`${indicator}-cmp`];
+        if (compareScenarioName === null) {
+            return boldIf(indicator === activeIndicator, val.toFixed(2));
         } else {
             const pctChange =
                 cmpVal === 0 ? 0 : (100 * (val - cmpVal)) / cmpVal;
-            const sign = pctChange >= 0 ? "+" : "−";  // this is a minus sign instead of hyphen!
-            return `${val.toFixed(2)} (${sign}${Math.abs(pctChange).toFixed(1)}%)`;
+            const sign = pctChange >= 0 ? "+" : "−"; // this is a minus sign instead of hyphen!
+            return (
+                boldIf(
+                    indicator === activeIndicator && compareView === "original",
+                    val.toFixed(2)
+                ) +
+                " " +
+                boldIf(
+                    indicator === activeIndicator &&
+                        compareView === "difference",
+                    `(${sign}${Math.abs(pctChange).toFixed(1)}%)`
+                )
+            );
         }
     }
 
     let texts = new Map();
     for (const indi of allIndicators) {
-        texts.set(indi.name, getText(indi.name, compareScenarioName));
+        texts.set(indi.name, getText(indi.name));
     }
 
-    // Rather awkward way of forcing component to be reactive. Can this be
-    // improved on?
     $: {
-        feature = feature; // forces entire block to be run whenever feature is changed
-        feature.properties.OA11CD = feature.properties.OA11CD;
+        feature, activeIndicator, compareView;
+        oaName = feature.properties.OA11CD;
         for (const indi of allIndicators) {
-            texts.set(indi.name, getText(indi.name, compareScenarioName));
+            texts.set(indi.name, getText(indi.name));
         }
         texts = texts;
     }
@@ -43,7 +62,7 @@
 
         {#each allIndicators as indi}
             <div class="nomargin"><i>{indi.short}</i></div>
-            <div class="nomargin ralign">{texts.get(indi.name)}</div>
+            <div class="nomargin ralign">{@html texts.get(indi.name)}</div>
         {/each}
     </div>
 {/if}
