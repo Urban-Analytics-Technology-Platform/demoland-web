@@ -38,7 +38,7 @@
     // Scenario to compare against. Null to not compare.
     let compareScenarioName: ScenarioName | null = null;
     // Method to visualise scenario comparison
-    let compareView: CompareView = "original";
+    let compareView: CompareView = "difference";
     // Initial opacity
     let opacity: number = 1;
 
@@ -334,6 +334,11 @@
     /* Event handlers! */
     // Redraw layers when scenario is changed
     function updateScenario() {
+        // reset compareScenario and compareView
+        if (scenarioName === "baseline") {
+            compareScenarioName = null;
+            compareView = "original";
+        }
         // This has to be here and not in the $: reactive bit because
         // redrawLayers depends on it (and reactive statements are executed
         // only at the end).
@@ -345,7 +350,10 @@
     }
     // Redraw layers when compareScenario is changed
     function updateCompareScenario() {
-        console.log("TODO compareScenario changed to: " + compareScenarioName);
+        // reset compareView
+        if (compareScenarioName === null) {
+            compareView = "original";
+        }
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         if (map) {
             redrawLayers(mapData);

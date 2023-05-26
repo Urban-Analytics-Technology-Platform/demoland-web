@@ -29,16 +29,16 @@
         repressed. You must allow me to tell you how ardently I admire and love
         you.”
     </p>
-    <p>
-        Choose a scenario:
+
+    <div id="dropdowns">
+        <span>Choose scenario:</span>
         <select id="scenario" bind:value={scenarioName} on:change={changeScenario}>
             {#each allScenarios as scenario}
                 <option value={scenario.name}>{scenario.short}</option>
             {/each}
         </select>
-    </p>
-    {#if scenarioName !== "baseline"}
-        <p>Compare with:
+        {#if scenarioName !== "baseline"}
+            <span>Compare with:</span>
             <select id="compare" bind:value={compareScenarioName} on:change={changeCompareScenario}>
                 <option value={null}>None</option>
                 {#each allScenarios as compareScenario}
@@ -47,17 +47,16 @@
                     {/if}
                 {/each}
             </select>
-        </p>
-        {#if compareScenarioName !== null}
-            <p>View:
+            {#if compareScenarioName !== null}
+                <span>View:</span>
                 <select id="view" bind:value={compareView} on:change={changeCompareView}>
                     {#each allCompareViews as view}
                         <option value={view.value}>{view.description}</option>
                     {/each}
                 </select>
-            </p>
+            {/if}
         {/if}
-    {/if}
+    </div>
     <p>
         <b>{scenario.short}:</b> {scenario.description[0]}
     </p>
@@ -86,5 +85,12 @@
     }
     div#sidebar > :last-child {
         margin-bottom: 0 !important;
+    }
+    div#dropdowns {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        column-gap: 10px;
+        row-gap: 5px;
+        align-items: baseline;
     }
 </style>
