@@ -232,7 +232,7 @@
                     // Suppressing a known bug:
                     // https://github.com/maplibre/maplibre-gl-js/issues/1708
                     // @ts-ignore
-                    "fill-opacity-transition": { duration: 400 },
+                    "fill-opacity-transition": { duration: 300 },
                 },
             });
         }
@@ -255,7 +255,7 @@
                 // Suppressing a known bug:
                 // https://github.com/maplibre/maplibre-gl-js/issues/1708
                 // @ts-ignore
-                "line-opacity-transition": { duration: 400 },
+                "line-opacity-transition": { duration: 300 },
             },
         });
 
@@ -272,31 +272,16 @@
                 );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
-        }, 100);
+        }, 200);
     }
 
-    function redrawLayers(mapData: GeoJSON.GeoJsonObject) {
-        // Fade out existing layers if necessary
-        for (const indicator of allIndicators) {
-            const layerName = `${indicator.name}-layer`;
-            if (map.getLayer(layerName) !== undefined) {
-                map.setPaintProperty(layerName, "fill-opacity", 0.01);
-                map.removeLayer(`${indicator.name}-layer`);
-            }
+    function redrawLayers(mapData: GeoJSON.FeatureCollection) {
+        if (map !== null) {
+            (map.getSource("newcastle") as maplibregl.GeoJSONSource).setData(mapData);
+            updateLayers();
         }
-        if (map.getLayer("line-layer") !== undefined) {
-            map.setPaintProperty("line-layer", "line-opacity", 0.01);
-            map.removeLayer("line-layer");
-        }
-        if (map.getSource("newcastle") !== undefined) {
-            map.removeSource("newcastle");
-        }
-        drawLayers(mapData);
     }
 
-    // Update opacity of all map layers according to the currently active
-    // indicator, as well as the value of the opacity slider (which acts as a
-    // constant factor to multiply all layers' opacities by).
     function updateLayers() {
         if (map !== null) {
             for (const indicator of allIndicators) {
