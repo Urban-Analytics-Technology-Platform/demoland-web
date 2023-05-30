@@ -16,7 +16,7 @@ export const allCompareViews: { value: CompareView, description: string }[] = [
 
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
 
-export type Indicator = { name: IndicatorName, short: string, less: string, more: string };
+export type Indicator = { name: IndicatorName, short: string, less: string, more: string, less_diff: string, more_diff: string };
 
 export const allIndicators: Indicator[] = [
     {
@@ -24,24 +24,32 @@ export const allIndicators: Indicator[] = [
         "short": "Air quality",
         "less": "cleaner",
         "more": "more polluted",
+        "less_diff": "improved",
+        "more_diff": "worsened",
     },
     {
         "name": "house_price",
         "short": "House prices",
         "less": "cheaper",
         "more": "more expensive",
+        "less_diff": "decreased",
+        "more_diff": "increased",
     },
     {
         "name": "job_accessibility",
         "short": "Job accessibility",
         "less": "lower",
         "more": "higher",
+        "less_diff": "decreased",
+        "more_diff": "increased",
     },
     {
         "name": "greenspace_accessibility",
         "short": "Greenspace accessibility",
         "less": "lower",
         "more": "higher",
+        "less_diff": "decreased",
+        "more_diff": "increased",
     },
 ];
 

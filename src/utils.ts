@@ -3,7 +3,7 @@ import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, minValues, maxValues } from "./constants";
 
-export function makeColormap(indicator: IndicatorName, n: number) {
+export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "air_quality") {
         return colormap({
             colormap: "oxygen",
@@ -33,6 +33,14 @@ export function makeColormap(indicator: IndicatorName, n: number) {
             alpha: 1,
         }).reverse();
     }
+    else if (indicator === "diff") {
+        return colormap({
+            colormap: "RdBu",
+            nshades: n,
+            format: "hex",
+            alpha: 1,
+        });
+    }
 }
 
 // Get all values for a given indicator in a given scenario.
@@ -46,7 +54,7 @@ const colormaps: { [key: string]: string[] } = {
     "house_price": makeColormap("house_price", 100),
     "job_accessibility": makeColormap("job_accessibility", 100),
     "greenspace_accessibility": makeColormap("greenspace_accessibility", 100),
-    "diff": colormap({ colormap: "RdBu", nshades: 100, format: "hex", alpha: 1 }),
+    "diff": makeColormap("diff", 100),
 }
 
 function getColorFromMap(map: string[], value: number, min: number, max: number) {

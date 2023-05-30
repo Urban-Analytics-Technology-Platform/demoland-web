@@ -7,15 +7,17 @@
         allScenarios,
         minValues,
         maxValues,
+        type CompareView,
     } from "../constants";
     import { makeColormap, getValues } from "../utils";
     import { onMount, onDestroy } from "svelte";
     export let activeIndicator: IndicatorName;
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
+    export let compareView: CompareView;
 
     // Number of bars to use in the chart
-    const nbars: number = 10;
+    const nbars: number = 11;
 
     let chart: Chart | null = null;
     type ChartData = {
@@ -27,48 +29,78 @@
         tickStepSize: number;
     };
 
+    // Function to manually calculate tick step size, because it seems that
+    // chart.js's automatic calculation is not quite as polished as matplotlib.
+    function calculateTickStepSize(max: number, min: number): number {
+        let s = (max - min) / 4; // Assuming we want 5 ticks (ish)
+        if (s < 0.5) return 0.5;
+        if (s < 1) return 1;
+        if (s > 10) {
+            let orderOfMagnitude = 10 ** Math.floor(Math.log10(s));
+            return Math.round(s / orderOfMagnitude) * orderOfMagnitude;
+        }
+        return Math.round(s);
+    }
+
+    // Pretty-print a number for the chart tick labels. Again, not as polished
+    // as matplotlib
+    function pretty(value: number | string) {
+        if (typeof value === "string") return value;
+        if (value >= 1000000) return `${value / 1000000}M`;
+        if (value >= 1000) return `${value / 1000}K`;
+        if (value <= -1000000) return `${value / 1000000}M`;
+        if (value <= -1000) return `${value / 1000}K`;
+        return value;
+    }
+
     // Generate data for the chart.
-    //
-    // @param{IndicatorName} indi: The indicator that is being visualised right now.
-    // @param{ScenarioName} scen: The primary scenario being visualised.
-    // @param{ScenarioName | null} cmpScen: The primary scenario being compared
-    // against. Null if no comparison is being made.
-    //
-    // The reason why we explicitly pass parameters here (even though we could
-    // just take their values from the surrounding scope) is to enable reactive
-    // updates when any of the variables change (using Svelte's $: label
-    // syntax). For example, $: updateChart() will not fire when
-    // activeIndicator is changed, but updateChart(activeIndicator, ...) will.
-    function makeChartData(
-        indi: IndicatorName,
-        scen: ScenarioName,
-        cmpScen: ScenarioName | null
-    ): ChartData {
-        const colors = makeColormap(indi, nbars);
-        const rawValues: number[] = getValues(indi, scen);
-        // quantise rawValues to 0 -> nbars-1. The second map is to ensure that
-        // the largest value gets rounded down to nbars-1 instead of nbars.
-        const min = minValues.get(indi);
-        const max = maxValues.get(indi);
+    function makeChartData(): ChartData {
+        let colors: string[], rawValues: number[], min: number, max: number;
+
+        // Calculate data to plot
+        if (compareView === "original") {
+            // Use numbers from the scenario being visualised
+            colors = makeColormap(activeIndicator, nbars);
+            rawValues = getValues(activeIndicator, scenarioName);
+            min = minValues.get(activeIndicator);
+            max = maxValues.get(activeIndicator);
+        } else if (compareView === "difference") {
+            // Calculate the differences between the compared scenarios and plot those
+            if (compareScenarioName === null) throw new Error("compareScenarioName should not be null when compareView is 'difference'");
+            colors = makeColormap("diff", nbars);
+            const scenValues = getValues(activeIndicator, scenarioName);
+            const cmpScenValues = getValues(activeIndicator, compareScenarioName);
+            rawValues = scenValues.map((value, i) => value - cmpScenValues[i]);
+            max = Math.max(Math.abs(Math.min(...rawValues)), Math.abs(Math.max(...rawValues)));
+            min = -max;
+            console.log(min, max);
+        }
+
+        // Quantise data being plotted to 0 -> nbars-1. The second map here is
+        // to ensure that the largest value gets rounded down to nbars-1
+        // instead of nbars (which would be illegal).
         const intValues = rawValues
             .map((value) => Math.floor(((value - min) / (max - min)) * nbars))
             .map((value) => Math.min(value, nbars - 1));
-        // get the counts of each value (y-axis)
+        // Get the counts of each value (this data goes on the y-axis)
         const counts = new Array(nbars).fill(0);
         for (const value of intValues) {
             counts[value]++;
         }
-        // generate the x-axis values, which are 0.5 -> nbars - 0.5 in steps of
+        // Generate the x-axis values, which are 0.5 -> nbars - 0.5 in steps of
         // 1, then rescale back to the original range of indi values
         const labels = Array.from(
             { length: nbars },
             (_, i) => ((i + 0.5) * (max - min)) / nbars + min
         );
 
+        // Generate first dataset to plot
         let datasets = [
             {
-                label: allScenarios.find((s) => s.name === scen).short,
+                label: allScenarios.find((s) => s.name === scenarioName).short,
                 data: counts,
+                // TODO: chart.js uses the first color in this array for the
+                // legend label, which is often not very useful.
                 backgroundColor: colors,
                 borderWidth: 0,
                 grouped: false,
@@ -76,8 +108,13 @@
             },
         ];
 
-        if (cmpScen !== null) {
-            const compareRawValues: number[] = getValues(indi, cmpScen);
+        // Generate second dataset to plot (only if compareView is 'original',
+        // i.e. plot both scenarios being compared together)
+        if (compareScenarioName !== null && compareView == "original") {
+            const compareRawValues: number[] = getValues(
+                activeIndicator,
+                compareScenarioName
+            );
             const compareIntValues = compareRawValues.map((value) =>
                 Math.round(((value - min) / (max - min)) * (nbars - 1))
             );
@@ -86,7 +123,8 @@
                 compareCounts[value]++;
             }
             datasets.push({
-                label: allScenarios.find((s) => s.name === cmpScen).short,
+                label: allScenarios.find((s) => s.name === compareScenarioName)
+                    .short,
                 data: compareCounts,
                 // @ts-ignore backgroundColor can be string or string[]
                 backgroundColor: "rgba(1, 1, 1, 0)",
@@ -98,36 +136,14 @@
             });
         }
 
-        // Manually calculate tick step size, because it seems that chart.js's
-        // automatic calculation is not quite as polished as matplotlib.
-        function calculateTickStepSize(max: number, min: number): number {
-            let s = (max - min) / 4; // Assuming we want 5 ticks (ish)
-            if (s < 0.5) return 0.5;
-            if (s < 1) return 1;
-            if (s > 10) {
-                let orderOfMagnitude = 10 ** Math.floor(Math.log10(s));
-                return Math.round(s / orderOfMagnitude) * orderOfMagnitude;
-            }
-            return Math.round(s);
-        }
-
         return {
             datasets: datasets,
             counts: counts,
             labels: labels,
             colors: colors,
-            showLegend: cmpScen !== null,
+            showLegend: compareScenarioName !== null,
             tickStepSize: calculateTickStepSize(max, min),
         };
-    }
-
-    function pretty(value: number | string) {
-        if (typeof value === "string") return value;
-        if (value >= 1000000) return `${value / 1000000}M`;
-        if (value >= 1000) return `${value / 1000}K`;
-        if (value <= -1000000) return `${value / 1000000}M`;
-        if (value <= -1000) return `${value / 1000}K`;
-        return value;
     }
 
     function destroyChart() {
@@ -138,9 +154,6 @@
         let canvas = document.getElementById(
             "chart"
         ) as HTMLCanvasElement | null;
-        // DOM not yet created. If this check isn't present, then the $:
-        // drawChart line leads to an error, since that is executed when the
-        // page is first created
         if (canvas === null) return;
 
         destroyChart();
@@ -184,13 +197,9 @@
         });
     }
 
-    function updateChart(
-        indi: IndicatorName,
-        scen: ScenarioName,
-        cmpScen: ScenarioName | null
-    ) {
+    function updateChart() {
         if (chart === null) return;
-        const chartData = makeChartData(indi, scen, cmpScen);
+        const chartData = makeChartData();
         chart.data.datasets = chartData.datasets;
         chart.data.labels = chartData.labels;
         // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
@@ -199,27 +208,29 @@
         chart.update("none");
     }
 
-    onMount(() =>
-        drawChart(
-            makeChartData(activeIndicator, scenarioName, compareScenarioName)
-        )
-    );
+    onMount(() => drawChart(makeChartData()));
     onDestroy(destroyChart);
 
-    $: updateChart(activeIndicator, scenarioName, compareScenarioName);
+    let indi = allIndicators.find((i) => i.name === activeIndicator);
+
+    $: {
+        activeIndicator, scenarioName, compareScenarioName, compareView;
+        indi = allIndicators.find((i) => i.name === activeIndicator);
+        updateChart();
+    }
 </script>
 
 <div id="chart-container">
-    <h2>{allIndicators.find((i) => i.name === activeIndicator).short}</h2>
+    <h2>{indi.short}</h2>
     <div id="chart-canvas">
         <canvas id="chart" />
     </div>
     <div id="chart-pointers">
         <div id="chart-pointers-left">
-            ← {allIndicators.find((i) => i.name === activeIndicator).less}
+            ← {compareView === "difference" ? indi.less_diff : indi.less}
         </div>
         <div id="chart-pointers-right">
-            {allIndicators.find((i) => i.name === activeIndicator).more} →
+            {compareView === "difference" ? indi.more_diff : indi.more} →
         </div>
     </div>
 </div>

@@ -38,7 +38,7 @@
     // Scenario to compare against. Null to not compare.
     let compareScenarioName: ScenarioName | null = null;
     // Method to visualise scenario comparison
-    let compareView: CompareView = "difference";
+    let compareView: CompareView = "original";
     // Initial opacity
     let opacity: number = 1;
 
@@ -398,7 +398,7 @@
                 on:changeIndicator={updateLayers}
                 on:changeOpacity={updateLayers}
             />
-            <Chart {activeIndicator} {scenarioName} {compareScenarioName} />
+            <Chart {activeIndicator} {scenarioName} {compareView} {compareScenarioName} />
             {#if clickedFeature !== null}
                 <Values {activeIndicator} {compareView} {compareScenarioName} feature={clickedFeature} />
             {/if}
