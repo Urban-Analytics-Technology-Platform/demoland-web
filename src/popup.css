@@ -1,0 +1,46 @@
+/* CSS classes for MapLibre popups and their contents. The code to generate
+* popups is in App.svelte, but if I put the CSS styles there they don't get
+* applied, presumably because the scope of the CSS is limited to the component
+* itself (which the map popups are not part of). */
+
+:root {
+  --popup-bg-color: #fcf1f0;
+}
+
+.maplibregl-popup { 
+    padding: 0px;
+    margin: 0px;
+    font-family: "IBM Plex Sans", sans-serif;
+}
+
+/* !important is needed to override the default maplibre styles */
+.maplibregl-popup-content {
+    background-color: var(--popup-bg-color) !important;
+    padding: 5px !important;
+    border-radius: 10px !important;
+    line-height: 1 !important;  /* control via grid row-gap */
+}
+
+/* The triangular tip at the bottom of the popup. Often more classes are
+* needed, see https://stackoverflow.com/a/44555155, but when generating the
+* popup I use anchor: 'bottom' so we only need to care about one case. */
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+    border-top-color: var(--popup-bg-color) !important;
+}
+
+div.hover-grid {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    column-gap: 8px;
+    row-gap: 8px;
+}
+
+span.oa-grid-item {
+    grid-column: 1 / 3;
+    font-weight: bold;
+    font-size: 110%;
+}
+
+span.right-align-grid-item {
+    justify-self: end;
+}

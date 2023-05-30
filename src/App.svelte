@@ -58,6 +58,18 @@
         if (map) map.resize();
     }
 
+    // Construct raw HTML for the hover popup
+    function makeHoverHtml(feat: GeoJSON.Feature) {
+        return (`<div class="hover-grid">`
+            + `<span class="oa-grid-item">${feat.properties.OA11CD}</span>`
+            + `<span>Air quality</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(2)}</span>`
+            + `<span>House prices</span><span class="right-align-grid-item">${feat.properties.house_price.toFixed(2)}</span>`
+            + `<span>Job access.</span><span class="right-align-grid-item">${feat.properties.job_accessibility.toFixed(2)}</span>`
+            + `<span>Greenspace access.</span><span class="right-align-grid-item">${feat.properties.greenspace_accessibility.toFixed(2)}</span>`
+            + `</div>`
+        );
+    }
+
     // Returns true if the centre of the given OA overlaps with either the left or right sidebars
     function oaInWindowEdge(
         oaBounds: maplibregl.LngLatBounds,
@@ -114,9 +126,9 @@
                     hoverPopup.remove();
                 }
                 let bounds = getGeometryBounds(e.features[0].geometry);
-                hoverPopup = new maplibregl.Popup()
+                hoverPopup = new maplibregl.Popup({closeButton: false, closeOnClick: false, anchor: 'bottom', maxWidth: 'none'})
                     .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-                    .setHTML(e.features[0].properties.OA11CD)
+                    .setHTML(makeHoverHtml(e.features[0]))
                     .addTo(map);
             }
         });
