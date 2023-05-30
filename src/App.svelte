@@ -79,9 +79,9 @@
         const w = mapBounds.getWest();
         const e = mapBounds.getEast();
         const x = (window.innerWidth * (lng - w)) / (e - w);
-        // 300 = padding of other-content-container + width of sidebar
+        // 320 = padding of other-content-container + width of sidebar
         // 270 = padding of other-content-container + width of right-container
-        return x < 300 || x > window.innerWidth - 270;
+        return x < 320 || x > window.innerWidth - 270;
     }
 
     // Setup functions. We have to use Svelte's 'onMount' because the code in

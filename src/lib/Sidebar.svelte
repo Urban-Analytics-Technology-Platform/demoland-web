@@ -25,9 +25,7 @@
     <h1>Land Use Demonstrator</h1>
 
     <p>
-        “In vain have I struggled. It will not do. My feelings will not be
-        repressed. You must allow me to tell you how ardently I admire and love
-        you.”
+        Intro text here.
     </p>
 
     <div id="dropdowns">
@@ -58,10 +56,10 @@
         {/if}
     </div>
     <p>
-        <b>{scenario.short}:</b> {scenario.description[0]}
+        <b>{scenario.long}.</b> {@html scenario.description[0]}
     </p>
     {#each scenario.description.slice(1) as para}
-        <p>{para}</p>
+        <p>{@html para}</p>
     {/each}
 </div>
 
@@ -70,11 +68,13 @@
         border-radius: 10px;
         opacity: 90%;
         box-sizing: border-box;
-        width: 280px;
-        min-width: 280px;
+        width: 300px;
+        min-width: 300px;
         padding: 20px;
         background-color: #deb4f0; /* purple */
         border: 1px solid black;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
 
         margin-left: 0px;
         margin-right: auto;
