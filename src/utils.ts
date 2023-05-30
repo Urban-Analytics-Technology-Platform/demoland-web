@@ -95,9 +95,7 @@ export function makeCombinedGeoJSON(
             for (const oa of scenario.values.keys()) {
                 diffs.push(scenario.values.get(oa).get(n) - cScenario.values.get(oa).get(n));
             }
-            const min = Math.min(...diffs);
-            const max = Math.max(...diffs);
-            const maxDiff = Math.max(Math.abs(min), Math.abs(max));
+            const maxDiff = Math.max(...diffs.map(d => Math.abs(d)));
             maxDiffExtent.set(n, maxDiff === 0 ? 1 : maxDiff);
         }
     }
@@ -126,9 +124,9 @@ export function makeCombinedGeoJSON(
                 feature.properties[`${n}-cmp`] = cOaValues.get(n);
                 feature.properties[`${n}-cmp-color`] =
                     getColorFromMap(colormaps[n], cOaValues.get(n), minValues.get(n), maxValues.get(n));
-                feature.properties[`${n}-diff`] = cOaValues.get(n) - oaValues.get(n);
+                feature.properties[`${n}-diff`] = oaValues.get(n) - cOaValues.get(n);
                 feature.properties[`${n}-diff-color`] =
-                    getColorFromMap(colormaps["diff"], cOaValues.get(n) - oaValues.get(n), -maxDiffExtent.get(n), maxDiffExtent.get(n));
+                    getColorFromMap(colormaps["diff"], oaValues.get(n) - cOaValues.get(n), -maxDiffExtent.get(n), maxDiffExtent.get(n));
             }
         }
 
