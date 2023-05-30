@@ -20,7 +20,7 @@ export function makeColormap(indicator: IndicatorName, n: number) {
         });
     } else if (indicator === "job_accessibility") {
         return colormap({
-            colormap: "viridis",
+            colormap: "cdom",
             nshades: n,
             format: "hex",
             alpha: 1,
