@@ -128,6 +128,8 @@
                 borderWidth: 0,
                 grouped: false,
                 order: 2, // larger number = below
+                categoryPercentage: 1.0,
+                barPercentage: 1.0,
             },
         ];
 
@@ -159,11 +161,12 @@
                 data: compareCounts,
                 // @ts-ignore backgroundColor can be string or string[]
                 backgroundColor: "rgba(1, 1, 1, 0)",
-                borderWidth: 3,
-                borderColor: "#ff878d",
+                borderWidth: 1,
+                borderColor: "#f00",
                 barPercentage: 1,
                 grouped: false,
                 order: 1,
+                categoryPercentage: 1.0,
             });
         }
 
