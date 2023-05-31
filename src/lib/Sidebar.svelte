@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type ScenarioName, allScenarios, type CompareView, allCompareViews } from "../constants";
+    import { type ScenarioName, type Scenario, allScenarios, type CompareView } from "../constants";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -18,7 +18,11 @@
         dispatch("changeCompareView", {});
     }
 
-    $: scenario = allScenarios.find(s => s.name === scenarioName);
+    let scenario: Scenario; let compareScenario: Scenario | null;
+    $: {
+        scenario = allScenarios.find(s => s.name === scenarioName);
+        compareScenario = compareScenarioName === null ? null : allScenarios.find(s => s.name === compareScenarioName);
+    }
 </script>
 
 <div id="sidebar">
@@ -48,9 +52,9 @@
             {#if compareScenarioName !== null}
                 <span>View:</span>
                 <select id="view" bind:value={compareView} on:change={changeCompareView}>
-                    {#each allCompareViews as view}
-                        <option value={view.value}>{view.description}</option>
-                    {/each}
+                <option value="original">{scenario.short}</option>
+                <option value="other">{compareScenario.short}</option>
+                <option value="difference">Difference</option>
                 </select>
             {/if}
         {/if}

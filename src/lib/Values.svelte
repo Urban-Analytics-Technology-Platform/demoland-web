@@ -12,23 +12,25 @@
 
     let oaName: string;
 
-    function getText(
-        indicator: IndicatorName,
-    ): string {
+    function getText(indicator: IndicatorName): string {
         function boldIf(p: boolean, s: string): string {
             return p ? `<b>${s}</b>` : s;
         }
-        let val = feature.properties[indicator];
-        let cmpVal = feature.properties[`${indicator}-cmp`];
+        const origVal = feature.properties[indicator];
+        const cmpVal = feature.properties[`${indicator}-cmp`];
+
+        let val = compareView === "original" || compareView === "difference" ? origVal : cmpVal;
+        let otherVal = compareView === "original" || compareView === "difference" ? cmpVal : origVal;
         if (compareScenarioName === null) {
             return boldIf(indicator === activeIndicator, val.toFixed(2));
         } else {
             const pctChange =
-                cmpVal === 0 ? 0 : (100 * (val - cmpVal)) / cmpVal;
+                cmpVal === 0 ? 0 : (100 * (origVal - cmpVal)) / cmpVal;
             const sign = pctChange >= 0 ? "+" : "−"; // this is a minus sign instead of hyphen!
             return (
                 boldIf(
-                    indicator === activeIndicator && compareView === "original",
+                    indicator === activeIndicator &&
+                        (compareView === "original" || compareView === "other"),
                     val.toFixed(2)
                 ) +
                 " " +

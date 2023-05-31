@@ -60,13 +60,22 @@
 
     // Construct raw HTML for the hover popup
     function makeHoverHtml(feat: GeoJSON.Feature) {
-        return (`<div class="hover-grid">`
-            + `<span class="oa-grid-item">${feat.properties.OA11CD}</span>`
-            + `<span>Air quality</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(2)}</span>`
-            + `<span>House prices</span><span class="right-align-grid-item">${feat.properties.house_price.toFixed(2)}</span>`
-            + `<span>Job access.</span><span class="right-align-grid-item">${feat.properties.job_accessibility.toFixed(2)}</span>`
-            + `<span>Greenspace access.</span><span class="right-align-grid-item">${feat.properties.greenspace_accessibility.toFixed(2)}</span>`
-            + `</div>`
+        return (
+            `<div class="hover-grid">` +
+            `<span class="oa-grid-item">${feat.properties.OA11CD}</span>` +
+            `<span>Air quality</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(
+                2
+            )}</span>` +
+            `<span>House prices</span><span class="right-align-grid-item">${feat.properties.house_price.toFixed(
+                2
+            )}</span>` +
+            `<span>Job access.</span><span class="right-align-grid-item">${feat.properties.job_accessibility.toFixed(
+                2
+            )}</span>` +
+            `<span>Greenspace access.</span><span class="right-align-grid-item">${feat.properties.greenspace_accessibility.toFixed(
+                2
+            )}</span>` +
+            `</div>`
         );
     }
 
@@ -126,7 +135,12 @@
                     hoverPopup.remove();
                 }
                 let bounds = getGeometryBounds(e.features[0].geometry);
-                hoverPopup = new maplibregl.Popup({closeButton: false, closeOnClick: false, anchor: 'bottom', maxWidth: 'none'})
+                hoverPopup = new maplibregl.Popup({
+                    closeButton: false,
+                    closeOnClick: false,
+                    anchor: "bottom",
+                    maxWidth: "none",
+                })
                     .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
                     .setHTML(makeHoverHtml(e.features[0]))
                     .addTo(map);
@@ -239,6 +253,8 @@
                         compareScenarioName === null ||
                         compareView === "original"
                             ? `${indicator.name}-color`
+                            : compareView === "other"
+                            ? `${indicator.name}-cmp-color`
                             : `${indicator.name}-diff-color`,
                     ],
                     "fill-opacity": 0.01,
@@ -292,7 +308,9 @@
     // values are changed (i.e. when the scenarios are changed).
     function updateMapData(mapData: GeoJSON.FeatureCollection) {
         if (map) {
-            (map.getSource("newcastle") as maplibregl.GeoJSONSource).setData(mapData);
+            (map.getSource("newcastle") as maplibregl.GeoJSONSource).setData(
+                mapData
+            );
             updateLayers();
             updateClickedFeature(mapData);
         }
@@ -308,6 +326,8 @@
                     "get",
                     compareScenarioName === null || compareView === "original"
                         ? `${indicator.name}-color`
+                        : compareView === "other"
+                        ? `${indicator.name}-cmp-color`
                         : `${indicator.name}-diff-color`,
                 ]);
                 map.setPaintProperty(
@@ -398,9 +418,19 @@
                 on:changeIndicator={updateLayers}
                 on:changeOpacity={updateLayers}
             />
-            <Chart {activeIndicator} {scenarioName} {compareView} {compareScenarioName} />
+            <Chart
+                {activeIndicator}
+                {scenarioName}
+                {compareView}
+                {compareScenarioName}
+            />
             {#if clickedFeature !== null}
-                <Values {activeIndicator} {compareView} {compareScenarioName} feature={clickedFeature} />
+                <Values
+                    {activeIndicator}
+                    {compareView}
+                    {compareScenarioName}
+                    feature={clickedFeature}
+                />
             {/if}
         </div>
     </div>

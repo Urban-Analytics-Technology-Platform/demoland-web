@@ -53,6 +53,7 @@
         return value;
     }
 
+    // TODO: Clean up code duplication!!
     // Generate data for the chart.
     function makeChartData(): ChartData {
         let colors: string[], rawValues: number[], min: number, max: number;
@@ -64,14 +65,29 @@
             rawValues = getValues(activeIndicator, scenarioName);
             min = minValues.get(activeIndicator);
             max = maxValues.get(activeIndicator);
+        } else if (compareView === "other") {
+            // Use numbers from the scenario being compared against
+            colors = makeColormap(activeIndicator, nbars);
+            rawValues = getValues(activeIndicator, compareScenarioName);
+            min = minValues.get(activeIndicator);
+            max = maxValues.get(activeIndicator);
         } else if (compareView === "difference") {
             // Calculate the differences between the compared scenarios and plot those
-            if (compareScenarioName === null) throw new Error("compareScenarioName should not be null when compareView is 'difference'");
+            if (compareScenarioName === null)
+                throw new Error(
+                    "compareScenarioName should not be null when compareView is 'difference'"
+                );
             colors = makeColormap("diff", nbars);
             const scenValues = getValues(activeIndicator, scenarioName);
-            const cmpScenValues = getValues(activeIndicator, compareScenarioName);
+            const cmpScenValues = getValues(
+                activeIndicator,
+                compareScenarioName
+            );
             rawValues = scenValues.map((value, i) => value - cmpScenValues[i]);
-            max = Math.max(Math.abs(Math.min(...rawValues)), Math.abs(Math.max(...rawValues)));
+            max = Math.max(
+                Math.abs(Math.min(...rawValues)),
+                Math.abs(Math.max(...rawValues))
+            );
             min = -max;
             console.log(min, max);
         }
@@ -97,7 +113,13 @@
         // Generate first dataset to plot
         let datasets = [
             {
-                label: allScenarios.find((s) => s.name === scenarioName).short,
+                label:
+                    compareView === "original"
+                        ? allScenarios.find((s) => s.name === scenarioName)
+                              .short
+                        : allScenarios.find(
+                              (s) => s.name === compareScenarioName
+                          ).short,
                 data: counts,
                 // TODO: chart.js uses the first color in this array for the
                 // legend label, which is often not very useful.
@@ -110,10 +132,13 @@
 
         // Generate second dataset to plot (only if compareView is 'original',
         // i.e. plot both scenarios being compared together)
-        if (compareScenarioName !== null && compareView == "original") {
+        if (
+            compareScenarioName !== null &&
+            (compareView === "original" || compareView === "other")
+        ) {
             const compareRawValues: number[] = getValues(
                 activeIndicator,
-                compareScenarioName
+                compareView === "original" ? compareScenarioName : scenarioName
             );
             const compareIntValues = compareRawValues.map((value) =>
                 Math.round(((value - min) / (max - min)) * (nbars - 1))
@@ -123,8 +148,13 @@
                 compareCounts[value]++;
             }
             datasets.push({
-                label: allScenarios.find((s) => s.name === compareScenarioName)
-                    .short,
+                label:
+                    compareView === "original"
+                        ? allScenarios.find(
+                              (s) => s.name === compareScenarioName
+                          ).short
+                        : allScenarios.find((s) => s.name === scenarioName)
+                              .short,
                 data: compareCounts,
                 // @ts-ignore backgroundColor can be string or string[]
                 backgroundColor: "rgba(1, 1, 1, 0)",

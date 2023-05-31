@@ -7,7 +7,7 @@ import scenario5Vals from "./assets/scenario5.json";
 import scenario6Vals from "./assets/scenario6.json";
 import scenario7Vals from "./assets/scenario7.json";
 
-export type CompareView = "original" | "difference";
+export type CompareView = "original" | "other" | "difference";
 
 export const allCompareViews: { value: CompareView, description: string }[] = [
     { "value": "original", "description": "Original" },
