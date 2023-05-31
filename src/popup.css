@@ -4,7 +4,8 @@
 * itself (which the map popups are not part of). */
 
 :root {
-  --popup-bg-color: #fcf1f0;
+  --popup-bg-color: #ffffff;
+  --popup-opacity: 90%;
 }
 
 .maplibregl-popup {
@@ -16,6 +17,7 @@
 /* !important is needed to override the default maplibre styles */
 .maplibregl-popup-content {
     background-color: var(--popup-bg-color) !important;
+    opacity: var(--popup-opacity) !important;
     padding: 15px !important;
     border-radius: 10px !important;
     line-height: 1 !important;  /* control via grid row-gap */
@@ -26,6 +28,7 @@
 * popup I use anchor: 'bottom' so we only need to care about one case. */
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
     border-top-color: var(--popup-bg-color) !important;
+    opacity: var(--popup-opacity) !important;
 }
 
 div.hover-grid {
