@@ -75,9 +75,9 @@ export const allScenarios: Scenario[] = [
     {
         "name": "baseline",
         "short": "Baseline",
-        "long": "Baseline: the current situation",
+        "long": "Tyne and Wear today",
         "values": makeValuesMapFromJson(baselineVals),
-        "description": ["The four indicators are predicted using existing land use data and visualised on the map."],
+        "description": ["The baseline reflects the situation in In Tyne and Wear as our models see it today. It shows what the four indicators as predicted using existing land use data.<br><br>Select a development scenario above and compare it against the baseline to see the impact of the modelled development strategies on any of the four indicators."],
     },
     {
         "name": "scenario1",

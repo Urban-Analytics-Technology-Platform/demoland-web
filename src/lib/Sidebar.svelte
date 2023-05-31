@@ -35,9 +35,9 @@
 </script>
 
 <div id="sidebar">
-    <h1>Land Use Demonstrator</h1>
+    <h1>Tyne and Wear development scenario modelling</h1>
 
-    <p>Intro text here.</p>
+    <p>Explore a modelled impact of various development scenarios in Tyne and Wear on four indicators of quality of life.</p>
 
     <div id="dropdowns">
         <span>Choose scenario:</span>
@@ -97,8 +97,8 @@
             {/if}
         {/if}
     </div>
+    <h2>{scenario.long}</h2>
     <p>
-        <b>{scenario.long}.</b>
         {@html scenario.description[0]}
     </p>
     {#each scenario.description.slice(1) as para}
