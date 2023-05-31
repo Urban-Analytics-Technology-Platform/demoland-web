@@ -238,9 +238,10 @@
 <style>
     div#chart-container {
         border-radius: 10px;
+        opacity: 90%;
         padding: 20px;
-        border: 1px solid black;
-        background-color: #fad7f0; /* pink */
+        background-color: #ffffff;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         pointer-events: auto;
     }
 

@@ -71,8 +71,8 @@
         width: 300px;
         min-width: 300px;
         padding: 20px;
-        background-color: #deb4f0; /* purple */
-        border: 1px solid black;
+        background-color: #ffffff;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         max-height: calc(100vh - 40px);
         overflow-y: auto;
 

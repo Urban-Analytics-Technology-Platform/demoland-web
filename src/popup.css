@@ -7,7 +7,7 @@
   --popup-bg-color: #fcf1f0;
 }
 
-.maplibregl-popup { 
+.maplibregl-popup {
     padding: 0px;
     margin: 0px;
     font-family: "IBM Plex Sans", sans-serif;
@@ -16,7 +16,7 @@
 /* !important is needed to override the default maplibre styles */
 .maplibregl-popup-content {
     background-color: var(--popup-bg-color) !important;
-    padding: 5px !important;
+    padding: 15px !important;
     border-radius: 10px !important;
     line-height: 1 !important;  /* control via grid row-gap */
 }

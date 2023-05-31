@@ -92,7 +92,7 @@
         // Create map
         map = new maplibregl.Map({
             container: "map",
-            style: "https://api.maptiler.com/maps/openstreetmap/style.json?key=g6kCkRKHQMJqJMcThytt",
+            style: "https://api.maptiler.com/maps/uk-openzoomstack-light/style.json?key=g6kCkRKHQMJqJMcThytt",
             center: initialCentre,
             zoom: initialZoom,
             hash: true,
@@ -255,14 +255,14 @@
             source: "newcastle",
             layout: {},
             paint: {
-                "line-color": "#000000",
+                "line-color": "#ffffff",
                 "line-width": [
                     "case",
                     ["boolean", ["feature-state", "click"], false],
                     3,
                     ["boolean", ["feature-state", "hover"], false],
                     1.5,
-                    0.1,
+                    0,
                 ],
                 "line-opacity": 0.01,
                 // Suppressing a known bug:
