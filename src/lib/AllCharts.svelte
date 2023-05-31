@@ -130,8 +130,9 @@
 </script>
 
 <div id="allchart-container">
+    <h2>Overview of all indicators</h2>
     {#each allIndicators as indi}
-        <h3>{indi.short}</h3>
+        <h4>{indi.short}</h4>
         <div class="chart-canvas" id={`chart-canvas-${indi.name}`}>
             <canvas id={`chart-${indi.name}`} />
         </div>
@@ -154,7 +155,7 @@
         background-color: #ffffff;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         pointer-events: auto;
-        max-height: calc(100vh - 290px);
+        max-height: 244px;
         overflow-y: auto;
     }
 
