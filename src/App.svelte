@@ -41,7 +41,7 @@
     // Method to visualise scenario comparison
     let compareView: CompareView = "original";
     // Initial opacity
-    let opacity: number = 1;
+    let opacity: number = 0.8;
 
     // Generate data for the baseline
     mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
@@ -298,7 +298,7 @@
                     layerName,
                     "fill-opacity",
                     factor.name === activeFactor
-                        ? 0.8 * opacity
+                        ? opacity
                         : 0.01 * opacity
                 );
             }
@@ -336,7 +336,7 @@
                     `${factor.name}-layer`,
                     "fill-opacity",
                     factor.name === activeFactor
-                        ? 0.8 * opacity
+                        ? opacity
                         : 0.01 * opacity
                 );
             }
