@@ -89,7 +89,6 @@
                 Math.abs(Math.max(...rawValues))
             );
             min = -max;
-            console.log(min, max);
         }
 
         // Quantise data being plotted to 0 -> nbars-1. The second map here is
@@ -114,7 +113,9 @@
         let datasets = [
             {
                 label:
-                    compareView === "original"
+                    compareView === "difference"
+                        ? "Difference"
+                        : compareView === "original"
                         ? allScenarios.find((s) => s.name === scenarioName)
                               .short
                         : allScenarios.find(

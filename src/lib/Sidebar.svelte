@@ -1,5 +1,10 @@
 <script lang="ts">
-    import { type ScenarioName, type Scenario, allScenarios, type CompareView } from "../constants";
+    import {
+        type ScenarioName,
+        type Scenario,
+        allScenarios,
+        type CompareView,
+    } from "../constants";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -18,49 +23,83 @@
         dispatch("changeCompareView", {});
     }
 
-    let scenario: Scenario; let compareScenario: Scenario | null;
+    let scenario: Scenario;
+    let compareScenario: Scenario | null;
     $: {
-        scenario = allScenarios.find(s => s.name === scenarioName);
-        compareScenario = compareScenarioName === null ? null : allScenarios.find(s => s.name === compareScenarioName);
+        scenario = allScenarios.find((s) => s.name === scenarioName);
+        compareScenario =
+            compareScenarioName === null
+                ? null
+                : allScenarios.find((s) => s.name === compareScenarioName);
     }
 </script>
 
 <div id="sidebar">
     <h1>Land Use Demonstrator</h1>
 
-    <p>
-        Intro text here.
-    </p>
+    <p>Intro text here.</p>
 
     <div id="dropdowns">
         <span>Choose scenario:</span>
-        <select id="scenario" bind:value={scenarioName} on:change={changeScenario}>
+        <select
+            id="scenario"
+            bind:value={scenarioName}
+            on:change={changeScenario}
+        >
             {#each allScenarios as scenario}
                 <option value={scenario.name}>{scenario.short}</option>
             {/each}
         </select>
         {#if scenarioName !== "baseline"}
             <span>Compare with:</span>
-            <select id="compare" bind:value={compareScenarioName} on:change={changeCompareScenario}>
+            <select
+                id="compare"
+                bind:value={compareScenarioName}
+                on:change={changeCompareScenario}
+            >
                 <option value={null}>None</option>
                 {#each allScenarios as compareScenario}
                     {#if compareScenario.name !== scenarioName}
-                        <option value={compareScenario.name}>{compareScenario.short}</option>
+                        <option value={compareScenario.name}
+                            >{compareScenario.short}</option
+                        >
                     {/if}
                 {/each}
             </select>
             {#if compareScenarioName !== null}
                 <span>View:</span>
-                <select id="view" bind:value={compareView} on:change={changeCompareView}>
-                <option value="original">{scenario.short}</option>
-                <option value="other">{compareScenario.short}</option>
-                <option value="difference">Difference</option>
-                </select>
+                <span>
+                    <label
+                        ><input
+                            bind:group={compareView}
+                            type="radio"
+                            value="original"
+                            on:change={changeCompareView}
+                        />{scenario.short}</label
+                    ><br />
+                    <label
+                        ><input
+                            bind:group={compareView}
+                            type="radio"
+                            value="other"
+                            on:change={changeCompareView}
+                        />{compareScenario.short}</label
+                    ><br />
+                    <label
+                        ><input
+                            bind:group={compareView}
+                            type="radio"
+                            value="difference"
+                            on:change={changeCompareView}
+                        />Difference</label
+                    >
+                </span>
             {/if}
         {/if}
     </div>
     <p>
-        <b>{scenario.long}.</b> {@html scenario.description[0]}
+        <b>{scenario.long}.</b>
+        {@html scenario.description[0]}
     </p>
     {#each scenario.description.slice(1) as para}
         <p>{@html para}</p>
@@ -97,7 +136,7 @@
         row-gap: 5px;
         align-items: baseline;
     }
-    
+
     select {
         font-family: inherit;
     }
