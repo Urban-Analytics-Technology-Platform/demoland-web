@@ -53,23 +53,32 @@ export const allIndicators: Indicator[] = [
     },
 ];
 
+export type FactorName = IndicatorName | "sig";
+
+export type Factor = { name: FactorName, short: string };
+
+export let allFactors = [...allIndicators] as Factor[];
+allFactors.unshift({"name": "sig", "short": "Current land signatures"});
+// must add to the front so that the radio button appears first
+
 export type OA = string;
 
 export type ScenarioName = "baseline" | "scenario1" | "scenario2" | "scenario3" | "scenario4" | "scenario5" | "scenario6" | "scenario7";
 
 function makeValuesMapFromJson(json: object) {
-    let map = new Map<OA, Map<IndicatorName, number>>();
+    let map = new Map<OA, Map<FactorName, number>>();
     for (const oa in json) {
-        let oaMap = new Map<IndicatorName, number>();
+        let oaMap = new Map<FactorName, number>();
         for (const indicator in json[oa]) {
             oaMap.set(indicator as IndicatorName, json[oa][indicator]);
         }
+        oaMap.set("sig", json[oa]["sig"]);
         map.set(oa, oaMap);
     }
     return map;
 }
 
-export type Scenario = { name: ScenarioName, short: string, long: string, values: Map<OA, Map<IndicatorName, number>>, description: string[] };
+export type Scenario = { name: ScenarioName, short: string, long: string, values: Map<OA, Map<FactorName, number>>, description: string[] };
 
 export const allScenarios: Scenario[] = [
     {

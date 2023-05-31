@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { allIndicators, type IndicatorName } from "../constants";
+    import { allFactors, type FactorName } from "../constants";
     import { createEventDispatcher } from "svelte";
-    export let activeIndicator: IndicatorName;
+    export let activeFactor: FactorName;
     export let opacity: number;
     const dispatch = createEventDispatcher();
 
-    function changeIndicator() {
-        dispatch("changeIndicator", {});
+    function changeFactor() {
+        dispatch("changeFactor", {});
     }
     function changeOpacity() {
         dispatch("changeOpacity", {});
@@ -14,15 +14,15 @@
 </script>
 
 <div id="indicators">
-    <h2>Indicator to visualise</h2>
-    {#each allIndicators as indi}
+    <h2>View</h2>
+    {#each allFactors as fact}
         <label
             ><input
-                bind:group={activeIndicator}
+                bind:group={activeFactor}
                 type="radio"
-                on:change={changeIndicator}
-                value={indi.name}
-            />{indi.short}</label
+                on:change={changeFactor}
+                value={fact.name}
+            />{fact.short}</label
         ><br />
     {/each}
     <p>
@@ -66,6 +66,6 @@
 
     div#indicators > label > input[type="radio"] {
         vertical-align: baseline;
-        margin-right: 10px
+        margin-right: 10px;
     }
 </style>

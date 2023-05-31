@@ -8,6 +8,7 @@
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
+    export let activeFactor: FactorName;
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
@@ -37,7 +38,10 @@
 <div id="sidebar">
     <h1>Tyne and Wear development scenario modelling</h1>
 
-    <p>Explore a modelled impact of various development scenarios in Tyne and Wear on four indicators of quality of life.</p>
+    <p>
+        Explore a modelled impact of various development scenarios in Tyne and
+        Wear on four indicators of quality of life.
+    </p>
 
     <div id="dropdowns">
         <span>Choose scenario:</span>
@@ -85,6 +89,7 @@
                             on:change={changeCompareView}
                         />{compareScenario.short}</label
                     ><br />
+                    {#if activeFactor !== "sig"}
                     <label
                         ><input
                             bind:group={compareView}
@@ -93,6 +98,7 @@
                             on:change={changeCompareView}
                         />Difference</label
                     >
+                    {/if}
                 </span>
             {/if}
         {/if}

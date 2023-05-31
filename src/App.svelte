@@ -2,20 +2,21 @@
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
     import { onMount, onDestroy } from "svelte";
+    import AllCharts from "./lib/AllCharts.svelte";
     import Chart from "./lib/Chart.svelte";
     import Sidebar from "./lib/Sidebar.svelte";
     import Indicators from "./lib/Indicators.svelte";
     import Values from "./lib/Values.svelte";
     import {
-        allIndicators,
-        type IndicatorName,
+        allFactors,
+        type FactorName,
         type ScenarioName,
         type CompareView,
     } from "./constants";
-    import { makeCombinedGeoJSON, getGeometryBounds } from "./utils";
+    import { signatures, makeCombinedGeoJSON, getGeometryBounds } from "./utils";
 
     // The currently active indicator
-    let activeIndicator: IndicatorName = "air_quality";
+    let activeFactor: FactorName = "air_quality";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
@@ -62,7 +63,8 @@
     function makeHoverHtml(feat: GeoJSON.Feature) {
         return (
             `<div class="hover-grid">` +
-            `<span class="oa-grid-item">${feat.properties.OA11CD}</span>` +
+            `<span class="oa-grid-item strong">${feat.properties.OA11CD}</span>` +
+            `<span class="oa-grid-item">${signatures[feat.properties.sig].name}</span>` +
             `<span>Air quality</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(
                 2
             )}</span>` +
@@ -240,8 +242,8 @@
         // performance, but I haven't really noticed any issues so far.
 
         // We first generate all layers with an opacity of 0.01.
-        for (const indicator of allIndicators) {
-            const layerName = `${indicator.name}-layer`;
+        for (const factor of allFactors) {
+            const layerName = `${factor.name}-layer`;
             map.addLayer({
                 id: layerName,
                 type: "fill",
@@ -252,10 +254,10 @@
                         "get",
                         compareScenarioName === null ||
                         compareView === "original"
-                            ? `${indicator.name}-color`
+                            ? `${factor.name}-color`
                             : compareView === "other"
-                            ? `${indicator.name}-cmp-color`
-                            : `${indicator.name}-diff-color`,
+                            ? `${factor.name}-cmp-color`
+                            : `${factor.name}-diff-color`,
                     ],
                     "fill-opacity": 0.01,
                     // Suppressing a known bug:
@@ -290,12 +292,12 @@
 
         // Then, we fade the ones we want in, after a small delay to allow for loading.
         setTimeout(function () {
-            for (const indicator of allIndicators) {
-                const layerName = `${indicator.name}-layer`;
+            for (const factor of allFactors) {
+                const layerName = `${factor.name}-layer`;
                 map.setPaintProperty(
                     layerName,
                     "fill-opacity",
-                    indicator.name === activeIndicator
+                    factor.name === activeFactor
                         ? 0.8 * opacity
                         : 0.01 * opacity
                 );
@@ -321,19 +323,19 @@
     // compareView).
     function updateLayers() {
         if (map) {
-            for (const indicator of allIndicators) {
-                map.setPaintProperty(`${indicator.name}-layer`, "fill-color", [
+            for (const factor of allFactors) {
+                map.setPaintProperty(`${factor.name}-layer`, "fill-color", [
                     "get",
                     compareScenarioName === null || compareView === "original"
-                        ? `${indicator.name}-color`
+                        ? `${factor.name}-color`
                         : compareView === "other"
-                        ? `${indicator.name}-cmp-color`
-                        : `${indicator.name}-diff-color`,
+                        ? `${factor.name}-cmp-color`
+                        : `${factor.name}-diff-color`,
                 ]);
                 map.setPaintProperty(
-                    `${indicator.name}-layer`,
+                    `${factor.name}-layer`,
                     "fill-opacity",
-                    indicator.name === activeIndicator
+                    factor.name === activeFactor
                         ? 0.8 * opacity
                         : 0.01 * opacity
                 );
@@ -353,6 +355,13 @@
                 { click: true }
             );
         }
+    }
+
+    function updateFactor() {
+        if (activeFactor === "sig" && compareView === "difference") {
+            compareView = "original";
+        }
+        updateLayers();
     }
 
     /* Event handlers! */
@@ -392,6 +401,7 @@
 
     <div id="other-content-container">
         <Sidebar
+            {activeFactor}
             bind:scenarioName
             bind:compareScenarioName
             bind:compareView
@@ -413,20 +423,28 @@
 
         <div id="right-container">
             <Indicators
-                bind:activeIndicator
+                bind:activeFactor
                 bind:opacity
-                on:changeIndicator={updateLayers}
+                on:changeFactor={updateFactor}
                 on:changeOpacity={updateLayers}
             />
+            {#if activeFactor !== "sig"}
             <Chart
-                {activeIndicator}
+                {activeFactor}
                 {scenarioName}
                 {compareView}
                 {compareScenarioName}
             />
+            {:else}
+            <AllCharts
+                {scenarioName}
+                {compareScenarioName}
+                {compareView}
+            />
+            {/if}
             {#if clickedFeature !== null}
                 <Values
-                    {activeIndicator}
+                    {activeFactor}
                     {compareView}
                     {compareScenarioName}
                     feature={clickedFeature}

@@ -1,7 +1,7 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, minValues, maxValues } from "./constants";
+import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, minValues, maxValues, type FactorName, type CompareView } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "air_quality") {
@@ -42,6 +42,25 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
         });
     }
 }
+
+export const signatures = [
+    { name: "Wild countryside", color: "#d7ded1" },
+    { name: "Countryside agriculture", color: "#f2e6c7" },
+    { name: "Urban buffer", color: "#c2d0d9" },
+    { name: "Warehouse/Park land", color: "#c3abaf" },
+    { name: "Open sprawl", color: "#d7a59f" },
+    { name: "Disconnected suburbia", color: "#f0d17d" },
+    { name: "Accessible suburbia", color: "#8fa37e" },
+    { name: "Connected residential neighbourhoods", color: "#94666e" },
+    { name: "Dense residential neighbourhoods", color: "#678ea6" },
+    { name: "Gridded residential quarters", color: "#e4cbc8" },
+    { name: "Dense urban neighbourhoods", color: "#efc758" },
+    { name: "Local urbanity", color: "#3b6e8c" },
+    { name: "Regional urbanity", color: "#ab888e" },
+    { name: "Metropolitan urbanity", color: "#bc5b4f" },
+    { name: "Concentrated urbanity", color: "#333432" },
+    { name: "Hyper concentrated urbanity", color: "#a7b799" },
+];
 
 // Get all values for a given indicator in a given scenario.
 export function getValues(indicator: IndicatorName, scenarioName: ScenarioName): number[] {
@@ -113,6 +132,8 @@ export function makeCombinedGeoJSON(
             feature.properties[`${n}-color`] =
                 getColorFromMap(colormaps[n], oaValues.get(n), minValues.get(n), maxValues.get(n));
         }
+        feature.properties["sig"] = scenario.values.get(oaName).get("sig");
+        feature.properties["sig-color"] = signatures[feature.properties["sig"]].color;
         if (compareScenarioName !== null) {
             const cScenario = allScenarios.find(s => s.name === compareScenarioName);
             const cOaValues = cScenario.values.get(oaName);
@@ -124,6 +145,8 @@ export function makeCombinedGeoJSON(
                 feature.properties[`${n}-cmp`] = cOaValues.get(n);
                 feature.properties[`${n}-cmp-color`] =
                     getColorFromMap(colormaps[n], cOaValues.get(n), minValues.get(n), maxValues.get(n));
+                feature.properties["sig-cmp"] = cScenario.values.get(oaName).get("sig");
+                feature.properties["sig-cmp-color"] = signatures[feature.properties["sig-cmp"]].color;
                 feature.properties[`${n}-diff`] = oaValues.get(n) - cOaValues.get(n);
                 feature.properties[`${n}-diff-color`] =
                     getColorFromMap(colormaps["diff"], oaValues.get(n) - cOaValues.get(n), -maxDiffExtent.get(n), maxDiffExtent.get(n));
@@ -168,4 +191,157 @@ export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLat
     else {
         throw new Error(`Unsupported geometry type: ${geometryType}`);
     }
+}
+
+
+// Function to manually calculate tick step size, because it seems that
+// chart.js's automatic calculation is not quite as polished as matplotlib.
+function calculateTickStepSize(max: number, min: number): number {
+    let s = (max - min) / 4; // Assuming we want 5 ticks (ish)
+    if (s < 0.5) return 0.5;
+    if (s < 1) return 1;
+    if (s > 10) {
+        let orderOfMagnitude = 10 ** Math.floor(Math.log10(s));
+        return Math.round(s / orderOfMagnitude) * orderOfMagnitude;
+    }
+    return Math.round(s);
+}
+
+
+// generate chart data
+// TODO: Clean up code duplication!!
+export type ChartData = {
+    colors: string[];
+    labels: number[];
+    counts: number[];
+    datasets: any[];
+    showLegend: boolean;
+    tickStepSize: number;
+};
+
+export function makeChartData(indicator: IndicatorName,
+    compareView: CompareView,
+    scenarioName: ScenarioName,
+    compareScenarioName: ScenarioName | null,
+    nbars: number
+): ChartData {
+    let colors: string[], rawValues: number[], min: number, max: number;
+
+    // Calculate data to plot
+    if (compareView === "original") {
+        // Use numbers from the scenario being visualised
+        colors = makeColormap(indicator, nbars);
+        rawValues = getValues(indicator, scenarioName);
+        min = minValues.get(indicator);
+        max = maxValues.get(indicator);
+    } else if (compareView === "other") {
+        // Use numbers from the scenario being compared against
+        colors = makeColormap(indicator, nbars);
+        rawValues = getValues(indicator, compareScenarioName);
+        min = minValues.get(indicator);
+        max = maxValues.get(indicator);
+    } else if (compareView === "difference") {
+        // Calculate the differences between the compared scenarios and plot those
+        if (compareScenarioName === null)
+            throw new Error(
+                "compareScenarioName should not be null when compareView is 'difference'"
+            );
+        colors = makeColormap("diff", nbars);
+        const scenValues = getValues(indicator, scenarioName);
+        const cmpScenValues = getValues(indicator, compareScenarioName);
+        rawValues = scenValues.map((value, i) => value - cmpScenValues[i]);
+        max = Math.max(
+            Math.abs(Math.min(...rawValues)),
+            Math.abs(Math.max(...rawValues))
+        );
+        min = -max;
+    }
+
+    // Quantise data being plotted to 0 -> nbars-1. The second map here is
+    // to ensure that the largest value gets rounded down to nbars-1
+    // instead of nbars (which would be illegal).
+    const intValues = rawValues
+        .map((value) => Math.floor(((value - min) / (max - min)) * nbars))
+        .map((value) => Math.min(value, nbars - 1));
+    // Get the counts of each value (this data goes on the y-axis)
+    const counts = new Array(nbars).fill(0);
+    for (const value of intValues) {
+        counts[value]++;
+    }
+    // Generate the x-axis values, which are 0.5 -> nbars - 0.5 in steps of
+    // 1, then rescale back to the original range of indi values
+    const labels = Array.from(
+        { length: nbars },
+        (_, i) => ((i + 0.5) * (max - min)) / nbars + min
+    );
+
+    // Generate first dataset to plot
+    let datasets = [
+        {
+            label:
+                compareView === "difference"
+                    ? "Difference"
+                    : compareView === "original"
+                        ? allScenarios.find((s) => s.name === scenarioName)
+                            .short
+                        : allScenarios.find(
+                            (s) => s.name === compareScenarioName
+                        ).short,
+            data: counts,
+            // TODO: chart.js uses the first color in this array for the
+            // legend label, which is often not very useful.
+            backgroundColor: colors,
+            borderWidth: 0,
+            grouped: false,
+            order: 2, // larger number = below
+            categoryPercentage: 1.0,
+            barPercentage: 1.0,
+        },
+    ];
+
+    // Generate second dataset to plot (only if compareView is 'original',
+    // i.e. plot both scenarios being compared together)
+    if (
+        compareScenarioName !== null &&
+        (compareView === "original" || compareView === "other")
+    ) {
+        const compareRawValues: number[] = getValues(
+            indicator,
+            compareView === "original" ? compareScenarioName : scenarioName
+        );
+        const compareIntValues = compareRawValues.map((value) =>
+            Math.round(((value - min) / (max - min)) * (nbars - 1))
+        );
+        const compareCounts = new Array(nbars).fill(0);
+        for (const value of compareIntValues) {
+            compareCounts[value]++;
+        }
+        datasets.push({
+            label:
+                compareView === "original"
+                    ? allScenarios.find(
+                        (s) => s.name === compareScenarioName
+                    ).short
+                    : allScenarios.find((s) => s.name === scenarioName)
+                        .short,
+            data: compareCounts,
+            // @ts-ignore backgroundColor can be string or string[]
+            backgroundColor: "rgba(1, 1, 1, 0)",
+            borderWidth: 1,
+            borderColor: "#f00",
+            barPercentage: 1,
+            grouped: false,
+            order: 1,
+            categoryPercentage: 1.0,
+        });
+    }
+
+    return {
+        datasets: datasets,
+        counts: counts,
+        labels: labels,
+        colors: colors,
+        showLegend: compareScenarioName !== null,
+        tickStepSize: calculateTickStepSize(max, min),
+    };
 }
