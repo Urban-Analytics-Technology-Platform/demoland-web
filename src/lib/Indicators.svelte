@@ -14,7 +14,7 @@
 </script>
 
 <div id="indicators">
-    <h2>View</h2>
+    <h2>Map values</h2>
     {#each allFactors as fact}
         <label
             ><input

@@ -58,7 +58,7 @@ export type FactorName = IndicatorName | "sig";
 export type Factor = { name: FactorName, short: string };
 
 export let allFactors = [...allIndicators] as Factor[];
-allFactors.unshift({"name": "sig", "short": "Current land signatures"});
+allFactors.unshift({"name": "sig", "short": "Land use"});
 // must add to the front so that the radio button appears first
 
 export type OA = string;
