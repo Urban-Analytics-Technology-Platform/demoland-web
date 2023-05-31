@@ -93,4 +93,8 @@
         row-gap: 5px;
         align-items: baseline;
     }
+    
+    select {
+        font-family: inherit;
+    }
 </style>
