@@ -60,4 +60,12 @@
     div#indicators > :last-child {
         margin-bottom: 0 !important;
     }
+    div#indicators {
+        line-height: 20px;
+    }
+
+    div#indicators > label > input[type="radio"] {
+        vertical-align: baseline;
+        margin-right: 10px
+    }
 </style>
