@@ -6,21 +6,21 @@ import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, min
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "air_quality") {
         return colormap({
-            colormap: "oxygen",
+            colormap: "magma",
             nshades: n,
             format: "hex",
             alpha: 1,
         }).reverse();
     } else if (indicator === "house_price") {
         return colormap({
-            colormap: "density",
+            colormap: "viridis",
             nshades: n,
             format: "hex",
             alpha: 1,
         });
     } else if (indicator === "job_accessibility") {
         return colormap({
-            colormap: "cdom",
+            colormap: "plasma",
             nshades: n,
             format: "hex",
             alpha: 1,

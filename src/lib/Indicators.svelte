@@ -43,9 +43,9 @@
         border-radius: 10px;
         opacity: 90%;
         padding: 20px;
-        background-color: #caf0fa; /* light blue */
-        border: 1px solid black;
+        background-color: #ffffff;
         pointer-events: auto;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     }
 
     input[type="range"] {
