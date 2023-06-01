@@ -16,7 +16,7 @@
     import { signatures, makeCombinedGeoJSON, getGeometryBounds } from "./utils";
 
     // The currently active indicator
-    let activeFactor: FactorName = "air_quality";
+    let activeFactor: FactorName = "sig";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
