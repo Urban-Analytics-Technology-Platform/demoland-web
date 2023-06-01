@@ -65,7 +65,7 @@
             `<div class="hover-grid">` +
             `<span class="oa-grid-item strong">${feat.properties.OA11CD}</span>` +
             `<span class="oa-grid-item">${signatures[feat.properties.sig].name}</span>` +
-            `<span>Air quality</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(
+            `<span>Air pollution</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(
                 2
             )}</span>` +
             `<span>House prices</span><span class="right-align-grid-item">${feat.properties.house_price.toFixed(

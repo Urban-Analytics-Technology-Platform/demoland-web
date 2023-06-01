@@ -21,7 +21,7 @@ export type Indicator = { name: IndicatorName, short: string, less: string, more
 export const allIndicators: Indicator[] = [
     {
         "name": "air_quality",
-        "short": "Air quality",
+        "short": "Air pollution",
         "less": "cleaner",
         "more": "more polluted",
         "less_diff": "improved",
