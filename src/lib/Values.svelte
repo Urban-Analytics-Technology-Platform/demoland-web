@@ -20,7 +20,6 @@
         const cmpVal = feature.properties[`${indicator}-cmp`];
 
         let val = compareView === "original" || compareView === "difference" ? origVal : cmpVal;
-        let otherVal = compareView === "original" || compareView === "difference" ? cmpVal : origVal;
         if (compareScenarioName === null) {
             return boldIf(indicator === activeFactor, val.toFixed(2));
         } else {
@@ -60,7 +59,7 @@
 
 {#if feature !== null}
     <div id="values">
-        <h2>Output area: {feature.properties.OA11CD}</h2>
+        <h2>Output area: {oaName}</h2>
 
         {#each allIndicators as indi}
             <div class="nomargin"><i>{indi.short}</i></div>

@@ -260,9 +260,7 @@
                             : `${factor.name}-diff-color`,
                     ],
                     "fill-opacity": 0.01,
-                    // Suppressing a known bug:
-                    // https://github.com/maplibre/maplibre-gl-js/issues/1708
-                    // @ts-ignore
+                    // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
                     "fill-opacity-transition": { duration: 300 },
                 },
             });
@@ -283,9 +281,7 @@
                     0,
                 ],
                 "line-opacity": 0.01,
-                // Suppressing a known bug:
-                // https://github.com/maplibre/maplibre-gl-js/issues/1708
-                // @ts-ignore
+                // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
                 "line-opacity-transition": { duration: 300 },
             },
         });

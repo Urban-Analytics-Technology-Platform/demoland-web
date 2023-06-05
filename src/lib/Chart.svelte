@@ -6,7 +6,7 @@
         type ScenarioName,
         type CompareView,
     } from "../constants";
-    import { type ChartData, makeChartData } from "../chart";
+    import { type ChartDataset, type ChartData, makeChartData } from "../chart";
     import { onMount, onDestroy } from "svelte";
     export let activeFactor: FactorName;
     export let scenarioName: ScenarioName;
@@ -14,7 +14,7 @@
     export let compareView: CompareView;
 
     // Number of bars to use in the chart
-    const nbars: number = 11;
+    const nbars = 11;
 
     // Pretty-print a number for the chart tick labels. Again, not as polished
     // as matplotlib. Apart from changing millions and thousands into 'M' and
@@ -23,18 +23,39 @@
     // @param {number} value: The number to pretty-print
     // @param {boolean} withSign: Whether to include a plus sign for positive
     // values
-    function pretty(value: number, withSign: boolean = false) {
+    function pretty(value: number, withSign = false) {
         if (typeof value === "string") return value;
         if (value === 0) return "0";
-        if (value >= 1000000) return `${withSign ? '+' : ''}${value / 1000000}M`;
-        if (value >= 1000) return `${withSign ? '+' : ''}${value / 1000}K`;
+        if (value >= 1000000)
+            return `${withSign ? "+" : ""}${value / 1000000}M`;
+        if (value >= 1000) return `${withSign ? "+" : ""}${value / 1000}K`;
         if (value <= -1000000) return `−${Math.abs(value / 1000000)}M`;
         if (value <= -1000) return `−${Math.abs(value / 1000)}K`;
-        if (value >= 0) return `${withSign ? '+' : ''}${value}`;
+        if (value >= 0) return `${withSign ? "+" : ""}${value}`;
         return `−${Math.abs(value)}`;
     }
 
     let chart: Chart | null = null;
+
+    // This bit of code replaces the colour of the legend label with the central
+    // color of the dataset's backgroundColor (otherwise, by default it uses the
+    // first colour, which is often too light). Largely adapted from
+    // https://github.com/chartjs/Chart.js/issues/2651 but with some
+    // modifications due to the updated Chart.js API.
+    function patchedGenerateLabels(chart: Chart, datasets: ChartDataset[]) {
+        let labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+        if (datasets.length === 1) {
+            // Only one plot being shown
+            labels[0].fillStyle =
+                datasets[0].backgroundColor[Math.floor(nbars / 2)];
+        } else {
+            // Two plots being shown. The second one is the one with the solid
+            // background, i.e. the one we need to change
+            labels[1].fillStyle =
+                datasets[1].backgroundColor[Math.floor(nbars / 2)];
+        }
+        return labels;
+    }
 
     function destroyChart() {
         if (chart !== null) chart.destroy();
@@ -61,7 +82,11 @@
                         type: "linear",
                         ticks: {
                             stepSize: chartData.tickStepSize,
-                            callback: (val => pretty(val as number, compareView === "difference")),
+                            callback: (val) =>
+                                pretty(
+                                    val as number,
+                                    compareView === "difference"
+                                ),
                             maxRotation: 0,
                             minRotation: 0,
                             font: { family: "IBM Plex Sans" },
@@ -76,10 +101,17 @@
                 },
                 plugins: {
                     legend: {
-                        display: chartData.showLegend,
+                        display:
+                            compareScenarioName !== null &&
+                            compareView !== "difference",
                         labels: {
                             boxWidth: 20,
                             font: { family: "IBM Plex Sans" },
+                            generateLabels: (chart) =>
+                                patchedGenerateLabels(
+                                    chart,
+                                    chartData.datasets
+                                ),
                         },
                     },
                 },
@@ -104,31 +136,10 @@
         chart.data.labels = chartData.labels;
         // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
         chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
-        chart.options.plugins.legend.display = chartData.showLegend;
-        // This bit of code replaces the colour of the legend label with the
-        // central color of the dataset's backgroundColor (otherwise, by default
-        // it uses the first colour, which is often too light). Largely adapted
-        // from https://github.com/chartjs/Chart.js/issues/2651 but with some
-        // modifications due to the updated Chart.js API.
-        //
-        // Because the 'compare' scenario has an empty background, it must be
-        // plotted first, so labels[1] refers to the 'original' scenario being
-        // visualised (which is the one we need to change background colours
-        // for)..
-        chart.options.plugins.legend.labels.generateLabels = function (chart) {
-            let labels =
-                Chart.defaults.plugins.legend.labels.generateLabels(chart);
-            if (
-                compareScenarioName !== null &&
-                (compareView === "original" || compareView === "other")
-            ) {
-                labels[1].fillStyle =
-                    chartData.datasets[1].backgroundColor[
-                        Math.floor(nbars / 2)
-                    ];
-            }
-            return labels;
-        };
+        chart.options.plugins.legend.display =
+            compareScenarioName !== null && compareView !== "difference";
+        chart.options.plugins.legend.labels.generateLabels = (chart) =>
+            patchedGenerateLabels(chart, chartData.datasets);
         chart.update("none");
     }
 

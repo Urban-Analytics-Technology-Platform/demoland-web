@@ -104,13 +104,13 @@ export function makeCombinedGeoJSON(
     const scenario = allScenarios.find(s => s.name === scenarioName);
 
     // Precalculate differences between scenarios being compared
-    let maxDiffExtent: Map<IndicatorName, number> = new Map();
+    const maxDiffExtent: Map<IndicatorName, number> = new Map();
     if (compareScenarioName !== null) {
         const scenario = allScenarios.find(s => s.name === scenarioName);
         const cScenario = allScenarios.find(s => s.name === compareScenarioName);
         for (const indi of allIndicators) {
             const n = indi.name;
-            let diffs: number[] = [];
+            const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
                 diffs.push(scenario.values.get(oa).get(n) - cScenario.values.get(oa).get(n));
             }

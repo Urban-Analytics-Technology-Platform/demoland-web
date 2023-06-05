@@ -4,6 +4,7 @@
         type Scenario,
         allScenarios,
         type CompareView,
+        type FactorName,
     } from "../constants";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
@@ -14,13 +15,13 @@
     export let compareView: CompareView;
 
     // TODO Can we not do this?
-    function changeScenario(_: Event) {
+    function changeScenario() {
         dispatch("changeScenario", {});
     }
-    function changeCompareScenario(_: Event) {
+    function changeCompareScenario() {
         dispatch("changeCompareScenario", {});
     }
-    function changeCompareView(_: Event) {
+    function changeCompareView() {
         dispatch("changeCompareView", {});
     }
 

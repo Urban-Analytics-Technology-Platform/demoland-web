@@ -58,7 +58,7 @@ export type FactorName = IndicatorName | "sig";
 
 export type Factor = { name: FactorName, short: string };
 
-export let allFactors = [...allIndicators] as Factor[];
+export const allFactors = [...allIndicators] as Factor[];
 allFactors.unshift({"name": "sig", "short": "Land use"});
 // must add to the front so that the radio button appears first
 
@@ -67,9 +67,9 @@ export type OA = string;
 export type ScenarioName = "baseline" | "scenario1" | "scenario2" | "scenario3" | "scenario4" | "scenario5" | "scenario6" | "scenario7";
 
 function makeValuesMapFromJson(json: object) {
-    let map = new Map<OA, Map<FactorName, number>>();
+    const map = new Map<OA, Map<FactorName, number>>();
     for (const oa in json) {
-        let oaMap = new Map<FactorName, number>();
+        const oaMap = new Map<FactorName, number>();
         for (const indicator in json[oa]) {
             oaMap.set(indicator as IndicatorName, json[oa][indicator]);
         }
@@ -160,10 +160,10 @@ export const allScenarios: Scenario[] = [
 ];
 
 // Calculate global minimum and maximum values for each indicator
-export let minValues: Map<IndicatorName, number> = new Map();
-export let maxValues: Map<IndicatorName, number> = new Map();
+export const minValues: Map<IndicatorName, number> = new Map();
+export const maxValues: Map<IndicatorName, number> = new Map();
 for (const indicator of allIndicators) {
-    let values: number[] = [];
+    const values: number[] = [];
     for (const scenario of allScenarios) {
         const thisScenarioValues = [...scenario.values.values()].map(v => v.get(indicator.name));
         values.push(...thisScenarioValues);

@@ -14,11 +14,11 @@ import { getValues, makeColormap } from "./utils";
 // @param {number} max - The maximum value to be shown on the histogram.
 // @param {number} min - The minimum value to be shown on the histogram.
 function calculateTickStepSize(max: number, min: number): number {
-    let s = (max - min) / 4; // Assuming we want 5 ticks (ish)
+    const s = (max - min) / 4; // Assuming we want 5 ticks (ish)
     if (s < 0.5) return 0.5;
     if (s < 1) return 1;
     if (s > 10) {
-        let orderOfMagnitude = 10 ** Math.floor(Math.log10(s));
+        const orderOfMagnitude = 10 ** Math.floor(Math.log10(s));
         return Math.round(s / orderOfMagnitude) * orderOfMagnitude;
     }
     return Math.round(s);
@@ -42,7 +42,7 @@ export function bin(
     data: number[], min: number, max: number, nsteps: number
 ): { counts: number[]; centres: number[] } {
     const stepSize: number = (max - min) / nsteps;
-    let counts: number[] = Array(nsteps).fill(0);
+    const counts: number[] = Array(nsteps).fill(0);
     for (const d of data) {
         if (d === max) {
             // Include the maximum value in the last bin
@@ -53,21 +53,31 @@ export function bin(
             counts[bin] += 1;
         }
     }
-    let centres: number[] = Array.from({ length: nsteps }, (_, i) => min + (i + 0.5) * stepSize);
+    const centres: number[] = Array.from({ length: nsteps }, (_, i) => min + (i + 0.5) * stepSize);
 
     return { counts: counts, centres: centres };
 }
 
+// Chart.js doesn't seem to export their ChartDataset type (I think).
+export type ChartDataset = {
+    label: string,
+    data: number[],
+    backgroundColor: string[] | string,
+    borderWidth?: number,
+    grouped?: boolean,
+    order?: number,
+    categoryPercentage: number,
+    barPercentage: number,
+    borderColor?: string,
+};
 
-// generate chart data
-// TODO: Clean up code duplication!!
 export type ChartData = {
     labels: number[];
-    datasets: any[];
-    showLegend: boolean;
+    datasets: ChartDataset[];
     tickStepSize: number;
 };
 
+// generate chart data
 export function makeChartData(
     indicator: IndicatorName,
     compareView: CompareView,
@@ -82,10 +92,10 @@ export function makeChartData(
 
     if (compareScenarioName === null) {
         // Plot one dataset only (current indicator, current scenario)
-        let colors: string[] = makeColormap(indicator, nbars);
-        let rawValues: number[] = getValues(indicator, scenarioName);
-        let min: number = minValues.get(indicator);
-        let max: number = maxValues.get(indicator);
+        const colors: string[] = makeColormap(indicator, nbars);
+        const rawValues: number[] = getValues(indicator, scenarioName);
+        const min: number = minValues.get(indicator);
+        const max: number = maxValues.get(indicator);
         const bins = bin(rawValues, min, max, nbars);
 
         return {
@@ -100,7 +110,6 @@ export function makeChartData(
                 },
             ],
             labels: bins.centres,
-            showLegend: false,
             tickStepSize: calculateTickStepSize(max, min),
         };
     }
@@ -110,11 +119,11 @@ export function makeChartData(
         if (compareView === "original") {
             // Plot two datasets (current indicator, current scenario, other
             // scenario))
-            let colors: string[] = makeColormap(indicator, nbars);
-            let rawValues: number[] = getValues(indicator, scenarioName);
-            let cmpRawValues: number[] = getValues(indicator, compareScenarioName);
-            let min: number = minValues.get(indicator);
-            let max: number = maxValues.get(indicator);
+            const colors: string[] = makeColormap(indicator, nbars);
+            const rawValues: number[] = getValues(indicator, scenarioName);
+            const cmpRawValues: number[] = getValues(indicator, compareScenarioName);
+            const min: number = minValues.get(indicator);
+            const max: number = maxValues.get(indicator);
             const bins = bin(rawValues, min, max, nbars);
             const cmpBins = bin(cmpRawValues, min, max, nbars);
 
@@ -144,7 +153,6 @@ export function makeChartData(
                     },
                 ],
                 labels: bins.centres,
-                showLegend: true,
                 tickStepSize: calculateTickStepSize(max, min),
             };
         }
@@ -156,16 +164,16 @@ export function makeChartData(
 
         else if (compareView === "difference") {
             // Calculate the differences between the compared scenarios and plot those
-            let colors: string[] = makeColormap("diff", nbars);
+            const colors: string[] = makeColormap("diff", nbars);
             const scenValues: number[] = getValues(indicator, scenarioName);
             const cmpScenValues: number[] = getValues(indicator, compareScenarioName);
-            let rawValues: number[] = scenValues.map((value, i) => value - cmpScenValues[i]);
-            let max: number = Math.max(
+            const rawValues: number[] = scenValues.map((value, i) => value - cmpScenValues[i]);
+            const max: number = Math.max(
                 Math.abs(Math.min(...rawValues)),
                 Math.abs(Math.max(...rawValues)),
                 0.1  // deals with the case where all differences are zero
             );
-            let min: number = -max;
+            const min: number = -max;
 
             const bins = bin(rawValues, min, max, nbars);
 
@@ -181,7 +189,6 @@ export function makeChartData(
                     },
                 ],
                 labels: bins.centres,
-                showLegend: false,
                 tickStepSize: calculateTickStepSize(max, min),
             };
         }
