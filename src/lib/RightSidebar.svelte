@@ -78,7 +78,7 @@
     div#right-container {
         border-radius: 10px;
         opacity: 90%;
-        padding: 20px 20px 20px 15px;
+        padding: 20px 20px 10px 15px;
         background-color: #ffffff;
         pointer-events: auto;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
@@ -89,7 +89,6 @@
 
         display: grid;
         grid-template-columns: 15px 220px;
-        grid-row-gap: 10px;
         align-items: baseline;
     }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
-    import { cubicOut } from "svelte/easing";
+    import { quintOut } from "svelte/easing";
 
     export let title: string;
     export let collapsed: boolean = false;
@@ -10,14 +10,14 @@
     }
 </script>
 
-{#if collapsed}
-    <div class="collapsible-toggle closed" on:click={toggle}>⏵</div>
-{:else}
-    <div class="collapsible-toggle opened" on:click={toggle}>⏷</div>
-{/if}
-<div class="collapsible-title"><h2>{title}</h2></div>
+<label class="collapsible-toggle {collapsed ? 'closed' : 'opened'}" transition:slide={{ duration: 400, easing: quintOut }}><input type="button" on:click={toggle} />
+    {collapsed ? '⏵' : '⏷'}
+</label>
+<label class="collapsible-title {collapsed ? 'closed' : 'opened'}" transition:slide={{ duration: 400, easing: quintOut }}><input type="button" on:click={toggle} />
+    <h2>{title}</h2>
+</label>
 {#if !collapsed}
-    <div class="collapsible-content" transition:slide={{ duration: 400, easing: cubicOut }}>
+    <div class="collapsible-content opened" transition:slide={{ duration: 400, easing: quintOut }}>
         <slot />
     </div>
 {/if}
@@ -26,14 +26,30 @@
     h2 {
         margin: 0px;
     }
-    div.collapsible-toggle {
+    input {
+        display: none;
+    }
+    label.collapsible-toggle {
         font-size: 120%;
+        background: none;
+        border: none;
+        margin: 0px;
+        padding: 0px;
+    }
+    label:hover {
+        cursor: pointer;
+    }
+
+    .closed {
+        color: #666;
+    }
+
+    label.collapsible-title {
+        margin-bottom: 10px;
     }
     div.collapsible-content {
         grid-column: 2 / 3;
-    }
-    div.closed {
-        color: #888;
+        margin-bottom: 10px;
     }
     div.collapsible-content > :first-child {
         margin-top: 0 !important;
