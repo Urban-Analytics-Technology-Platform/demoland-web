@@ -17,14 +17,21 @@
     const nbars: number = 11;
 
     // Pretty-print a number for the chart tick labels. Again, not as polished
-    // as matplotlib
-    function pretty(value: number | string) {
+    // as matplotlib. Apart from changing millions and thousands into 'M' and
+    // 'K', this also converts hyphens into proper minus signs.
+    //
+    // @param {number} value: The number to pretty-print
+    // @param {boolean} withSign: Whether to include a plus sign for positive
+    // values
+    function pretty(value: number, withSign: boolean = false) {
         if (typeof value === "string") return value;
-        if (value >= 1000000) return `${value / 1000000}M`;
-        if (value >= 1000) return `${value / 1000}K`;
-        if (value <= -1000000) return `${value / 1000000}M`;
-        if (value <= -1000) return `${value / 1000}K`;
-        return value;
+        if (value === 0) return "0";
+        if (value >= 1000000) return `${withSign ? '+' : ''}${value / 1000000}M`;
+        if (value >= 1000) return `${withSign ? '+' : ''}${value / 1000}K`;
+        if (value <= -1000000) return `−${Math.abs(value / 1000000)}M`;
+        if (value <= -1000) return `−${Math.abs(value / 1000)}K`;
+        if (value >= 0) return `${withSign ? '+' : ''}${value}`;
+        return `−${Math.abs(value)}`;
     }
 
     let chart: Chart | null = null;
@@ -54,7 +61,7 @@
                         type: "linear",
                         ticks: {
                             stepSize: chartData.tickStepSize,
-                            callback: pretty,
+                            callback: (val => pretty(val as number, compareView === "difference")),
                             maxRotation: 0,
                             minRotation: 0,
                             font: { family: "IBM Plex Sans" },
@@ -108,21 +115,19 @@
         // plotted first, so labels[1] refers to the 'original' scenario being
         // visualised (which is the one we need to change background colours
         // for)..
-        chart.options.plugins.legend.labels = {
-            generateLabels: function (chart) {
-                let labels =
-                    Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                if (
-                    compareScenarioName !== null &&
-                    (compareView === "original" || compareView === "other")
-                ) {
-                    labels[1].fillStyle =
-                        chartData.datasets[1].backgroundColor[
-                            Math.floor(nbars / 2)
-                        ];
-                }
-                return labels;
-            },
+        chart.options.plugins.legend.labels.generateLabels = function (chart) {
+            let labels =
+                Chart.defaults.plugins.legend.labels.generateLabels(chart);
+            if (
+                compareScenarioName !== null &&
+                (compareView === "original" || compareView === "other")
+            ) {
+                labels[1].fillStyle =
+                    chartData.datasets[1].backgroundColor[
+                        Math.floor(nbars / 2)
+                    ];
+            }
+            return labels;
         };
         chart.update("none");
     }

@@ -343,7 +343,8 @@ export function makeChartData(
             let rawValues: number[] = scenValues.map((value, i) => value - cmpScenValues[i]);
             let max: number = Math.max(
                 Math.abs(Math.min(...rawValues)),
-                Math.abs(Math.max(...rawValues))
+                Math.abs(Math.max(...rawValues)),
+                0.1  // deals with the case where all differences are zero
             );
             let min: number = -max;
 
