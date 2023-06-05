@@ -6,7 +6,7 @@
         type IndicatorName,
         type CompareView,
     } from "../constants";
-    import { type ChartData, makeChartData } from "../utils";
+    import { type ChartData, makeChartData } from "../chart";
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;

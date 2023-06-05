@@ -6,7 +6,7 @@
         type ScenarioName,
         type CompareView,
     } from "../constants";
-    import { type ChartData, makeChartData } from "../utils";
+    import { type ChartData, makeChartData } from "../chart";
     import { onMount, onDestroy } from "svelte";
     export let activeFactor: FactorName;
     export let scenarioName: ScenarioName;
