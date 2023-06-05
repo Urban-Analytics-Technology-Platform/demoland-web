@@ -88,7 +88,7 @@
         overflow-y: auto;
 
         display: grid;
-        grid-template-columns: min-content 1fr;
+        grid-template-columns: 15px 220px;
         grid-row-gap: 10px;
         align-items: baseline;
     }
