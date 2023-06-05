@@ -24,6 +24,25 @@ function calculateTickStepSize(max: number, min: number): number {
     return Math.round(s);
 }
 
+// Pretty-print a number for the chart tick labels. Again, not as polished
+// as matplotlib. Apart from changing millions and thousands into 'M' and
+// 'K', this also converts hyphens into proper minus signs.
+//
+// @param {number} value: The number to pretty-print
+// @param {boolean} withSign: Whether to include a plus sign for positive
+// values
+export function prettyLabel(value: number, withSign: boolean = false) {
+    if (typeof value === "string") return value;
+    if (value === 0) return "0";
+    if (value >= 1000000)
+        return `${withSign ? "+" : ""}${value / 1000000}M`;
+    if (value >= 1000) return `${withSign ? "+" : ""}${value / 1000}K`;
+    if (value <= -1000000) return `−${Math.abs(value / 1000000)}M`;
+    if (value <= -1000) return `−${Math.abs(value / 1000)}K`;
+    if (value >= 0) return `${withSign ? "+" : ""}${value}`;
+    return `−${Math.abs(value)}`;
+}
+
 // Generates histogram data for a distribution of values.
 // 
 // The range between `min` and `max` is partitioned into `nsteps` boxes, and the

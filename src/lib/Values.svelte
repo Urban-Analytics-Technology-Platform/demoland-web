@@ -10,8 +10,6 @@
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
 
-    let oaName: string;
-
     function getText(indicator: FactorName): string {
         function boldIf(p: boolean, s: string): string {
             return p ? `<b>${s}</b>` : s;
@@ -49,7 +47,6 @@
 
     $: {
         feature, activeFactor, compareView;
-        oaName = feature.properties.OA11CD;
         for (const indi of allIndicators) {
             texts.set(indi.name, getText(indi.name));
         }
@@ -59,26 +56,15 @@
 
 {#if feature !== null}
     <div id="values">
-        <h2>Output area: {oaName}</h2>
-
         {#each allIndicators as indi}
             <div class="nomargin"><i>{indi.short}</i></div>
+            <!-- eslint-disable-next-line -->
             <div class="nomargin ralign">{@html texts.get(indi.name)}</div>
         {/each}
     </div>
 {/if}
 
 <style>
-    div#values {
-        border-radius: 10px;
-        opacity: 90%;
-        box-sizing: border-box;
-        padding: 20px;
-        background-color: #ffffff;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        pointer-events: auto;
-    }
-
     div#values > :first-child {
         margin-top: 0 !important;
     }

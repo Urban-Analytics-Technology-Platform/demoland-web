@@ -6,7 +6,7 @@
         type ScenarioName,
         type CompareView,
     } from "../constants";
-    import { type ChartDataset, type ChartData, makeChartData } from "../chart";
+    import { type ChartDataset, type ChartData, makeChartData, prettyLabel } from "../chart";
     import { onMount, onDestroy } from "svelte";
     export let activeFactor: FactorName;
     export let scenarioName: ScenarioName;
@@ -15,25 +15,6 @@
 
     // Number of bars to use in the chart
     const nbars = 11;
-
-    // Pretty-print a number for the chart tick labels. Again, not as polished
-    // as matplotlib. Apart from changing millions and thousands into 'M' and
-    // 'K', this also converts hyphens into proper minus signs.
-    //
-    // @param {number} value: The number to pretty-print
-    // @param {boolean} withSign: Whether to include a plus sign for positive
-    // values
-    function pretty(value: number, withSign = false) {
-        if (typeof value === "string") return value;
-        if (value === 0) return "0";
-        if (value >= 1000000)
-            return `${withSign ? "+" : ""}${value / 1000000}M`;
-        if (value >= 1000) return `${withSign ? "+" : ""}${value / 1000}K`;
-        if (value <= -1000000) return `−${Math.abs(value / 1000000)}M`;
-        if (value <= -1000) return `−${Math.abs(value / 1000)}K`;
-        if (value >= 0) return `${withSign ? "+" : ""}${value}`;
-        return `−${Math.abs(value)}`;
-    }
 
     let chart: Chart | null = null;
 
@@ -83,7 +64,7 @@
                         ticks: {
                             stepSize: chartData.tickStepSize,
                             callback: (val) =>
-                                pretty(
+                                prettyLabel(
                                     val as number,
                                     compareView === "difference"
                                 ),
@@ -164,13 +145,11 @@
 
     $: {
         activeFactor, scenarioName, compareScenarioName, compareView;
-        indi = allIndicators.find((i) => i.name === activeFactor);
         updateChart();
     }
 </script>
 
 <div id="chart-container">
-    <h2>{indi.short}</h2>
     <div id="chart-canvas">
         <canvas id="chart" />
     </div>
@@ -185,15 +164,6 @@
 </div>
 
 <style>
-    div#chart-container {
-        border-radius: 10px;
-        opacity: 90%;
-        padding: 20px;
-        background-color: #ffffff;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        pointer-events: auto;
-    }
-
     div#chart-canvas {
         height: 150px;
     }

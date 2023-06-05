@@ -2,18 +2,19 @@
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
     import { onMount, onDestroy } from "svelte";
-    import AllCharts from "./lib/AllCharts.svelte";
-    import Chart from "./lib/Chart.svelte";
-    import Sidebar from "./lib/Sidebar.svelte";
-    import Indicators from "./lib/Indicators.svelte";
-    import Values from "./lib/Values.svelte";
+    import LeftSidebar from "./lib/LeftSidebar.svelte";
+    import RightSidebar from "./lib/RightSidebar.svelte";
     import {
         allFactors,
         type FactorName,
         type ScenarioName,
         type CompareView,
     } from "./constants";
-    import { signatures, makeCombinedGeoJSON, getGeometryBounds } from "./utils";
+    import {
+        signatures,
+        makeCombinedGeoJSON,
+        getGeometryBounds,
+    } from "./utils";
 
     // The currently active indicator
     let activeFactor: FactorName = "sig";
@@ -64,7 +65,9 @@
         return (
             `<div class="hover-grid">` +
             `<span class="oa-grid-item strong">${feat.properties.OA11CD}</span>` +
-            `<span class="oa-grid-item">${signatures[feat.properties.sig].name}</span>` +
+            `<span class="oa-grid-item">${
+                signatures[feat.properties.sig].name
+            }</span>` +
             `<span>Air pollution</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(
                 2
             )}</span>` +
@@ -91,8 +94,8 @@
         const e = mapBounds.getEast();
         const x = (window.innerWidth * (lng - w)) / (e - w);
         // 320 = padding of other-content-container + width of sidebar
-        // 270 = padding of other-content-container + width of right-container
-        return x < 320 || x > window.innerWidth - 270;
+        // 290 = padding of other-content-container + width of right-container
+        return x < 320 || x > window.innerWidth - 290;
     }
 
     // Setup functions. We have to use Svelte's 'onMount' because the code in
@@ -293,9 +296,7 @@
                 map.setPaintProperty(
                     layerName,
                     "fill-opacity",
-                    factor.name === activeFactor
-                        ? opacity
-                        : 0.01 * opacity
+                    factor.name === activeFactor ? opacity : 0.01 * opacity
                 );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
@@ -331,9 +332,7 @@
                 map.setPaintProperty(
                     `${factor.name}-layer`,
                     "fill-opacity",
-                    factor.name === activeFactor
-                        ? opacity
-                        : 0.01 * opacity
+                    factor.name === activeFactor ? opacity : 0.01 * opacity
                 );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
@@ -400,7 +399,7 @@
     <div id="map" />
 
     <div id="other-content-container">
-        <Sidebar
+        <LeftSidebar
             {activeFactor}
             bind:scenarioName
             bind:compareScenarioName
@@ -421,36 +420,16 @@
             {/if}
         </div>
 
-        <div id="right-container">
-            <Indicators
-                bind:activeFactor
-                bind:opacity
-                on:changeFactor={updateFactor}
-                on:changeOpacity={updateLayers}
-            />
-            {#if activeFactor !== "sig"}
-            <Chart
-                {activeFactor}
-                {scenarioName}
-                {compareView}
-                {compareScenarioName}
-            />
-            {:else}
-            <AllCharts
-                {scenarioName}
-                {compareScenarioName}
-                {compareView}
-            />
-            {/if}
-            {#if clickedFeature !== null}
-                <Values
-                    {activeFactor}
-                    {compareView}
-                    {compareScenarioName}
-                    feature={clickedFeature}
-                />
-            {/if}
-        </div>
+        <RightSidebar
+            bind:activeFactor
+            on:changeFactor={updateFactor}
+            bind:opacity
+            on:changeOpacity={updateLayers}
+            {scenarioName}
+            {compareScenarioName}
+            {compareView}
+            {clickedFeature}
+        />
     </div>
 </main>
 <svelte:window on:resize={resizeContainer} />
@@ -485,21 +464,5 @@
         box-sizing: border-box;
         padding: 5px;
         background-color: #e8e8e8; /* grey */
-    }
-
-    div#right-container {
-        box-sizing: border-box;
-        height: min-content;
-        width: 250px;
-        min-width: 250px;
-        margin: 0px;
-        padding: 0px;
-        display: flex;
-        flex-flow: column nowrap;
-        gap: 20px;
-
-        margin-left: auto;
-        margin-right: 0px;
-        pointer-events: none;
     }
 </style>

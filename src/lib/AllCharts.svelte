@@ -6,26 +6,15 @@
         type IndicatorName,
         type CompareView,
     } from "../constants";
-    import { type ChartData, makeChartData } from "../chart";
+    import { type ChartData, makeChartData, prettyLabel } from "../chart";
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
     import { onMount, onDestroy } from "svelte";
 
-    // Pretty-print a number for the chart tick labels. Again, not as polished
-    // as matplotlib
-    // TODO: This code is duplicated in charts and allcharts. extract out or otherwise refactor
-    const nbars = 11;
-    function pretty(value: number | string) {
-        if (typeof value === "string") return value;
-        if (value >= 1000000) return `${value / 1000000}M`;
-        if (value >= 1000) return `${value / 1000}K`;
-        if (value <= -1000000) return `${value / 1000000}M`;
-        if (value <= -1000) return `${value / 1000}K`;
-        return value;
-    }
-
     let charts = new Map<IndicatorName, Chart | null>();
+    // Number of bars to use in the chart
+    const nbars = 11;
 
     function destroyCharts() {
         for (const indi of allIndicators) {
@@ -61,7 +50,7 @@
                             type: "linear",
                             ticks: {
                                 stepSize: chartData[indi.name].tickStepSize,
-                                callback: pretty,
+                                callback: ((val) => prettyLabel(val as number, false)),
                                 maxRotation: 0,
                                 minRotation: 0,
                                 font: { family: "IBM Plex Sans" },
@@ -76,7 +65,7 @@
                     },
                     plugins: {
                         legend: {
-                            display: chartData[indi.name].showLegend,
+                            display: false,
                             labels: {
                                 boxWidth: 20,
                                 font: { family: "IBM Plex Sans" },
@@ -103,7 +92,7 @@
             chart.data.labels = chartData.labels;
             // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
             chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
-            chart.options.plugins.legend.display = chartData.showLegend;
+            chart.options.plugins.legend.display = false;
             chart.update("none");
         }
     }
@@ -130,7 +119,6 @@
 </script>
 
 <div id="allchart-container">
-    <h2>Overview of all indicators</h2>
     {#each allIndicators as indi}
         <h4>{indi.short}</h4>
         <div class="chart-canvas" id={`chart-canvas-${indi.name}`}>
@@ -148,17 +136,6 @@
 </div>
 
 <style>
-    div#allchart-container {
-        border-radius: 10px;
-        opacity: 90%;
-        padding: 20px;
-        background-color: #ffffff;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        pointer-events: auto;
-        max-height: 244px;
-        overflow-y: auto;
-    }
-
     div.chart-canvas {
         height: 110px;
     }

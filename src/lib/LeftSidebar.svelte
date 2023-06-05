@@ -106,9 +106,11 @@
     </div>
     <h2>{scenario.long}</h2>
     <p>
+        <!-- eslint-disable-next-line -->
         {@html scenario.description[0]}
     </p>
     {#each scenario.description.slice(1) as para}
+        <!-- eslint-disable-next-line -->
         <p>{@html para}</p>
     {/each}
 </div>
