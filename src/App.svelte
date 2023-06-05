@@ -381,6 +381,10 @@
         if (compareScenarioName === null) {
             compareView = "original";
         }
+        // show difference if possible
+        if (activeFactor !== "sig" && compareView === "original") {
+            compareView = "difference";
+        }
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         updateMapData(mapData);
     }

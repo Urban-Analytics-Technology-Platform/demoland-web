@@ -98,6 +98,32 @@
         // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
         chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
         chart.options.plugins.legend.display = chartData.showLegend;
+        // This bit of code replaces the colour of the legend label with the
+        // central color of the dataset's backgroundColor (otherwise, by default
+        // it uses the first colour, which is often too light). Largely adapted
+        // from https://github.com/chartjs/Chart.js/issues/2651 but with some
+        // modifications due to the updated Chart.js API.
+        //
+        // Because the 'compare' scenario has an empty background, it must be
+        // plotted first, so labels[1] refers to the 'original' scenario being
+        // visualised (which is the one we need to change background colours
+        // for)..
+        chart.options.plugins.legend.labels = {
+            generateLabels: function (chart) {
+                let labels =
+                    Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                if (
+                    compareScenarioName !== null &&
+                    (compareView === "original" || compareView === "other")
+                ) {
+                    labels[1].fillStyle =
+                        chartData.datasets[1].backgroundColor[
+                            Math.floor(nbars / 2)
+                        ];
+                }
+                return labels;
+            },
+        };
         chart.update("none");
     }
 

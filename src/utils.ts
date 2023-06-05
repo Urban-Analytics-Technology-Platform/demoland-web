@@ -207,141 +207,163 @@ function calculateTickStepSize(max: number, min: number): number {
     return Math.round(s);
 }
 
+// Generates histogram data for a distribution of values.
+// 
+// The range between `min` and `max` is partitioned into `nsteps` boxes, and the
+// returned array contains the number of values in each box.
+//
+// @param {number[]} data - The values to be binned.
+// @param {number} min - The minimum value to be shown on the histogram.
+// @param {number} max - The maximum value to be shown on the histogram.
+// @param {number} nsteps - The number of bins to use.
+//
+// @returns {number[]} An array of length `nsteps` containing the number of
+// values in each bin (from smallest to largest).
+// @returns {number[]} An array of length `nsteps` containing the centre of each
+// bin.
+export function bin(data: number[], min: number, max: number, nsteps: number) {
+    const stepSize = (max - min) / nsteps;
+    let counts = Array(nsteps).fill(0);
+    for (const d of data) {
+        if (d === max) {
+            // Include the maximum value in the last bin
+            counts[nsteps - 1] += 1;
+        }
+        const bin = Math.floor((d - min) / stepSize);
+        if (bin >= 0 && bin < nsteps) {
+            counts[bin] += 1;
+        }
+    }
+    let centres = Array.from({ length: nsteps }, (_, i) => min + (i + 0.5) * stepSize);
+
+    return [counts, centres];
+}
+
 
 // generate chart data
 // TODO: Clean up code duplication!!
 export type ChartData = {
-    colors: string[];
     labels: number[];
-    counts: number[];
     datasets: any[];
     showLegend: boolean;
     tickStepSize: number;
 };
 
-export function makeChartData(indicator: IndicatorName,
+export function makeChartData(
+    indicator: IndicatorName,
     compareView: CompareView,
     scenarioName: ScenarioName,
     compareScenarioName: ScenarioName | null,
     nbars: number
 ): ChartData {
-    let colors: string[], rawValues: number[], min: number, max: number;
 
-    // Calculate data to plot
-    if (compareView === "original") {
-        // Use numbers from the scenario being visualised
-        colors = makeColormap(indicator, nbars);
-        rawValues = getValues(indicator, scenarioName);
-        min = minValues.get(indicator);
-        max = maxValues.get(indicator);
-    } else if (compareView === "other") {
-        // Use numbers from the scenario being compared against
-        colors = makeColormap(indicator, nbars);
-        rawValues = getValues(indicator, compareScenarioName);
-        min = minValues.get(indicator);
-        max = maxValues.get(indicator);
-    } else if (compareView === "difference") {
-        // Calculate the differences between the compared scenarios and plot those
-        if (compareScenarioName === null)
-            throw new Error(
-                "compareScenarioName should not be null when compareView is 'difference'"
-            );
-        colors = makeColormap("diff", nbars);
-        const scenValues = getValues(indicator, scenarioName);
-        const cmpScenValues = getValues(indicator, compareScenarioName);
-        rawValues = scenValues.map((value, i) => value - cmpScenValues[i]);
-        max = Math.max(
-            Math.abs(Math.min(...rawValues)),
-            Math.abs(Math.max(...rawValues))
-        );
-        min = -max;
+    function getScenarioShort(name: ScenarioName): string {
+        return allScenarios.find((s) => s.name === name).short;
     }
 
-    // Quantise data being plotted to 0 -> nbars-1. The second map here is
-    // to ensure that the largest value gets rounded down to nbars-1
-    // instead of nbars (which would be illegal).
-    const intValues = rawValues
-        .map((value) => Math.floor(((value - min) / (max - min)) * nbars))
-        .map((value) => Math.min(value, nbars - 1));
-    // Get the counts of each value (this data goes on the y-axis)
-    const counts = new Array(nbars).fill(0);
-    for (const value of intValues) {
-        counts[value]++;
+    if (compareScenarioName === null) {
+        // Plot one dataset only (current indicator, current scenario)
+        let colors: string[] = makeColormap(indicator, nbars);
+        let rawValues: number[] = getValues(indicator, scenarioName);
+        let min: number = minValues.get(indicator);
+        let max: number = maxValues.get(indicator);
+        const [counts, centres] = bin(rawValues, min, max, nbars);
+
+        return {
+            datasets: [
+                {
+                    label: getScenarioShort(scenarioName),
+                    data: counts,
+                    backgroundColor: colors,
+                    borderWidth: 0,
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0,
+                },
+            ],
+            labels: centres,
+            showLegend: false,
+            tickStepSize: calculateTickStepSize(max, min),
+        };
     }
-    // Generate the x-axis values, which are 0.5 -> nbars - 0.5 in steps of
-    // 1, then rescale back to the original range of indi values
-    const labels = Array.from(
-        { length: nbars },
-        (_, i) => ((i + 0.5) * (max - min)) / nbars + min
-    );
 
-    // Generate first dataset to plot
-    let datasets = [
-        {
-            label:
-                compareView === "difference"
-                    ? "Difference"
-                    : compareView === "original"
-                        ? allScenarios.find((s) => s.name === scenarioName)
-                            .short
-                        : allScenarios.find(
-                            (s) => s.name === compareScenarioName
-                        ).short,
-            data: counts,
-            // TODO: chart.js uses the first color in this array for the
-            // legend label, which is often not very useful.
-            backgroundColor: colors,
-            borderWidth: 0,
-            grouped: false,
-            order: 2, // larger number = below
-            categoryPercentage: 1.0,
-            barPercentage: 1.0,
-        },
-    ];
+    else {
 
-    // Generate second dataset to plot (only if compareView is 'original',
-    // i.e. plot both scenarios being compared together)
-    if (
-        compareScenarioName !== null &&
-        (compareView === "original" || compareView === "other")
-    ) {
-        const compareRawValues: number[] = getValues(
-            indicator,
-            compareView === "original" ? compareScenarioName : scenarioName
-        );
-        const compareIntValues = compareRawValues.map((value) =>
-            Math.round(((value - min) / (max - min)) * (nbars - 1))
-        );
-        const compareCounts = new Array(nbars).fill(0);
-        for (const value of compareIntValues) {
-            compareCounts[value]++;
+        if (compareView === "original") {
+            // Plot two datasets (current indicator, current scenario, other
+            // scenario))
+            let colors: string[] = makeColormap(indicator, nbars);
+            let rawValues: number[] = getValues(indicator, scenarioName);
+            let cmpRawValues: number[] = getValues(indicator, compareScenarioName);
+            let min: number = minValues.get(indicator);
+            let max: number = maxValues.get(indicator);
+            const [counts, centres] = bin(rawValues, min, max, nbars);
+            const [cmpCounts, _] = bin(cmpRawValues, min, max, nbars);
+
+            return {
+                datasets: [
+                    {
+                        label: getScenarioShort(compareScenarioName),
+                        data: cmpCounts,
+                        // @ts-ignore backgroundColor can be string or string[]
+                        backgroundColor: "rgba(1, 1, 1, 0)",
+                        borderWidth: 1,
+                        borderColor: "#f00",
+                        barPercentage: 1,
+                        grouped: false,
+                        order: 1,
+                        categoryPercentage: 1.0,
+                    },
+                    {
+                        label: getScenarioShort(scenarioName),
+                        data: counts,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        grouped: false,
+                        order: 2,
+                        categoryPercentage: 1.0,
+                        barPercentage: 1.0,
+                    },
+                ],
+                labels: centres,
+                showLegend: true,
+                tickStepSize: calculateTickStepSize(max, min),
+            };
         }
-        datasets.push({
-            label:
-                compareView === "original"
-                    ? allScenarios.find(
-                        (s) => s.name === compareScenarioName
-                    ).short
-                    : allScenarios.find((s) => s.name === scenarioName)
-                        .short,
-            data: compareCounts,
-            // @ts-ignore backgroundColor can be string or string[]
-            backgroundColor: "rgba(1, 1, 1, 0)",
-            borderWidth: 1,
-            borderColor: "#f00",
-            barPercentage: 1,
-            grouped: false,
-            order: 1,
-            categoryPercentage: 1.0,
-        });
-    }
 
-    return {
-        datasets: datasets,
-        counts: counts,
-        labels: labels,
-        colors: colors,
-        showLegend: compareScenarioName !== null,
-        tickStepSize: calculateTickStepSize(max, min),
-    };
+        else if (compareView === "other") {
+            // swap scenario with compareScenario and call again
+            return makeChartData(indicator, "original", compareScenarioName, scenarioName, nbars);
+        }
+
+        else if (compareView === "difference") {
+            // Calculate the differences between the compared scenarios and plot those
+            let colors: string[] = makeColormap("diff", nbars);
+            const scenValues: number[] = getValues(indicator, scenarioName);
+            const cmpScenValues: number[] = getValues(indicator, compareScenarioName);
+            let rawValues: number[] = scenValues.map((value, i) => value - cmpScenValues[i]);
+            let max: number = Math.max(
+                Math.abs(Math.min(...rawValues)),
+                Math.abs(Math.max(...rawValues))
+            );
+            let min: number = -max;
+
+            const [counts, centres] = bin(rawValues, min, max, nbars);
+
+            return {
+                datasets: [
+                    {
+                        label: "Difference",
+                        data: counts,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        categoryPercentage: 1.0,
+                        barPercentage: 1.0,
+                    },
+                ],
+                labels: centres,
+                showLegend: false,
+                tickStepSize: calculateTickStepSize(max, min),
+            };
+        }
+    }
 }

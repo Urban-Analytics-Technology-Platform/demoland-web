@@ -50,7 +50,6 @@
 
     $: {
         feature, activeFactor, compareView;
-        console.log(feature);
         oaName = feature.properties.OA11CD;
         for (const indi of allIndicators) {
             texts.set(indi.name, getText(indi.name));

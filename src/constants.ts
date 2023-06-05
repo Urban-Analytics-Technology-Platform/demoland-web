@@ -10,8 +10,9 @@ import scenario7Vals from "./assets/scenario7.json";
 export type CompareView = "original" | "other" | "difference";
 
 export const allCompareViews: { value: CompareView, description: string }[] = [
-    { "value": "original", "description": "Original" },
     { "value": "difference", "description": "Difference" },
+    { "value": "original", "description": "Original" },
+    { "value": "other", "description": "Other" },
 ]
 
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
