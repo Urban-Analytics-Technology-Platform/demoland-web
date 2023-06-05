@@ -2,14 +2,42 @@
 
 - `baseline_prediction.json`, `scenario{i}.json` (i = 1 to 7)
 
-  - These are generated from the corresponding csv files stored in OneDrive with a simple script:
+  - These are generated from the corresponding `scenario{i}.csv` and `scenario{i}_landuse.csv` files stored in the OneDrive `scenarios` directory, using the following script. For the baseline land use, read it instead from `sampling/oa_key.parquet` in OneDrive.
 
     ```python
     import pandas as pd
-    for fname in ['baseline_prediction', *[f'scenario{i}' for i in range(1, 8)]]:
-        df = pd.read_csv(f'{fname}.csv')
+
+    SIGS = {
+        "Wild countryside": 0,
+        "Countryside agriculture": 1,
+        "Urban buffer": 2,
+        "Warehouse/Park land": 3,
+        "Open sprawl": 4,
+        "Disconnected suburbia": 5,
+        "Accessible suburbia": 6,
+        "Connected residential neighbourhoods": 7,
+        "Dense residential neighbourhoods": 8,
+        "Gridded residential quarters": 9,
+        "Dense urban neighbourhoods": 10,
+        "Local urbanity": 11,
+        "Regional urbanity": 12,
+        "Metropolitan urbanity": 13,
+        "Concentrated urbanity": 14,
+        "Hyper concentrated urbanity": 15,
+    }
+
+    for scen in [3, 6, 7]:
+        df = pd.read_csv(f'scenario{scen}.csv')
         df = df.set_index('geo_code')
-        df.to_json(path_or_buf=f'{fname}.json', orient='index')
+
+        landuse_df = pd.read_csv(f'scenario{scen}_landuse.csv')
+        landuse_df = landuse_df.set_index('OA11CD')
+        landuse_df.index.name = 'geo_code'
+        landuse_df['sig'] = landuse_df['primary_type'].map(SIGS)
+        landuse_df = landuse_df[['sig']]
+        df = df.join(landuse_df, validate='one_to_one')
+
+        df.to_json(path_or_buf=f'scenario{scen}.json', orient='index')
     ```
 
 - `newcastle.json`

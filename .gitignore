@@ -1,3 +1,5 @@
+src/assets/*.csv
+
 # Logs
 logs
 *.log
