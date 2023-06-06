@@ -168,3 +168,24 @@ for (const indicator of allIndicators) {
     minValues.set(indicator.name, Math.min(...values));
     maxValues.set(indicator.name, Math.max(...values));
 }
+
+export const signatures = [
+    { name: "Wild countryside", color: "#d7ded1" },
+    { name: "Countryside agriculture", color: "#f2e6c7" },
+    { name: "Urban buffer", color: "#c2d0d9" },
+    { name: "Warehouse/Park land", color: "#c3abaf" },
+    { name: "Open sprawl", color: "#d7a59f" },
+    { name: "Disconnected suburbia", color: "#f0d17d" },
+    { name: "Accessible suburbia", color: "#8fa37e" },
+    { name: "Connected residential neighbourhoods", color: "#94666e" },
+    { name: "Dense residential neighbourhoods", color: "#678ea6" },
+    { name: "Gridded residential quarters", color: "#e4cbc8" },
+    { name: "Dense urban neighbourhoods", color: "#efc758" },
+    { name: "Local urbanity", color: "#3b6e8c" },
+    { name: "Regional urbanity", color: "#ab888e" },
+    { name: "Metropolitan urbanity", color: "#bc5b4f" },
+    { name: "Concentrated urbanity", color: "#333432" },
+    { name: "Hyper concentrated urbanity", color: "#a7b799" },
+];
+
+export const signaturesUrl: string = "https://urbangrammarai.xyz/story/#ss"

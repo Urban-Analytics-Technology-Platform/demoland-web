@@ -1,7 +1,7 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, minValues, maxValues } from "./constants";
+import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, minValues, maxValues, signatures } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "air_quality") {
@@ -42,25 +42,6 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
         });
     }
 }
-
-export const signatures = [
-    { name: "Wild countryside", color: "#d7ded1" },
-    { name: "Countryside agriculture", color: "#f2e6c7" },
-    { name: "Urban buffer", color: "#c2d0d9" },
-    { name: "Warehouse/Park land", color: "#c3abaf" },
-    { name: "Open sprawl", color: "#d7a59f" },
-    { name: "Disconnected suburbia", color: "#f0d17d" },
-    { name: "Accessible suburbia", color: "#8fa37e" },
-    { name: "Connected residential neighbourhoods", color: "#94666e" },
-    { name: "Dense residential neighbourhoods", color: "#678ea6" },
-    { name: "Gridded residential quarters", color: "#e4cbc8" },
-    { name: "Dense urban neighbourhoods", color: "#efc758" },
-    { name: "Local urbanity", color: "#3b6e8c" },
-    { name: "Regional urbanity", color: "#ab888e" },
-    { name: "Metropolitan urbanity", color: "#bc5b4f" },
-    { name: "Concentrated urbanity", color: "#333432" },
-    { name: "Hyper concentrated urbanity", color: "#a7b799" },
-];
 
 // Get all values for a given indicator in a given scenario.
 export function getValues(indicator: IndicatorName, scenarioName: ScenarioName): number[] {
