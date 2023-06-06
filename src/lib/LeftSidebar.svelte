@@ -4,12 +4,10 @@
         type Scenario,
         allScenarios,
         type CompareView,
-        type FactorName,
     } from "../constants";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    export let activeFactor: FactorName;
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
@@ -59,7 +57,11 @@
                 <option value={scenario.name}>{scenario.short}</option>
             {/each}
         </select>
-        <button id="dropdowns-swap" on:click={swapScenarios} disabled={compareScenarioName === null}>⇅</button>
+        <button
+            id="dropdowns-swap"
+            on:click={swapScenarios}
+            disabled={compareScenarioName === null}>⇅</button
+        >
         <span>Compare against:</span>
         <select
             id="compare"
@@ -86,16 +88,14 @@
                         on:change={changeCompareView}
                     />{scenario.short} only</label
                 ><br />
-                {#if activeFactor !== "sig"}
-                    <label
-                        ><input
-                            bind:group={compareView}
-                            type="radio"
-                            value="difference"
-                            on:change={changeCompareView}
-                        />Difference</label
-                    >
-                {/if}
+                <label
+                    ><input
+                        bind:group={compareView}
+                        type="radio"
+                        value="difference"
+                        on:change={changeCompareView}
+                    />Differences</label
+                >
             </span>
         {/if}
     </div>
@@ -163,7 +163,7 @@
     button#dropdowns-swap:hover:enabled {
         color: #202124;
         background-color: #f5f5f5;
-        box-shadow: rgba(0, 0, 0, .1) 0 2px 2px;
+        box-shadow: rgba(0, 0, 0, 0.1) 0 2px 2px;
     }
     button#dropdowns-swap:hover:active {
         background-color: #d0d0d0;

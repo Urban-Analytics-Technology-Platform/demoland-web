@@ -9,11 +9,6 @@ import scenario7Vals from "./assets/scenario7.json";
 
 export type CompareView = "original" | "difference";
 
-export const allCompareViews: { value: CompareView, description: string }[] = [
-    { "value": "difference", "description": "Difference" },
-    { "value": "original", "description": "Original" },
-]
-
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
 
 export type Indicator = { name: IndicatorName, short: string, less: string, more: string, less_diff: string, more_diff: string };
