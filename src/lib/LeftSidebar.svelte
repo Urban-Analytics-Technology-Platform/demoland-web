@@ -84,17 +84,18 @@
                     ><input
                         bind:group={compareView}
                         type="radio"
-                        value="original"
+                        value="difference"
                         on:change={changeCompareView}
-                    />{scenario.short} only</label
-                ><br />
+                    />Differences</label
+                >
+                <br />
                 <label
                     ><input
                         bind:group={compareView}
                         type="radio"
-                        value="difference"
+                        value="original"
                         on:change={changeCompareView}
-                    />Differences</label
+                    />{scenario.short} only</label
                 >
             </span>
         {/if}

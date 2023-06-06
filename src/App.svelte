@@ -40,7 +40,7 @@
     // Scenario to compare against. Null to not compare.
     let compareScenarioName: ScenarioName | null = null;
     // Method to visualise scenario comparison
-    let compareView: CompareView = "original";
+    let compareView: CompareView = "difference";
     // Initial opacity
     let opacity: number = 0.8;
 
@@ -348,13 +348,6 @@
         }
     }
 
-    function updateFactor() {
-        if (activeFactor === "sig" && compareView === "difference") {
-            compareView = "original";
-        }
-        updateLayers();
-    }
-
     /* Event handlers! */
     // Redraw layers when scenario is changed
     function updateScenario() {
@@ -413,7 +406,7 @@
 
         <RightSidebar
             bind:activeFactor
-            on:changeFactor={updateFactor}
+            on:changeFactor={updateLayers}
             bind:opacity
             on:changeOpacity={updateLayers}
             {scenarioName}

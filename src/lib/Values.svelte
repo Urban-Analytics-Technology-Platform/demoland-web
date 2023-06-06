@@ -16,18 +16,14 @@
         function boldIf(p: boolean, s: string): string {
             return p ? `<b>${s}</b>` : s;
         }
-        const origVal = feature.properties[indicator];
+        const val = feature.properties[indicator];
         const cmpVal = feature.properties[`${indicator}-cmp`];
 
-        let val =
-            compareView === "original" || compareView === "difference"
-                ? origVal
-                : cmpVal;
         if (compareScenarioName === null) {
             return boldIf(indicator === activeFactor, val.toFixed(2));
         } else {
             const pctChange =
-                cmpVal === 0 ? 0 : (100 * (origVal - cmpVal)) / cmpVal;
+                cmpVal === 0 ? 0 : (100 * (val - cmpVal)) / cmpVal;
             const sign = pctChange >= 0 ? "+" : "−"; // this is a minus sign instead of hyphen!
             return (
                 boldIf(

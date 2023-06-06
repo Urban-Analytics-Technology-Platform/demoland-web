@@ -167,7 +167,7 @@
 </script>
 
 <div class="chart-container">
-    {#if compareView === "original"}
+    {#if compareView === "original" || compareScenarioName === null}
         <p>Mean: {mean.toFixed(2)} {#if compareScenarioName !== null}({diffMean >= 0 ? "+" : "−"}{Math.abs(diffMean).toFixed(1)}%){/if}</p>
     {:else}
         <p>Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(meanChange).toFixed(2)} ({diffMean >= 0 ? "+" : "−"}{Math.abs(diffMean).toFixed(1)}%)</p>
