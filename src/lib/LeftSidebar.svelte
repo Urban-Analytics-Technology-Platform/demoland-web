@@ -99,7 +99,7 @@
             </span>
         {/if}
     </div>
-    <h2>{scenario.long}</h2>
+    <h2 id="scenario-title">{scenario.long}</h2>
     <p>
         <!-- eslint-disable-next-line -->
         {@html scenario.description[0]}
@@ -142,6 +142,10 @@
     }
     span#view-choices {
         grid-column: 2/4;
+    }
+
+    h2#scenario-title {
+        margin-top: 20px;
     }
 
     button#dropdowns-swap {
