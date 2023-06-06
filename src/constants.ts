@@ -58,7 +58,7 @@ export type FactorName = IndicatorName | "sig";
 export type Factor = { name: FactorName, short: string };
 
 export const allFactors = [...allIndicators] as Factor[];
-allFactors.unshift({"name": "sig", "short": "Land use"});
+allFactors.unshift({ "name": "sig", "short": "Land use" });
 // must add to the front so that the radio button appears first
 
 export type OA = string;
@@ -86,7 +86,10 @@ export const allScenarios: Scenario[] = [
         "short": "Baseline",
         "long": "Tyne and Wear today",
         "values": makeValuesMapFromJson(baselineVals),
-        "description": ["The baseline reflects the situation in In Tyne and Wear as our models see it today. It shows what the four indicators as predicted using existing land use data.<br><br>Select a development scenario above and compare it against the baseline to see the impact of the modelled development strategies on any of the four indicators."],
+        "description": [
+            "The baseline reflects the situation in Tyne and Wear as our models see it today. It shows what the four indicators are predicted to be using existing land use data.",
+            "Select a development scenario above and compare it against the baseline to see the impact of the modelled development strategies on any of the four indicators."
+        ],
     },
     {
         "name": "scenario1",
