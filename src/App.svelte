@@ -93,9 +93,9 @@
         const w = mapBounds.getWest();
         const e = mapBounds.getEast();
         const x = (window.innerWidth * (lng - w)) / (e - w);
-        // 320 = padding of other-content-container + width of sidebar
+        // 340 = padding of other-content-container + width of sidebar
         // 290 = padding of other-content-container + width of right-container
-        return x < 320 || x > window.innerWidth - 290;
+        return x < 340 || x > window.innerWidth - 290;
     }
 
     // Setup functions. We have to use Svelte's 'onMount' because the code in
@@ -362,11 +362,6 @@
     /* Event handlers! */
     // Redraw layers when scenario is changed
     function updateScenario() {
-        // reset compareScenario and compareView
-        if (scenarioName === "baseline") {
-            compareScenarioName = null;
-            compareView = "original";
-        }
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         updateMapData(mapData);
     }

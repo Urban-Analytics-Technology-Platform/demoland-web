@@ -176,11 +176,6 @@ export function makeChartData(
             };
         }
 
-        else if (compareView === "other") {
-            // swap scenario with compareScenario and call again
-            return makeChartData(indicator, "original", compareScenarioName, scenarioName, nbars);
-        }
-
         else if (compareView === "difference") {
             // Calculate the differences between the compared scenarios and plot those
             const colors: string[] = makeColormap("diff", nbars);

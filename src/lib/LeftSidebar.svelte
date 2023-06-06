@@ -25,14 +25,18 @@
         dispatch("changeCompareView", {});
     }
 
+    function swapScenarios() {
+        if (compareScenarioName !== null) {
+            const tmp = scenarioName;
+            scenarioName = compareScenarioName;
+            compareScenarioName = tmp;
+            dispatch("changeScenario", {});
+        }
+    }
+
     let scenario: Scenario;
-    let compareScenario: Scenario | null;
     $: {
         scenario = allScenarios.find((s) => s.name === scenarioName);
-        compareScenario =
-            compareScenarioName === null
-                ? null
-                : allScenarios.find((s) => s.name === compareScenarioName);
     }
 </script>
 
@@ -55,42 +59,34 @@
                 <option value={scenario.name}>{scenario.short}</option>
             {/each}
         </select>
-        {#if scenarioName !== "baseline"}
-            <span>Compare with:</span>
-            <select
-                id="compare"
-                bind:value={compareScenarioName}
-                on:change={changeCompareScenario}
-            >
-                <option value={null}>None</option>
-                {#each allScenarios as compareScenario}
-                    {#if compareScenario.name !== scenarioName}
-                        <option value={compareScenario.name}
-                            >{compareScenario.short}</option
-                        >
-                    {/if}
-                {/each}
-            </select>
-            {#if compareScenarioName !== null}
-                <span>View:</span>
-                <span>
-                    <label
-                        ><input
-                            bind:group={compareView}
-                            type="radio"
-                            value="original"
-                            on:change={changeCompareView}
-                        />{scenario.short}</label
-                    ><br />
-                    <label
-                        ><input
-                            bind:group={compareView}
-                            type="radio"
-                            value="other"
-                            on:change={changeCompareView}
-                        />{compareScenario.short}</label
-                    ><br />
-                    {#if activeFactor !== "sig"}
+        <button id="dropdowns-swap" on:click={swapScenarios} disabled={compareScenarioName === null}>⇅</button>
+        <span>Compare against:</span>
+        <select
+            id="compare"
+            bind:value={compareScenarioName}
+            on:change={changeCompareScenario}
+        >
+            <option value={null}>None</option>
+            {#each allScenarios as compareScenario}
+                {#if compareScenario.name !== scenarioName}
+                    <option value={compareScenario.name}
+                        >{compareScenario.short}</option
+                    >
+                {/if}
+            {/each}
+        </select>
+        {#if compareScenarioName !== null}
+            <span>View:</span>
+            <span id="view-choices">
+                <label
+                    ><input
+                        bind:group={compareView}
+                        type="radio"
+                        value="original"
+                        on:change={changeCompareView}
+                    />{scenario.short} only</label
+                ><br />
+                {#if activeFactor !== "sig"}
                     <label
                         ><input
                             bind:group={compareView}
@@ -99,9 +95,8 @@
                             on:change={changeCompareView}
                         />Difference</label
                     >
-                    {/if}
-                </span>
-            {/if}
+                {/if}
+            </span>
         {/if}
     </div>
     <h2>{scenario.long}</h2>
@@ -120,8 +115,8 @@
         border-radius: 10px;
         opacity: 90%;
         box-sizing: border-box;
-        width: 300px;
-        min-width: 300px;
+        width: 320px;
+        min-width: 320px;
         padding: 20px;
         background-color: #ffffff;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
@@ -140,12 +135,39 @@
     }
     div#dropdowns {
         display: grid;
-        grid-template-columns: max-content 1fr;
+        grid-template-columns: max-content 1fr max-content;
         column-gap: 10px;
         row-gap: 5px;
         align-items: baseline;
     }
+    span#view-choices {
+        grid-column: 2/4;
+    }
 
+    button#dropdowns-swap {
+        grid-column: 3;
+        grid-row: 1/3;
+        align-self: center;
+        padding: 1px;
+        background-color: #ffffff;
+        border: 1px solid #e6e6e6;
+        padding: 1px 3px;
+        border-radius: 4px;
+        color: #303030;
+        cursor: pointer;
+    }
+    button#dropdowns-swap:disabled {
+        color: #c7c7c7;
+        cursor: not-allowed;
+    }
+    button#dropdowns-swap:hover:enabled {
+        color: #202124;
+        background-color: #f5f5f5;
+        box-shadow: rgba(0, 0, 0, .1) 0 2px 2px;
+    }
+    button#dropdowns-swap:hover:active {
+        background-color: #d0d0d0;
+    }
     select {
         font-family: inherit;
     }

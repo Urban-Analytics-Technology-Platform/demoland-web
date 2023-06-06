@@ -7,12 +7,11 @@ import scenario5Vals from "./assets/scenario5.json";
 import scenario6Vals from "./assets/scenario6.json";
 import scenario7Vals from "./assets/scenario7.json";
 
-export type CompareView = "original" | "other" | "difference";
+export type CompareView = "original" | "difference";
 
 export const allCompareViews: { value: CompareView, description: string }[] = [
     { "value": "difference", "description": "Difference" },
     { "value": "original", "description": "Original" },
-    { "value": "other", "description": "Other" },
 ]
 
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
