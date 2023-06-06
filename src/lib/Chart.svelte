@@ -1,14 +1,21 @@
 <script lang="ts">
     import Chart from "chart.js/auto";
     import {
-        type FactorName,
+        type IndicatorName,
+        type Indicator,
         allIndicators,
         type ScenarioName,
         type CompareView,
     } from "../constants";
-    import { type ChartDataset, type ChartData, makeChartData, prettyLabel } from "../chart";
+    import {
+        type ChartDataset,
+        type ChartData,
+        makeChartData,
+        prettyLabel,
+    } from "../chart";
+    import { getValues } from "../utils";
     import { onMount, onDestroy } from "svelte";
-    export let activeFactor: FactorName;
+    export let indicatorName: IndicatorName;
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
@@ -44,7 +51,7 @@
 
     function drawChart(chartData: ChartData) {
         let canvas = document.getElementById(
-            "chart"
+            `chart-${indicatorName}`
         ) as HTMLCanvasElement | null;
         if (canvas === null) return;
 
@@ -102,12 +109,8 @@
 
     function updateChart() {
         if (chart === null) return;
-        if (activeFactor === "sig")
-            throw new Error(
-                "activeFactor should not be 'sig' (if it is, this block should not appear)"
-            );
         const chartData = makeChartData(
-            activeFactor,
+            indicatorName,
             compareView,
             scenarioName,
             compareScenarioName,
@@ -125,13 +128,9 @@
     }
 
     onMount(() => {
-        if (activeFactor === "sig")
-            throw new Error(
-                "activeFactor should not be 'sig' (if it is, this block should not appear)"
-            );
         drawChart(
             makeChartData(
-                activeFactor,
+                indicatorName,
                 compareView,
                 scenarioName,
                 compareScenarioName,
@@ -141,47 +140,60 @@
     });
     onDestroy(destroyChart);
 
-    let indi = allIndicators.find((i) => i.name === activeFactor);
+    let indi: Indicator = allIndicators.find((i) => i.name === indicatorName);
+    let mean: number;
+    let cmpMean: number;
+    let diffMean: number;
+
+    function getMean(xs: number[]) {
+        return xs.reduce((a, b) => a + b, 0) / xs.length;
+    }
 
     $: {
-        activeFactor, scenarioName, compareScenarioName, compareView;
+        indicatorName, scenarioName, compareScenarioName, compareView;
         updateChart();
+        mean = getMean(getValues(indicatorName, scenarioName));
+        if (compareScenarioName !== null) {
+            cmpMean = getMean(getValues(indicatorName, compareScenarioName));
+            diffMean = (mean - cmpMean) / cmpMean * 100;
+        }
     }
 </script>
 
-<div id="chart-container">
-    <div id="chart-canvas">
-        <canvas id="chart" />
+<div class="chart-container">
+    <p>Mean: {mean.toFixed(2)} {#if compareScenarioName !== null}({diffMean >= 0 ? "+" : "−"}{Math.abs(diffMean).toFixed(2)}%){/if}</p>
+    <div class="chart-canvas">
+        <canvas id="chart-{indicatorName}" />
     </div>
-    <div id="chart-pointers">
-        <div id="chart-pointers-left">
+    <div class="chart-pointers">
+        <div class="chart-pointers-left">
             ← {compareView === "difference" ? indi.less_diff : indi.less}
         </div>
-        <div id="chart-pointers-right">
+        <div class="chart-pointers-right">
             {compareView === "difference" ? indi.more_diff : indi.more} →
         </div>
     </div>
 </div>
 
 <style>
-    div#chart-canvas {
+    div.chart-canvas {
         height: 150px;
     }
 
-    div#chart-pointers {
+    div.chart-pointers {
         display: flex;
     }
-    div#chart-pointers-left {
+    div.chart-pointers-left {
         margin-right: auto;
     }
-    div#chart-pointers-right {
+    div.chart-pointers-right {
         margin-left: auto;
     }
 
-    div#chart-container > :first-child {
+    div.chart-container > :first-child {
         margin-top: 0 !important;
     }
-    div#chart-container > :last-child {
+    div.chart-container > :last-child {
         margin-bottom: 0 !important;
     }
 </style>

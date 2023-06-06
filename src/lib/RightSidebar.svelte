@@ -1,5 +1,4 @@
 <script lang="ts">
-    import AllCharts from "./AllCharts.svelte";
     import Chart from "./Chart.svelte";
     import Indicators from "./Indicators.svelte";
     import Values from "./Values.svelte";
@@ -8,9 +7,16 @@
         type FactorName,
         type ScenarioName,
         type CompareView,
-        type Indicator,
         allIndicators,
+        type IndicatorName,
     } from "../constants";
+
+    export let activeFactor: FactorName;
+    export let opacity: number;
+    export let scenarioName: ScenarioName;
+    export let compareScenarioName: ScenarioName | null;
+    export let compareView: CompareView;
+    export let clickedFeature: GeoJSON.Feature | undefined;
 
     // Events which need to bubble up to main App
     import { createEventDispatcher } from "svelte";
@@ -22,17 +28,8 @@
         dispatch("changeOpacity", {});
     }
 
-    export let activeFactor: FactorName;
-    export let opacity: number;
-    export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName | null;
-    export let compareView: CompareView;
-    export let clickedFeature: GeoJSON.Feature | undefined;
-
-    let indi: Indicator;
     let oaName: string | null;
     $: {
-        indi = allIndicators.find((i) => i.name === activeFactor);
         oaName = clickedFeature !== null ? clickedFeature.properties.OA11CD : null;
     }
 </script>
@@ -47,20 +44,16 @@
         />
     </Collapsible>
 
-    {#if activeFactor !== "sig"}
-        <Collapsible title={indi.short}>
+    {#each allIndicators as indi}
+        <Collapsible title={indi.short} collapsed={activeFactor !== "sig" && indi.name !== activeFactor}>
             <Chart
-                {activeFactor}
+                indicatorName={indi.name}
                 {scenarioName}
                 {compareView}
                 {compareScenarioName}
             />
         </Collapsible>
-    {:else}
-        <Collapsible title="Overview of all indicators">
-            <AllCharts {scenarioName} {compareScenarioName} {compareView} />
-        </Collapsible>
-    {/if}
+    {/each}
 
     {#if clickedFeature !== null}
         <Collapsible title="Output area: {oaName}">
