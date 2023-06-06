@@ -9,9 +9,9 @@
         type FactorName,
         type ScenarioName,
         type CompareView,
+        signatures,
     } from "./constants";
     import {
-        signatures,
         makeCombinedGeoJSON,
         getGeometryBounds,
     } from "./utils";
