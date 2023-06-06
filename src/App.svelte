@@ -258,8 +258,6 @@
                         compareScenarioName === null ||
                         compareView === "original"
                             ? `${factor.name}-color`
-                            : compareView === "other"
-                            ? `${factor.name}-cmp-color`
                             : `${factor.name}-diff-color`,
                     ],
                     "fill-opacity": 0.01,
@@ -325,8 +323,6 @@
                     "get",
                     compareScenarioName === null || compareView === "original"
                         ? `${factor.name}-color`
-                        : compareView === "other"
-                        ? `${factor.name}-cmp-color`
                         : `${factor.name}-diff-color`,
                 ]);
                 map.setPaintProperty(
