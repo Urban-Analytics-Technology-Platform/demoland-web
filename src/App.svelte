@@ -7,14 +7,13 @@
     import {
         allFactors,
         type FactorName,
+        allIndicators,
+        type Indicator,
         type ScenarioName,
         type CompareView,
         signatures,
     } from "./constants";
-    import {
-        makeCombinedGeoJSON,
-        getGeometryBounds,
-    } from "./utils";
+    import { makeCombinedGeoJSON, getGeometryBounds } from "./utils";
 
     // The currently active indicator
     let activeFactor: FactorName = "sig";
@@ -60,28 +59,42 @@
         if (map) map.resize();
     }
 
-    // Construct raw HTML for the hover popup
+    // Construct raw HTML for the hover popup. This is really ugly, but works
+    // well enough for our small use case.
     function makeHoverHtml(feat: GeoJSON.Feature) {
-        return (
-            `<div class="hover-grid">` +
-            `<span class="oa-grid-item strong">${feat.properties.OA11CD}</span>` +
-            `<span class="oa-grid-item">${
+        function makeIndi(indi: Indicator) {
+            const val = feat.properties[indi.name];
+            let valString: string;
+            if (compareScenarioName !== null) {
+                const cmpVal = feat.properties[`${indi.name}-cmp`];
+                const chg = cmpVal === 0 ? 0 : ((val - cmpVal) / cmpVal) * 100;
+                valString = `${val.toFixed(2)} (${
+                    chg >= 0 ? "+" : "−"
+                }${Math.abs(chg).toFixed(1)}%)`;
+            } else {
+                valString = val.toFixed(2);
+            }
+            return [
+                `<span>${indi.short.replace(
+                    "accessibility",
+                    "access."
+                )}</span>`,
+                `<span class="right-align-grid-item ${
+                    activeFactor === indi.name ? "strong" : ""
+                }">`,
+                valString,
+                `</span>`,
+            ].join("");
+        }
+        return [
+            `<div class="hover-grid">`,
+            `<span class="oa-grid-item strong">${feat.properties.OA11CD}</span>`,
+            `<span class="oa-grid-item strong">${
                 signatures[feat.properties.sig].name
-            }</span>` +
-            `<span>Air pollution</span><span class="right-align-grid-item">${feat.properties.air_quality.toFixed(
-                2
-            )}</span>` +
-            `<span>House prices</span><span class="right-align-grid-item">${feat.properties.house_price.toFixed(
-                2
-            )}</span>` +
-            `<span>Job access.</span><span class="right-align-grid-item">${feat.properties.job_accessibility.toFixed(
-                2
-            )}</span>` +
-            `<span>Greenspace access.</span><span class="right-align-grid-item">${feat.properties.greenspace_accessibility.toFixed(
-                2
-            )}</span>` +
-            `</div>`
-        );
+            }</span>`,
+            ...allIndicators.map(makeIndi),
+            `</div>`,
+        ].join("");
     }
 
     // Returns true if the centre of the given OA overlaps with either the left or right sidebars

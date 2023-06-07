@@ -8,7 +8,6 @@
         type ScenarioName,
         type CompareView,
         allIndicators,
-        type IndicatorName,
     } from "../constants";
 
     export let activeFactor: FactorName;
