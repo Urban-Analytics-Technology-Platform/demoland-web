@@ -89,6 +89,7 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "values": makeValuesMapFromJson(baselineVals),
             "description": [
                 "The baseline reflects the situation in Tyne and Wear as our models see it today. It shows what the four indicators are predicted to be using existing land use data.",
+                `All indicator values range from ${GLOBALMIN} to ${GLOBALMAX}.`,
                 "Select a development scenario above and compare it against the baseline to see the impact of the modelled development strategies on any of the four indicators."
             ],
         },
