@@ -62,17 +62,30 @@
     // Construct raw HTML for the hover popup. This is really ugly, but works
     // well enough for our small use case.
     function makeHoverHtml(feat: GeoJSON.Feature) {
-        function makeIndi(indi: Indicator) {
+        function makeSig(): string {
+            const sig = signatures[feat.properties.sig].name;
+            if (compareScenarioName === null) {
+                return `<span class="oa-grid-item strong">${sig}</span>`;
+            } else {
+                const cmpSig = signatures[feat.properties["sig-cmp"]].name;
+                if (sig === cmpSig) {
+                    return `<span class="oa-grid-item strong">${sig}</span>`;
+                } else {
+                    return `<span class="oa-grid-item old-sig">${cmpSig}</span><span class="oa-grid-item strong">&nbsp;&nbsp;↳ ${sig}</span>`;
+                }
+            }
+        }
+        function makeIndi(indi: Indicator): string {
             const val = feat.properties[indi.name];
             let valString: string;
-            if (compareScenarioName !== null) {
+            if (compareScenarioName === null) {
+                valString = val.toFixed(2);
+            } else {
                 const cmpVal = feat.properties[`${indi.name}-cmp`];
                 const chg = cmpVal === 0 ? 0 : ((val - cmpVal) / cmpVal) * 100;
                 valString = `${val.toFixed(2)} (${
                     chg >= 0 ? "+" : "−"
                 }${Math.abs(chg).toFixed(1)}%)`;
-            } else {
-                valString = val.toFixed(2);
             }
             return [
                 `<span>${indi.short.replace(
@@ -88,10 +101,8 @@
         }
         return [
             `<div class="hover-grid">`,
-            `<span class="oa-grid-item strong">${feat.properties.OA11CD}</span>`,
-            `<span class="oa-grid-item strong">${
-                signatures[feat.properties.sig].name
-            }</span>`,
+            `<span class="oa-grid-item oa-name">${feat.properties.OA11CD}</span>`,
+            makeSig(),
             ...allIndicators.map(makeIndi),
             `</div>`,
         ].join("");

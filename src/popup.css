@@ -40,7 +40,16 @@ div.hover-grid {
 
 span.oa-grid-item {
     grid-column: 1 / 3;
-    font-size: 110%;
+}
+
+span.oa-name {
+    font-size: 120%;
+    font-weight: bold;
+}
+
+span.old-sig {
+    font-size: 90%;
+    color: #888888;
 }
 
 span.right-align-grid-item {
