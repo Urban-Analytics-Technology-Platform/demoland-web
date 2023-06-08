@@ -125,6 +125,8 @@
             compareScenarioName !== null && compareView !== "difference";
         chart.options.plugins.legend.labels.generateLabels = (chart) =>
             patchedGenerateLabels(chart, chartData.datasets);
+        console.log(chartData.datasets);
+        noChangesAtAll = chartData.datasets.length === 1 && chartData.datasets[0].data.filter((x) => x !== 0).length === 0;
         chart.update("none");
     }
 
@@ -146,8 +148,10 @@
     let cmpValues: number[];
     let mean: number;
     let cmpMean: number;
-    let diffMean: number;
+    let diffMeanPct: number;
+    let changes: number[];
     let meanChange: number;
+    let noChangesAtAll: boolean;
 
     function getMean(xs: number[]) {
         return xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -161,27 +165,35 @@
         if (compareScenarioName !== null) {
             cmpValues = getValues(indicatorName, compareScenarioName);
             cmpMean = getMean(cmpValues);
-            diffMean = (mean - cmpMean) / cmpMean * 100;
-            meanChange = getMean([...values.map((x, i) => x - cmpValues[i])]);
+            diffMeanPct = (mean - cmpMean) / cmpMean * 100;
+            changes = [...values.map((x, i) => x - cmpValues[i])];
+            meanChange = getMean(changes);
+            noChangesAtAll = changes.filter((x) => x !== 0).length === 0;
         }
     }
 </script>
 
 <div class="chart-container">
     {#if compareView === "original" || compareScenarioName === null}
-        <p>Mean: {mean.toFixed(2)} {#if compareScenarioName !== null}({diffMean >= 0 ? "+" : "−"}{Math.abs(diffMean).toFixed(1)}%){/if}</p>
+        <p>Mean: {mean.toFixed(2)} {#if compareScenarioName !== null}({diffMeanPct >= 0 ? "+" : "−"}{Math.abs(diffMeanPct).toFixed(1)}%){/if}</p>
     {:else}
-        <p>Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(meanChange).toFixed(2)} ({diffMean >= 0 ? "+" : "−"}{Math.abs(diffMean).toFixed(1)}%)</p>
+        {#if noChangesAtAll}
+            <p>No changes.</p>
+        {:else}
+            <p>Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(meanChange).toFixed(2)} ({diffMeanPct >= 0 ? "+" : "−"}{Math.abs(diffMeanPct).toFixed(1)}%)</p>
+        {/if}
     {/if}
-    <div class="chart-canvas">
-        <canvas id="chart-{indicatorName}" />
-    </div>
-    <div class="chart-pointers">
-        <div class="chart-pointers-left">
-            ← {compareView === "difference" && compareScenarioName !== null ? indi.less_diff : indi.less}
+    <div id="chart-container" class="{noChangesAtAll ? 'hidden' : ''}">
+        <div class="chart-canvas">
+            <canvas id="chart-{indicatorName}" />
         </div>
-        <div class="chart-pointers-right">
-            {compareView === "difference" && compareScenarioName !== null ? indi.more_diff : indi.more} →
+        <div class="chart-pointers">
+            <div class="chart-pointers-left">
+                ← {compareView === "difference" && compareScenarioName !== null ? indi.less_diff : indi.less}
+            </div>
+            <div class="chart-pointers-right">
+                {compareView === "difference" && compareScenarioName !== null ? indi.more_diff : indi.more} →
+            </div>
         </div>
     </div>
 </div>
@@ -206,5 +218,9 @@
     }
     div.chart-container > :last-child {
         margin-bottom: 0 !important;
+    }
+    
+    div.hidden {
+        display: none;
     }
 </style>

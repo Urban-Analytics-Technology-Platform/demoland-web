@@ -173,11 +173,12 @@ export function makeChartData(
         }
 
         else if (compareView === "difference") {
-            // Calculate the differences between the compared scenarios and plot those
+            // Calculate the differences between the compared scenarios and plot
+            // those, removing zeros
             const colors: string[] = makeColormap("diff", nbars);
             const scenValues: number[] = getValues(indicator, scenarioName);
             const cmpScenValues: number[] = getValues(indicator, compareScenarioName);
-            const rawValues: number[] = scenValues.map((value, i) => value - cmpScenValues[i]);
+            const rawValues: number[] = scenValues.map((value, i) => value - cmpScenValues[i]).filter((value) => value !== 0);
             const max: number = Math.max(
                 Math.abs(Math.min(...rawValues)),
                 Math.abs(Math.max(...rawValues)),
