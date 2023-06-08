@@ -243,15 +243,12 @@
                 });
             }
         });
+
         map.on("click", function (e) {
-            if (e.defaultPrevented === false) {
+            if (!e.defaultPrevented) {
                 // Clicked outside an OA
-                if (clickedId !== null) {
-                    map.setFeatureState(
-                        { source: "newcastle", id: clickedId },
-                        { click: false }
-                    );
-                    clickedId = null;
+                if (clickedId !== null && clickPopup !== null) {
+                    clickPopup.remove();
                 }
             }
         });
