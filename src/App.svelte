@@ -23,7 +23,9 @@
     let hoverPopup: maplibregl.Popup | null = null;
     // The feature corresponding to the OA that was clicked on. Null if no OA
     // was clicked on.
-    let clickedFeature: GeoJSON.Feature | null = null;
+    let clickedId: number | null = null;
+    // The popup shown when clicking on an OA
+    let clickPopup: maplibregl.Popup | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
@@ -149,21 +151,22 @@
         // Refer to https://maplibre.org/maplibre-gl-js-docs/example/hover-styles/
         map.on("mousemove", "air_quality-layer", function (e) {
             if (e.features.length > 0) {
+                const feat = e.features[0];
                 if (hoveredId !== null) {
                     map.setFeatureState(
                         { source: "newcastle", id: hoveredId },
                         { hover: false }
                     );
                 }
-                hoveredId = e.features[0].id as number;
+                hoveredId = feat.id as number;
                 map.setFeatureState(
-                    { source: "newcastle", id: e.features[0].id },
+                    { source: "newcastle", id: feat.id },
                     { hover: true }
                 );
                 if (hoverPopup !== null) {
                     hoverPopup.remove();
                 }
-                let bounds = getGeometryBounds(e.features[0].geometry);
+                let bounds = getGeometryBounds(feat.geometry);
                 hoverPopup = new maplibregl.Popup({
                     closeButton: false,
                     closeOnClick: false,
@@ -171,7 +174,7 @@
                     maxWidth: "none",
                 })
                     .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-                    .setHTML(makeHoverHtml(e.features[0]))
+                    .setHTML(makeHoverHtml(feat))
                     .addTo(map);
             }
         });
@@ -194,36 +197,58 @@
             e.preventDefault();
             if (e.features.length > 0) {
                 // Clicked on an OA
-                if (clickedFeature !== null) {
+                const feat = e.features[0];
+                if (clickedId !== null) {
                     map.setFeatureState(
-                        { source: "newcastle", id: clickedFeature.id },
+                        { source: "newcastle", id: clickedId },
                         { click: false }
                     );
                 }
-                clickedFeature = e.features[0];
+                clickedId = feat.id as number;
                 map.setFeatureState(
-                    { source: "newcastle", id: clickedFeature.id },
+                    { source: "newcastle", id: feat.id },
                     { click: true }
                 );
                 // Centre map on that OA if the new div would obscure it.
-                const oaBounds = getGeometryBounds(clickedFeature.geometry);
+                const oaBounds = getGeometryBounds(feat.geometry);
                 if (oaInWindowEdge(oaBounds, map.getBounds())) {
                     map.flyTo({
                         center: oaBounds.getCenter(),
                         speed: 0.5,
                     });
                 }
+                // Generate popup
+                if (clickPopup !== null) {
+                    clickPopup.remove();
+                }
+                let bounds = getGeometryBounds(feat.geometry);
+                clickPopup = new maplibregl.Popup({
+                    closeButton: true,
+                    closeOnClick: false,
+                    anchor: "bottom",
+                    maxWidth: "none",
+                })
+                    .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
+                    .setHTML(makeHoverHtml(feat))
+                    .addTo(map);
+                clickPopup.on("close", function () {
+                    map.setFeatureState(
+                        { source: "newcastle", id: clickedId },
+                        { click: false }
+                    );
+                    clickedId = null;
+                });
             }
         });
         map.on("click", function (e) {
             if (e.defaultPrevented === false) {
                 // Clicked outside an OA
-                if (clickedFeature.id !== null) {
+                if (clickedId !== null) {
                     map.setFeatureState(
-                        { source: "newcastle", id: clickedFeature.id },
+                        { source: "newcastle", id: clickedId },
                         { click: false }
                     );
-                    clickedFeature = null;
+                    clickedId = null;
                 }
             }
         });
@@ -360,15 +385,38 @@
     }
 
     function updateClickedFeature(mapData: GeoJSON.FeatureCollection) {
-        if (clickedFeature !== null) {
-            const theId = clickedFeature.id;
-            clickedFeature = mapData.features.find(
-                (feature) => feature.id === theId
-            );
+        if (clickedId !== null) {
+            // Have to save it here because clickPopup.remove() will remove it
+            const tmpClickedId = clickedId;
+            // Remove popup
+            if (clickPopup !== null) {
+                clickPopup.remove();
+            }
+            // Regenerate popup
+            clickedId = tmpClickedId;
+            const feat = mapData.features.find((feat) => feat.id === clickedId);
             map.setFeatureState(
-                { source: "newcastle", id: theId },
+                { source: "newcastle", id: clickedId },
                 { click: true }
             );
+            console.log(clickedId);
+            let bounds = getGeometryBounds(feat.geometry);
+            clickPopup = new maplibregl.Popup({
+                closeButton: true,
+                closeOnClick: false,
+                anchor: "bottom",
+                maxWidth: "none",
+            })
+                .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
+                .setHTML(makeHoverHtml(feat))
+                .addTo(map);
+            clickPopup.on("close", function () {
+                map.setFeatureState(
+                    { source: "newcastle", id: clickedId },
+                    { click: false }
+                );
+                clickedId = null;
+            });
         }
     }
 
@@ -408,7 +456,6 @@
 
     <div id="other-content-container">
         <LeftSidebar
-            {activeFactor}
             bind:scenarioName
             bind:compareScenarioName
             bind:compareView
@@ -436,7 +483,6 @@
             {scenarioName}
             {compareScenarioName}
             {compareView}
-            {clickedFeature}
         />
     </div>
 </main>

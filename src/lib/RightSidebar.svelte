@@ -1,7 +1,6 @@
 <script lang="ts">
     import Chart from "./Chart.svelte";
     import Indicators from "./Indicators.svelte";
-    import Values from "./Values.svelte";
     import Collapsible from "./Collapsible.svelte";
     import {
         type FactorName,
@@ -15,7 +14,6 @@
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
-    export let clickedFeature: GeoJSON.Feature | undefined;
 
     // Events which need to bubble up to main App
     import { createEventDispatcher } from "svelte";
@@ -27,10 +25,6 @@
         dispatch("changeOpacity", {});
     }
 
-    let oaName: string | null;
-    $: {
-        oaName = clickedFeature !== null ? clickedFeature.properties.OA11CD : null;
-    }
 </script>
 
 <div id="right-container">
@@ -53,17 +47,6 @@
             />
         </Collapsible>
     {/each}
-
-    {#if clickedFeature !== null}
-        <Collapsible title="Output area: {oaName}">
-            <Values
-                {activeFactor}
-                {compareView}
-                {compareScenarioName}
-                feature={clickedFeature}
-            />
-        </Collapsible>
-    {/if}
 </div>
 
 <style>
