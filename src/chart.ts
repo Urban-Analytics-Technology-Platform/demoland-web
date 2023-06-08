@@ -17,7 +17,7 @@ function calculateTickStepSize(max: number, min: number): number {
     const s = (max - min) / 4; // Assuming we want 5 ticks (ish)
     if (s < 0.5) return 0.5;
     if (s < 1) return 1;
-    if (s > 10) {
+    if (s > 100) {
         const orderOfMagnitude = 10 ** Math.floor(Math.log10(s));
         return Math.round(s / orderOfMagnitude) * orderOfMagnitude;
     }
