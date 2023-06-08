@@ -152,32 +152,39 @@
         map.on("mousemove", "air_quality-layer", function (e) {
             if (e.features.length > 0) {
                 const feat = e.features[0];
+                // Disable hover line width
                 if (hoveredId !== null) {
                     map.setFeatureState(
                         { source: "newcastle", id: hoveredId },
                         { hover: false }
                     );
                 }
+                // Remove existing popup
                 hoveredId = feat.id as number;
-                map.setFeatureState(
-                    { source: "newcastle", id: feat.id },
-                    { hover: true }
-                );
                 if (hoverPopup !== null) {
                     hoverPopup.remove();
                 }
-                let bounds = getGeometryBounds(feat.geometry);
-                hoverPopup = new maplibregl.Popup({
-                    closeButton: false,
-                    closeOnClick: false,
-                    anchor: "bottom",
-                    maxWidth: "none",
-                })
-                    .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-                    .setHTML(makeHoverHtml(feat))
-                    .addTo(map);
+                // Add new popup and line width, but only if the OA isn't
+                // already the one that was clicked on.
+                if (hoveredId !== clickedId) {
+                    map.setFeatureState(
+                        { source: "newcastle", id: hoveredId },
+                        { hover: true }
+                    );
+                    let bounds = getGeometryBounds(feat.geometry);
+                    hoverPopup = new maplibregl.Popup({
+                        closeButton: false,
+                        closeOnClick: false,
+                        anchor: "bottom",
+                        maxWidth: "none",
+                    })
+                        .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
+                        .setHTML(makeHoverHtml(feat))
+                        .addTo(map);
+                }
             }
         });
+
         map.on("mouseleave", "air_quality-layer", function () {
             if (hoveredId) {
                 map.setFeatureState(
