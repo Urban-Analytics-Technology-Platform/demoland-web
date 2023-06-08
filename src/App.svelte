@@ -199,10 +199,10 @@
                 // Clicked on an OA
                 const feat = e.features[0];
                 if (clickedId !== null) {
-                    map.setFeatureState(
-                        { source: "newcastle", id: clickedId },
-                        { click: false }
-                    );
+                    // Generate popup. This removes clickedId so we need to set it again
+                    if (clickPopup !== null) {
+                        clickPopup.remove();
+                    }
                 }
                 clickedId = feat.id as number;
                 map.setFeatureState(
@@ -216,10 +216,6 @@
                         center: oaBounds.getCenter(),
                         speed: 0.5,
                     });
-                }
-                // Generate popup
-                if (clickPopup !== null) {
-                    clickPopup.remove();
                 }
                 let bounds = getGeometryBounds(feat.geometry);
                 clickPopup = new maplibregl.Popup({
@@ -399,7 +395,6 @@
                 { source: "newcastle", id: clickedId },
                 { click: true }
             );
-            console.log(clickedId);
             let bounds = getGeometryBounds(feat.geometry);
             clickPopup = new maplibregl.Popup({
                 closeButton: true,
