@@ -1,7 +1,7 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, minValues, maxValues, signatures } from "./constants";
+import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "air_quality") {
@@ -111,7 +111,7 @@ export function makeCombinedGeoJSON(
             const n = indi.name;
             feature.properties[n] = oaValues.get(n);
             feature.properties[`${n}-color`] =
-                getColorFromMap(colormaps[n], oaValues.get(n), minValues.get(n), maxValues.get(n));
+                getColorFromMap(colormaps[n], oaValues.get(n), GLOBALMIN, GLOBALMAX);
         }
         feature.properties["sig"] = scenario.values.get(oaName).get("sig");
         feature.properties["sig-color"] = signatures[feature.properties["sig"]].color;
@@ -125,7 +125,7 @@ export function makeCombinedGeoJSON(
                 const n = indi.name;
                 feature.properties[`${n}-cmp`] = cOaValues.get(n);
                 feature.properties[`${n}-cmp-color`] =
-                    getColorFromMap(colormaps[n], cOaValues.get(n), minValues.get(n), maxValues.get(n));
+                    getColorFromMap(colormaps[n], cOaValues.get(n), GLOBALMIN, GLOBALMAX);
                 feature.properties["sig-cmp"] = cScenario.values.get(oaName).get("sig");
                 feature.properties["sig-cmp-color"] = signatures[feature.properties["sig-cmp"]].color;
                 // The 'difference' view for land use is just the ones that are

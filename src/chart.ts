@@ -1,10 +1,10 @@
 import {
     type IndicatorName,
-    allScenarios,
     type ScenarioName,
-    minValues,
-    maxValues,
-    type CompareView
+    type CompareView,
+    allScenarios,
+    GLOBALMIN,
+    GLOBALMAX,
 } from "./constants";
 import { getValues, makeColormap } from "./utils";
 
@@ -113,9 +113,7 @@ export function makeChartData(
         // Plot one dataset only (current indicator, current scenario)
         const colors: string[] = makeColormap(indicator, nbars);
         const rawValues: number[] = getValues(indicator, scenarioName);
-        const min: number = minValues.get(indicator);
-        const max: number = maxValues.get(indicator);
-        const bins = bin(rawValues, min, max, nbars);
+        const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
 
         return {
             datasets: [
@@ -129,7 +127,7 @@ export function makeChartData(
                 },
             ],
             labels: bins.centres,
-            tickStepSize: calculateTickStepSize(max, min),
+            tickStepSize: calculateTickStepSize(GLOBALMAX, GLOBALMIN),
         };
     }
 
@@ -141,10 +139,8 @@ export function makeChartData(
             const colors: string[] = makeColormap(indicator, nbars);
             const rawValues: number[] = getValues(indicator, scenarioName);
             const cmpRawValues: number[] = getValues(indicator, compareScenarioName);
-            const min: number = minValues.get(indicator);
-            const max: number = maxValues.get(indicator);
-            const bins = bin(rawValues, min, max, nbars);
-            const cmpBins = bin(cmpRawValues, min, max, nbars);
+            const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
+            const cmpBins = bin(cmpRawValues, GLOBALMIN, GLOBALMAX, nbars);
 
             return {
                 datasets: [
@@ -172,7 +168,7 @@ export function makeChartData(
                     },
                 ],
                 labels: bins.centres,
-                tickStepSize: calculateTickStepSize(max, min),
+                tickStepSize: calculateTickStepSize(GLOBALMAX, GLOBALMIN),
             };
         }
 

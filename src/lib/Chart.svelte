@@ -73,7 +73,8 @@
                             callback: (val) =>
                                 prettyLabel(
                                     val as number,
-                                    compareView === "difference"
+                                    compareView === "difference" &&
+                                        compareScenarioName !== null
                                 ),
                             maxRotation: 0,
                             minRotation: 0,
@@ -177,10 +178,10 @@
     </div>
     <div class="chart-pointers">
         <div class="chart-pointers-left">
-            ← {compareView === "difference" ? indi.less_diff : indi.less}
+            ← {compareView === "difference" && compareScenarioName !== null ? indi.less_diff : indi.less}
         </div>
         <div class="chart-pointers-right">
-            {compareView === "difference" ? indi.more_diff : indi.more} →
+            {compareView === "difference" && compareScenarioName !== null ? indi.more_diff : indi.more} →
         </div>
     </div>
 </div>
