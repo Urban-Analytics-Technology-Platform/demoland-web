@@ -1,11 +1,11 @@
-import baselineVals from "./assets/baseline_prediction.json";
-import scenario1Vals from "./assets/scenario1.json";
-import scenario2Vals from "./assets/scenario2.json";
-import scenario3Vals from "./assets/scenario3.json";
-import scenario4Vals from "./assets/scenario4.json";
-import scenario5Vals from "./assets/scenario5.json";
-import scenario6Vals from "./assets/scenario6.json";
-import scenario7Vals from "./assets/scenario7.json";
+import baselineVals from "./assets/values/baseline_prediction.json";
+import scenario1Vals from "./assets/values/scenario1.json";
+import scenario2Vals from "./assets/values/scenario2.json";
+import scenario3Vals from "./assets/values/scenario3.json";
+import scenario4Vals from "./assets/values/scenario4.json";
+import scenario5Vals from "./assets/values/scenario5.json";
+import scenario6Vals from "./assets/values/scenario6.json";
+import scenario7Vals from "./assets/values/scenario7.json";
 
 export type CompareView = "original" | "difference";
 

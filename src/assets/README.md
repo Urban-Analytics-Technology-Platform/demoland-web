@@ -1,6 +1,6 @@
 ## Static files
 
-- `baseline_prediction.json`, `scenario{i}.json` (i = 1 to 7)
+- `values/baseline_prediction.json`, `values/scenario{i}.json` (i = 1 to 7)
 
   - These are generated from the corresponding `scenario{i}.csv` and `scenario{i}_landuse.csv` files stored in the OneDrive `scenarios` directory, using the following script. For the baseline land use, read it instead from `sampling/oa_key.parquet` in OneDrive.
 
