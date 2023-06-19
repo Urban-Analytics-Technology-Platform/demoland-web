@@ -78,7 +78,8 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
         for (const oa in json) {
             const oaMap = new Map<FactorName, number>();
             for (const indicator in json[oa]) {
-                oaMap.set(indicator as IndicatorName, json[oa][indicator]);
+                const val = Math.max(json[oa][indicator], 0);
+                oaMap.set(indicator as IndicatorName, val);
             }
             oaMap.set("sig", json[oa]["sig"]);
             map.set(oa, oaMap);
