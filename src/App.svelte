@@ -4,16 +4,16 @@
     import { onMount, onDestroy } from "svelte";
     import LeftSidebar from "./lib/LeftSidebar.svelte";
     import RightSidebar from "./lib/RightSidebar.svelte";
+    import { makePopup } from "./hover";
     import {
         allFactors,
         type FactorName,
-        allIndicators,
-        type Indicator,
         type ScenarioName,
         type CompareView,
-        signatures,
     } from "./constants";
     import { makeCombinedGeoJSON, getGeometryBounds } from "./utils";
+
+    /* --------- STATE VARIABLES ---------------------------------------- */
 
     // The currently active indicator
     let activeFactor: FactorName = "sig";
@@ -26,27 +26,29 @@
     let clickedId: number | null = null;
     // The popup shown when clicking on an OA
     let clickPopup: maplibregl.Popup | null = null;
-    // The map object
-    let map: maplibregl.Map;
-    // The data to be plotted on the map
-    let mapData: GeoJSON.FeatureCollection;
-    // Whether the re-centre button needs to be shown
-    let offcentre: boolean = false;
-    // Initial longitude and latitude
-    let initialCentre: maplibregl.LngLatLike = [-1.59, 54.94];
-    // Initial zoom
-    let initialZoom: number = 10.05;
     // Initial scenario to show
     let scenarioName: ScenarioName = "baseline";
     // Scenario to compare against. Null to not compare.
     let compareScenarioName: ScenarioName | null = null;
     // Method to visualise scenario comparison
     let compareView: CompareView = "difference";
+    // The map object
+    let map: maplibregl.Map;
+    // The data to be plotted on the map
+    let mapData: GeoJSON.FeatureCollection = makeCombinedGeoJSON(
+        scenarioName,
+        compareScenarioName
+    );
+    // Whether the re-centre button needs to be shown
+    let offcentre: boolean = false;
+    // Initial longitude and latitude
+    let initialCentre: maplibregl.LngLatLike = [-1.59, 54.94];
+    // Initial zoom
+    let initialZoom: number = 10.05;
     // Initial opacity
     let opacity: number = 0.8;
 
-    // Generate data for the baseline
-    mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
+    /* --------- HELPERS ------------------------------------------------ */
 
     // Set div#map to have 100vw and 100vh height
     function resizeContainer() {
@@ -59,55 +61,6 @@
             ).style.width = `${window.innerWidth}px`;
         }
         if (map) map.resize();
-    }
-
-    // Construct raw HTML for the hover popup. This is really ugly, but works
-    // well enough for our small use case.
-    function makeHoverHtml(feat: GeoJSON.Feature) {
-        function makeSig(): string {
-            const sig = signatures[feat.properties.sig].name;
-            if (compareScenarioName === null) {
-                return `<span class="oa-grid-item strong">${sig}</span>`;
-            } else {
-                const cmpSig = signatures[feat.properties["sig-cmp"]].name;
-                if (sig === cmpSig) {
-                    return `<span class="oa-grid-item strong">${sig}</span>`;
-                } else {
-                    return `<span class="oa-grid-item old-sig">${cmpSig}</span><span class="oa-grid-item strong">&nbsp;&nbsp;↳ ${sig}</span>`;
-                }
-            }
-        }
-        function makeIndi(indi: Indicator): string {
-            const val = feat.properties[indi.name];
-            let valString: string;
-            if (compareScenarioName === null) {
-                valString = val.toFixed(2);
-            } else {
-                const cmpVal = feat.properties[`${indi.name}-cmp`];
-                const chg = cmpVal === 0 ? 0 : ((val - cmpVal) / cmpVal) * 100;
-                valString = `${val.toFixed(2)} (${
-                    chg >= 0 ? "+" : "−"
-                }${Math.abs(chg).toFixed(1)}%)`;
-            }
-            return [
-                `<span>${indi.short.replace(
-                    "accessibility",
-                    "access."
-                )}</span>`,
-                `<span class="right-align-grid-item ${
-                    activeFactor === indi.name ? "strong" : ""
-                }">`,
-                valString,
-                `</span>`,
-            ].join("");
-        }
-        return [
-            `<div class="hover-grid">`,
-            `<span class="oa-grid-item oa-name">${feat.properties.OA11CD}</span>`,
-            makeSig(),
-            ...allIndicators.map(makeIndi),
-            `</div>`,
-        ].join("");
     }
 
     // Returns true if the centre of the given OA overlaps with either the left or right sidebars
@@ -124,10 +77,55 @@
         return x < 340 || x > window.innerWidth - 290;
     }
 
-    // Setup functions. We have to use Svelte's 'onMount' because the code in
-    // this script is run before the DOM is generated.
+    // Callback to be run when a click popup is closed (either via the close
+    // button, or when the user clicks somewhere else on the map). Note: this
+    // does not remove a popup. It is to be called when the popup is removed.
+    function clickPopupCleanup() {
+        if (clickedId !== null) {
+            map.setFeatureState(
+                { source: "newcastle", id: clickedId },
+                { click: false }
+            );
+            clickedId = null;
+        }
+    }
+
+    // Disable the currently active hover state, and remove the popup.
+    function disableHover() {
+        if (hoveredId !== null) {
+            map.setFeatureState(
+                { source: "newcastle", id: hoveredId },
+                { hover: false }
+            );
+            hoveredId = null;
+        }
+        if (hoverPopup !== null) {
+            hoverPopup.remove();
+        }
+    }
+
+    // Activate hover state on the map for the feature with the given numeric 
+    // ID. Note: this does not generate a popup.
+    function enableHover(featureId: number) {
+        map.setFeatureState(
+            { source: "newcastle", id: featureId },
+            { hover: true }
+        );
+    }
+
+    // Activate click state on the map for the feature with the given numeric
+    // ID. Note: this does not generate a popup.
+    function enableClick(featureId: number) {
+        map.setFeatureState(
+            { source: "newcastle", id: featureId },
+            { click: true }
+        );
+    }
+
+    /* --------- SETUP FUNCTIONS - MAP CREATION ------------------------- */
+    // We have to use Svelte's 'onMount' so that the code here is only executed
+    // after the DOM is generated.
     onMount(() => {
-        // Manually update the size of the containing div to be 100vw/100vh.
         resizeContainer();
         // Create map
         map = new maplibregl.Map({
@@ -144,57 +142,29 @@
         });
 
         // Add hover functionality.
-        // It doesn't matter which of the four indicator layers we add it to;
+        // It doesn't matter which of the five polygon layers we add it to;
         // however, we have to choose one of them and *not* the line layer,
         // because the hover effect for the line layer only triggers when the
         // mouse is placed directly on a border.
         // Refer to https://maplibre.org/maplibre-gl-js-docs/example/hover-styles/
         map.on("mousemove", "air_quality-layer", function (e) {
             if (e.features.length > 0) {
+                disableHover();
                 const feat = e.features[0];
-                // Disable hover line width
-                if (hoveredId !== null) {
-                    map.setFeatureState(
-                        { source: "newcastle", id: hoveredId },
-                        { hover: false }
-                    );
-                }
-                // Remove existing popup
                 hoveredId = feat.id as number;
-                if (hoverPopup !== null) {
-                    hoverPopup.remove();
-                }
-                // Add new popup and line width, but only if the OA isn't
-                // already the one that was clicked on.
                 if (hoveredId !== clickedId) {
-                    map.setFeatureState(
-                        { source: "newcastle", id: hoveredId },
-                        { hover: true }
+                    enableHover(hoveredId);
+                    hoverPopup = makePopup(
+                        map,
+                        feat,
+                        compareScenarioName,
+                        activeFactor,
+                        false
                     );
-                    let bounds = getGeometryBounds(feat.geometry);
-                    hoverPopup = new maplibregl.Popup({
-                        closeButton: false,
-                        closeOnClick: false,
-                        anchor: "bottom",
-                        maxWidth: "none",
-                    })
-                        .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-                        .setHTML(makeHoverHtml(feat))
-                        .addTo(map);
                 }
             }
         });
-
-        map.on("mouseleave", "air_quality-layer", function () {
-            if (hoveredId) {
-                map.setFeatureState(
-                    { source: "newcastle", id: hoveredId },
-                    { hover: false }
-                );
-                hoverPopup.remove();
-            }
-            hoveredId = null;
-        });
+        map.on("mouseleave", "air_quality-layer", disableHover);
 
         // Add click functionality
         map.on("click", "air_quality-layer", function (e) {
@@ -205,17 +175,11 @@
             if (e.features.length > 0) {
                 // Clicked on an OA
                 const feat = e.features[0];
-                if (clickedId !== null) {
-                    // Generate popup. This removes clickedId so we need to set it again
-                    if (clickPopup !== null) {
-                        clickPopup.remove();
-                    }
+                if (clickPopup !== null) {
+                    clickPopup.remove();
                 }
                 clickedId = feat.id as number;
-                map.setFeatureState(
-                    { source: "newcastle", id: feat.id },
-                    { click: true }
-                );
+                enableClick(clickedId);
                 // Centre map on that OA if the new div would obscure it.
                 const oaBounds = getGeometryBounds(feat.geometry);
                 if (oaInWindowEdge(oaBounds, map.getBounds())) {
@@ -224,30 +188,21 @@
                         speed: 0.5,
                     });
                 }
-                let bounds = getGeometryBounds(feat.geometry);
-                clickPopup = new maplibregl.Popup({
-                    closeButton: true,
-                    closeOnClick: false,
-                    anchor: "bottom",
-                    maxWidth: "none",
-                })
-                    .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-                    .setHTML(makeHoverHtml(feat))
-                    .addTo(map);
-                clickPopup.on("close", function () {
-                    map.setFeatureState(
-                        { source: "newcastle", id: clickedId },
-                        { click: false }
-                    );
-                    clickedId = null;
-                });
+                clickPopup = makePopup(
+                    map,
+                    feat,
+                    compareScenarioName,
+                    activeFactor,
+                    true
+                );
+                clickPopup.on("close", clickPopupCleanup);
             }
         });
 
         map.on("click", function (e) {
             if (!e.defaultPrevented) {
                 // Clicked outside an OA
-                if (clickedId !== null && clickPopup !== null) {
+                if (clickPopup !== null) {
                     clickPopup.remove();
                 }
             }
@@ -272,6 +227,7 @@
         map.remove();
     });
 
+
     // Draw the map layers. This should only be called when the map is
     // initialised. After it's been set up, we don't need to redraw the layers,
     // we just update the underlying data or styles.
@@ -279,21 +235,24 @@
         map.addSource("newcastle", {
             type: "geojson",
             data: mapData,
+            // need to give the features numeric IDs for the click/hover to work
             promoteId: "id",
         });
-        // The choice to use four different layers here --- one per indicator
-        // --- seems to be suboptimal at first glance. Indeed, virtually all
-        // the same functionality can be accomplished by using only one layer,
-        // and toggling fill-color when the active indicator is changed.
-        // However, fill-color is a data-driven property, and these do not work
-        // with transitions: see
-        // https://github.com/mapbox/mapbox-gl-js/issues/3170. So, changing the
-        // fill-color leads to a 'flickering' effect when the active indicator
-        // is changed. The way around it is to use fill-opacity (which is not
-        // data-driven) for four different layers. The only real drawback is
-        // performance, but I haven't really noticed any issues so far.
 
-        // We first generate all layers with an opacity of 0.01.
+        // Generate all polygon layers with an initial opacity of 0.01.
+        //
+        // The choice to use five different layers here --- one per factor ---
+        // seems to be suboptimal at first glance. Indeed, virtually all the
+        // same functionality can be accomplished by using only one layer, and
+        // toggling fill-color when the active indicator is changed. However,
+        // fill-color is a data-driven property, and these do not work with
+        // transitions: see https://github.com/mapbox/mapbox-gl-js/issues/3170.
+        // (MapLibre, as a fork of Mapbox, inherits this issue.) So, changing
+        // the fill-color leads to a 'flickering' effect when the active
+        // indicator is changed. The way around it is to use fill-opacity
+        // (which is not data-driven) for four different layers. The only real
+        // drawback is (in principle) performance, but I haven't really noticed
+        // any issues so far.
         for (const factor of allFactors) {
             const layerName = `${factor.name}-layer`;
             map.addLayer({
@@ -315,6 +274,8 @@
                 },
             });
         }
+
+        // Generate a line layer to display the borders of each OA.
         map.addLayer({
             id: "line-layer",
             type: "line",
@@ -331,12 +292,14 @@
                     0,
                 ],
                 "line-opacity": 0.01,
-                // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
+                // @ts-ignore: Suppressing a known bug
+                // https://github.com/maplibre/maplibre-gl-js/issues/1708
                 "line-opacity-transition": { duration: 300 },
             },
         });
 
-        // Then, we fade the ones we want in, after a small delay to allow for loading.
+        // Fade in the layers that we want, after a small delay to allow for
+        // loading.
         setTimeout(function () {
             for (const factor of allFactors) {
                 const layerName = `${factor.name}-layer`;
@@ -350,21 +313,25 @@
         }, 200);
     }
 
-    // Update underlying data. This should be called whenever the indicator
-    // values are changed (i.e. when the scenarios are changed).
+
+    /* --------- HELPERS FOR EVENT HANDLERS ----------------------------- */
+
+    // Update the underlying data plotted by the map layers. This should be
+    // called whenever the indicator values are changed (i.e. when the
+    // scenario or comparison scenario are changed).
     function updateMapData(mapData: GeoJSON.FeatureCollection) {
         if (map) {
             (map.getSource("newcastle") as maplibregl.GeoJSONSource).setData(
                 mapData
             );
             updateLayers();
-            updateClickedFeature(mapData);
+            refreshClickedFeature(mapData);
         }
     }
 
-    // Update layer styles. This should be called whenever the user wants to
-    // view different parts of the same data (e.g. when changing indicator, or
-    // compareView).
+    // Update layer styles. This is quite a general function --- it updates the
+    // fill colours and opacity again according to the underlying data as well
+    // as the opacity slider.
     function updateLayers() {
         if (map) {
             for (const factor of allFactors) {
@@ -384,7 +351,9 @@
         }
     }
 
-    function updateClickedFeature(mapData: GeoJSON.FeatureCollection) {
+    // Refresh the click popup whenever the underlying data is changed. This is
+    // necessary because the click popup contains indicator values etc.
+    function refreshClickedFeature(mapData: GeoJSON.FeatureCollection) {
         if (clickedId !== null) {
             // Have to save it here because clickPopup.remove() will remove it
             const tmpClickedId = clickedId;
@@ -394,37 +363,28 @@
             }
             // Regenerate popup
             clickedId = tmpClickedId;
+            enableClick(clickedId);
             const feat = mapData.features.find((feat) => feat.id === clickedId);
-            map.setFeatureState(
-                { source: "newcastle", id: clickedId },
-                { click: true }
+            clickPopup = makePopup(
+                map,
+                feat,
+                compareScenarioName,
+                activeFactor,
+                true
             );
-            let bounds = getGeometryBounds(feat.geometry);
-            clickPopup = new maplibregl.Popup({
-                closeButton: true,
-                closeOnClick: false,
-                anchor: "bottom",
-                maxWidth: "none",
-            })
-                .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-                .setHTML(makeHoverHtml(feat))
-                .addTo(map);
-            clickPopup.on("close", function () {
-                map.setFeatureState(
-                    { source: "newcastle", id: clickedId },
-                    { click: false }
-                );
-                clickedId = null;
-            });
+            clickPopup.on("close", clickPopupCleanup);
         }
     }
 
-    /* Event handlers! */
+
+    /* --------- EVENT HANDLERS ----------------------------------------- */
+
     // Redraw layers when scenario is changed
     function updateScenario() {
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         updateMapData(mapData);
     }
+
     // Redraw layers when compareScenario is changed
     function updateCompareScenario() {
         // reset compareView
@@ -438,6 +398,7 @@
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         updateMapData(mapData);
     }
+
     // Recentre map on Newcastle when button is clicked
     function recentreMap() {
         if (map) {
