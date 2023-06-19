@@ -7,6 +7,7 @@
     import { makePopup } from "./hover";
     import {
         allFactors,
+        allScenarios,
         type FactorName,
         type ScenarioName,
         type CompareView,
@@ -15,6 +16,8 @@
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
+    // The layer for the OA data
+    const NEWCASTLE_LAYER = "newcastle-layer";
     // The currently active indicator
     let activeFactor: FactorName = "sig";
     // The numeric ID of the OA being hovered over.
@@ -83,7 +86,7 @@
     function clickPopupCleanup() {
         if (clickedId !== null) {
             map.setFeatureState(
-                { source: "newcastle", id: clickedId },
+                { source: NEWCASTLE_LAYER, id: clickedId },
                 { click: false }
             );
             clickedId = null;
@@ -94,7 +97,7 @@
     function disableHover() {
         if (hoveredId !== null) {
             map.setFeatureState(
-                { source: "newcastle", id: hoveredId },
+                { source: NEWCASTLE_LAYER, id: hoveredId },
                 { hover: false }
             );
             hoveredId = null;
@@ -108,7 +111,7 @@
     // ID. Note: this does not generate a popup.
     function enableHover(featureId: number) {
         map.setFeatureState(
-            { source: "newcastle", id: featureId },
+            { source: NEWCASTLE_LAYER, id: featureId },
             { hover: true }
         );
     }
@@ -117,7 +120,7 @@
     // ID. Note: this does not generate a popup.
     function enableClick(featureId: number) {
         map.setFeatureState(
-            { source: "newcastle", id: featureId },
+            { source: NEWCASTLE_LAYER, id: featureId },
             { click: true }
         );
     }
@@ -232,7 +235,7 @@
     // initialised. After it's been set up, we don't need to redraw the layers,
     // we just update the underlying data or styles.
     function drawLayers(mapData: GeoJSON.GeoJsonObject) {
-        map.addSource("newcastle", {
+        map.addSource(NEWCASTLE_LAYER, {
             type: "geojson",
             data: mapData,
             // need to give the features numeric IDs for the click/hover to work
@@ -258,7 +261,7 @@
             map.addLayer({
                 id: layerName,
                 type: "fill",
-                source: "newcastle",
+                source: NEWCASTLE_LAYER,
                 layout: {},
                 paint: {
                     "fill-color": [
@@ -279,7 +282,7 @@
         map.addLayer({
             id: "line-layer",
             type: "line",
-            source: "newcastle",
+            source: NEWCASTLE_LAYER,
             layout: {},
             paint: {
                 "line-color": "#ffffff",
@@ -295,6 +298,24 @@
                 // @ts-ignore: Suppressing a known bug
                 // https://github.com/maplibre/maplibre-gl-js/issues/1708
                 "line-opacity-transition": { duration: 300 },
+            },
+        });
+
+        // Generate the LineString layer showing the boundary of the changed
+        // areas.
+        const scenario = allScenarios.find(s => s.name === scenarioName);
+        map.addSource("boundary", {
+            "type": "geojson",
+            "data": scenario.boundary,
+        });
+        map.addLayer({
+            "id": "boundary-layer",
+            "type": "line",
+            "source": "boundary",
+            "layout": {},
+            "paint": {
+                "line-color": "#000",
+                "line-width": 2.5,
             },
         });
 
@@ -321,7 +342,7 @@
     // scenario or comparison scenario are changed).
     function updateMapData(mapData: GeoJSON.FeatureCollection) {
         if (map) {
-            (map.getSource("newcastle") as maplibregl.GeoJSONSource).setData(
+            (map.getSource(NEWCASTLE_LAYER) as maplibregl.GeoJSONSource).setData(
                 mapData
             );
             updateLayers();
@@ -349,6 +370,10 @@
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
+        // Update the LineString layer
+        const scenario = allScenarios.find(s => s.name === scenarioName);
+        const boundarySource = map.getSource("boundary") as maplibregl.GeoJSONSource;
+        boundarySource.setData(scenario.boundary);
     }
 
     // Refresh the click popup whenever the underlying data is changed. This is

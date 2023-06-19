@@ -58,3 +58,16 @@
     gj['id'] = range(len(gj))
     gj.to_crs(epsg=4326).to_file('newcastle.json', driver='GeoJSON')
     ```
+- `/boundaries/scenario{n}.json`
+
+  Boundaries of the areas being modified in each scenario. Note that scenario 1 = scenario 2, scenario 4 = scenario 5, and scenario 6 = scenario 7 (as suggested by the file names).
+
+  Obtained from the OneDrive in `scenarios/data/*_boundary.json` and converted to the appropriate CRS using
+
+    ```python
+    import geopandas as gpd
+
+    for fname in ['12', '3', '45', '67']:
+        gj = gpd.read_file(f'scenario{fname}.json')
+        gj.to_crs(epsg=4326).to_file(f'scenario{fname}.json', driver='GeoJSON')
+    ```
