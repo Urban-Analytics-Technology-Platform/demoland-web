@@ -107,8 +107,8 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "long": "Scenario 1: low-density residential development",
             "values": makeValuesMapFromJson(scenario1Vals),
             "description": [
-                "This scenario models the situation where land in the green belt is released for development. The area is taken over by a large developer who is used to building residential areas around the country. The new neighbourhood is a combination of low-rise detached and semi-detached housing with only minimal additional land use. The primarily residential neighbourhood does not generate a significant amount of jobs, inducing higher traffic to industrial zones and Newcastle city centre. The development will be located west of the city around Callerton.",
-                "The new development will be modelled as a combination of <i>open sprawl</i> and <i>disconnected suburbia</i> signature types, combined with an estimation of allocation of new population and a small number of jobs in retail and education. Land cover will be changed accordingly to primarily <i>discontinuous urban fabric</i>."
+                "This scenario models the situation where land in the green belt is released for development. The area is taken over by a large developer used to build residential areas around the country. The new neighbourhood is a combination of low-rise detached and semi-detached housing with only minimal additional land use. The primarily residential neighbourhood does not generate a significant amount of jobs, inducing higher traffic to industrial zones and Newcastle city centre. The development is located west of the city around Callerton.",
+                "The new development is modelled as a combination of <i>open sprawl</i> and <i>disconnected suburbia</i> signature types, combined with an estimation of the allocation of new population and a small number of jobs in retail and education."
             ],
             "boundary": scenario12Boundary as GeoJSON.FeatureCollection,
         },
@@ -118,8 +118,8 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "long": "Scenario 2: mid-density mixed neighbourhood",
             "values": makeValuesMapFromJson(scenario2Vals),
             "description": [
-                "This scenario models the development in the green belt under the idea of a 15-minute neighbourhood that is dense, therefore taking up less space, and mixed in terms of use. Such a neighbourhood contains not only residential housing but also places for new retail, commercial, and other uses. As such, it should be more self-sufficient than the low-density Scenario 1, inducing less traffic from the neighbourhood to other areas in the city. The development is assumed to be in the same area west of Callerton, as in Scenario 1. The form will be composed more of row-houses and multi-story tenement buildings forming the centre of the new neighbourhood.",
-                "It will be modelled as a combination of <i>accessible suburbia</i>, <i>connected residential neighbourhoods</i> and <i>dense residential neighbourhoods</i> signature types, with approximation of new population and job allocation. Land cover will be changed accordingly to <i>discontinuous urban fabric</i> and <i>continuous urban fabric</i>, but on a smaller area than in Scenario 1."
+                "This scenario models the development in the green belt under the idea of a 15-minute neighbourhood that is dense, therefore taking up less space and mixed in terms of use. Such a neighbourhood contains not only residential housing but also a few places for new retail, commercial, and other uses. As such, it should be more self-sufficient than the low-density Scenario 1, inducing less traffic from the neighbourhood to other areas in the city. The development is assumed to be in the same area west of Callerton as in Scenario 1. The form is composed more of row houses and multi-story tenement buildings forming the centre of the new neighbourhood..",
+                "It is modelled as a combination of <i>accessible suburbia</i>, <i>connected residential neighbourhoods</i> and <i>dense residential neighbourhoods</i> signature types, with an approximation of new population and job allocation. Land cover is changed accordingly to <i>discontinuous urban fabric</i> and <i>continuous urban fabric</i>, but on a smaller area than in Scenario 1, leaving space dedicated to large urban parks."
             ],
             "boundary": scenario12Boundary as GeoJSON.FeatureCollection,
         },
@@ -129,8 +129,8 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "long": "Scenario 3: densification of inner city",
             "values": makeValuesMapFromJson(scenario3Vals),
             "description": [
-                "This densification scenario models a high-density development in the areas that are already developed, following the strategy of gradual infill and rebuilding of existing buildings into higher ones with more mixed use. It is a long-term strategy, aimed at preservation of green areas (especially the green belt) and the creation of 15-minute neighbourhoods in the existing city by adding new layers of functionality and new inhabitants to places that are already built. The scenario affects most of the city, with higher densification levels around local centres and main streets and lower levels in suburban residential areas.",
-                "It will be modelled as a change of signature types based on their hierarchy to higher order ones and related estimations of new population and job allocation. Land cover will likely see changes from <i>discontinuous urban fabric</i> to <i>continuous urban fabric</i>."
+                "This densification scenario models a high-density development in the already developed areas, following the gradual infill and rebuilding existing buildings into higher ones with more mixed-use. It is a long-term strategy aimed at preserving green spaces (especially the green belt) and creating 15-minute neighbourhoods in the existing city by adding new layers of functionality and new inhabitants to places that are already built. The scenario affects most of the city, with higher densification levels around local centres and main streets and lower levels in suburban residential areas.",
+                "It is modelled as a change of signature types based on their hierarchy to higher order ones and related estimations of new population and job allocation. Land cover changes from <i>discontinuous urban fabric</i> to <i>continuous urban fabric</i>."
             ],
             "boundary": scenario3Boundary as GeoJSON.FeatureCollection,
         },
@@ -140,8 +140,8 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "long": "Scenario 4: brownfields to dense neighbourhoods",
             "values": makeValuesMapFromJson(scenario4Vals),
             "description": [
-                "Existing brownfield land will be redeveloped into high-density neighbourhoods with a mixed use, providing housing, services, and commercial units in an attempt to densify the inner city without affecting existing areas. Compared to Scenario 3, this strategy is less invasive but has a lower scale. However, both scenarios can potentially combined together (as shown in Scenario 6).",
-                "It will be modelled as a change of signature types on brownfield land to <i>dense urban neighbourhoods</i> and <i>local urbanity</i>, plus relevant changes of land cover, population and job allocation."
+                "Existing brownfield land is redeveloped into high-density neighbourhoods with mixed-use, providing housing, services, and commercial units in an attempt to densify the inner city without affecting existing areas. Compared to scenario 3, this strategy is less invasive but has a lower scale. However, both scenarios can be potentially combined, as shown in Scenario 6.",
+                "It is modelled as a change of signature types on brownfield land to <i>dense urban neighbourhoods</i> and <i>local urbanity</i>, plus relevant changes of land cover, population and job allocation."
             ],
             "boundary": scenario45Boundary as GeoJSON.FeatureCollection,
         },
@@ -151,8 +151,8 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "long": "Scenario 5: brownfields into parks",
             "values": makeValuesMapFromJson(scenario5Vals),
             "description": [
-                "Contrary to Scenario 4, this scenario assumes that all the brownfield land will be turned into urban parks, with no development. While it does not help to solve the issue of capacity of a city, it may be viewed favourably by the local population and can balance potential densification as outlined in Scenario 3. Both Scenarios 3 and 5 can be combined, as shown in Scenario 7.",
-                "It will be modelled as a change of signature types on brownfield land to <i>park/warehouse land</i> plus relevant changes of land cover, and removal of any population and job allocation."
+                "Contrary to Scenario 4, this scenario assumes that all the brownfield land is turned into urban parks with no development. While it does not help to solve the issue of the capacity of a city, it may be viewed favourably by the local population and can balance potential densification as outlined in Scenario 3. Both Scenarios 3 and 5 can be combined, as shown in Scenario 7.",
+                "It is modelled as a change of signature types on brownfield land to <i>park/warehouse land</i> plus relevant changes of land cover, and removal of any population and job allocation."
             ],
             "boundary": scenario45Boundary as GeoJSON.FeatureCollection,
         },
@@ -162,7 +162,7 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "long": "Scenario 6: urbanisation to the edge",
             "values": makeValuesMapFromJson(scenario6Vals),
             "description": [
-                "This scenario models the city following the densification strategies outlined in both Scenarios 3, where we target higher density to already-dense central areas, and Scenario 4, we we model the development of dense neighbourhoods in the brownfield and industrial areas around the River Tyne. As such, the scenario is in principle a combination of changes from Scenarios 3 and 4."
+                "This scenario models the city following the densification strategies outlined in both Scenarios 3, where we target higher density to already-dense central areas, and Scenario 4, we model the development of dense neighbourhoods in the brownfield and industrial areas around the River Tyne. As such, the scenario combines changes from Scenarios 3 and 4."
             ],
             "boundary": scenario67Boundary as GeoJSON.FeatureCollection,
         },
@@ -172,7 +172,7 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
             "long": "Scenario 7: urbanisation with greenery",
             "values": makeValuesMapFromJson(scenario7Vals),
             "description": [
-                "This scenario directs changes to two locations, in two different directions. First, it assumes a densification of an already-dense city centre as outlined in Scenario 3, adding further population, jobs, and services to the area. Second, it combines this densification with the creation of new large parks around the River Tyne, where current brownfields and industrial areas are. As such, the scenario is in principle a combination of changes from Scenarios 3 and 5."
+                "This scenario directs changes to two locations in two different directions. First, it assumes the densification of an already-dense city centre as outlined in Scenario 3, adding further population, jobs, and services to the area. Second, it combines this densification with the creation of new large parks around the River Tyne, where current brownfields and industrial areas are. As such, the scenario is, in principle, a combination of changes from Scenarios 3 and 5."
             ],
             "boundary": scenario67Boundary as GeoJSON.FeatureCollection,
         }
