@@ -1,0 +1,30 @@
+name: publish-website-dev
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  # Same as publish-main but edited to publish from dev branch
+  publish-dev:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: dev
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - run: |
+        npm install
+        npm run build -- --outDir='dist_dev' --base='/demoland-web/dev'
+
+    - uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist_dev
+        destination_dir: dev
