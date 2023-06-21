@@ -22,7 +22,7 @@
                         for="doNotShowNextTime">Do not show again</label
                     >
                 </span>
-                <button on:click={hideWelcome}>Close</button>
+                <button id="close-button" on:click={hideWelcome}></button>
             </div>
         </div>
 
@@ -81,8 +81,6 @@
         background-color: #eee;
         opacity: 0.7;
         z-index: 4;
-
-        cursor: pointer;
     }
 
     div#welcome {
@@ -121,5 +119,21 @@
     div#close {
         display: flex;
         gap: 20px;
+        align-items: center;
+    }
+    
+    button#close-button {
+        width: 23px;
+        height: 23px;
+        background-image: url("src/assets/close-button.svg");
+        background-color: #ffffff;
+        background-repeat:  no-repeat;
+        background-size: cover;
+        border: none;
+        cursor: pointer;
+    }
+
+    button#close-button:hover {
+        background-color: #dddddd;
     }
 </style>
