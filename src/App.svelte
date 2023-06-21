@@ -4,6 +4,7 @@
     import { onMount, onDestroy } from "svelte";
     import LeftSidebar from "./lib/LeftSidebar.svelte";
     import RightSidebar from "./lib/RightSidebar.svelte";
+    import Welcome from "./lib/Welcome.svelte";
     import { makePopup } from "./hover";
     import {
         allFactors,
@@ -16,6 +17,8 @@
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
+    // Whether the user has visited the site before
+    const hideWelcome: boolean = localStorage.getItem("welcome") === "false";
     // The layer for the OA data
     const NEWCASTLE_LAYER = "newcastle-layer";
     // The currently active indicator
@@ -107,7 +110,7 @@
         }
     }
 
-    // Activate hover state on the map for the feature with the given numeric 
+    // Activate hover state on the map for the feature with the given numeric
     // ID. Note: this does not generate a popup.
     function enableHover(featureId: number) {
         map.setFeatureState(
@@ -230,7 +233,6 @@
         map.remove();
     });
 
-
     // Draw the map layers. This should only be called when the map is
     // initialised. After it's been set up, we don't need to redraw the layers,
     // we just update the underlying data or styles.
@@ -303,17 +305,17 @@
 
         // Generate the LineString layer showing the boundary of the changed
         // areas.
-        const scenario = allScenarios.find(s => s.name === scenarioName);
+        const scenario = allScenarios.find((s) => s.name === scenarioName);
         map.addSource("boundary", {
-            "type": "geojson",
-            "data": scenario.boundary,
+            type: "geojson",
+            data: scenario.boundary,
         });
         map.addLayer({
-            "id": "boundary-layer",
-            "type": "line",
-            "source": "boundary",
-            "layout": {},
-            "paint": {
+            id: "boundary-layer",
+            type: "line",
+            source: "boundary",
+            layout: {},
+            paint: {
                 "line-color": "#000",
                 "line-width": 2.5,
             },
@@ -334,7 +336,6 @@
         }, 200);
     }
 
-
     /* --------- HELPERS FOR EVENT HANDLERS ----------------------------- */
 
     // Update the underlying data plotted by the map layers. This should be
@@ -342,9 +343,9 @@
     // scenario or comparison scenario are changed).
     function updateMapData(mapData: GeoJSON.FeatureCollection) {
         if (map) {
-            (map.getSource(NEWCASTLE_LAYER) as maplibregl.GeoJSONSource).setData(
-                mapData
-            );
+            (
+                map.getSource(NEWCASTLE_LAYER) as maplibregl.GeoJSONSource
+            ).setData(mapData);
             updateLayers();
             refreshClickedFeature(mapData);
         }
@@ -371,8 +372,10 @@
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
         // Update the LineString layer
-        const scenario = allScenarios.find(s => s.name === scenarioName);
-        const boundarySource = map.getSource("boundary") as maplibregl.GeoJSONSource;
+        const scenario = allScenarios.find((s) => s.name === scenarioName);
+        const boundarySource = map.getSource(
+            "boundary"
+        ) as maplibregl.GeoJSONSource;
         boundarySource.setData(scenario.boundary);
     }
 
@@ -400,7 +403,6 @@
             clickPopup.on("close", clickPopupCleanup);
         }
     }
-
 
     /* --------- EVENT HANDLERS ----------------------------------------- */
 
@@ -438,6 +440,10 @@
 
 <main>
     <div id="map" />
+
+    {#if !hideWelcome}
+        <Welcome />
+    {/if}
 
     <div id="other-content-container">
         <LeftSidebar
