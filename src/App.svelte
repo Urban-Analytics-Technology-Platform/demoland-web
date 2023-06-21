@@ -17,8 +17,8 @@
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
-    // Whether the user has visited the site before
-    const hideWelcome: boolean = localStorage.getItem("welcome") === "false";
+    // Whether the welcome screen should be shown
+    const welcomeVisible: boolean = !(localStorage.getItem("doNotShowWelcome") === "true");
     // The layer for the OA data
     const NEWCASTLE_LAYER = "newcastle-layer";
     // The currently active indicator
@@ -441,9 +441,7 @@
 <main>
     <div id="map" />
 
-    {#if !hideWelcome}
-        <Welcome />
-    {/if}
+    <Welcome {welcomeVisible} />
 
     <div id="other-content-container">
         <LeftSidebar
