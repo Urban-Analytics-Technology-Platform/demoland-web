@@ -16,9 +16,9 @@
 <div id="indicators">
     {#each allFactors as fact}
         {#if fact.name === "sig"}
-            <div class="category-first">Input</div>
+            <div class="category-first">Land use</div>
         {:else if fact.name === "air_quality"}
-            <div class="category-second">Outputs</div>
+            <div class="category-second">Indicators</div>
         {/if}
         <label id={fact.name + "-label"}
             ><input
@@ -31,7 +31,7 @@
         {#if fact.name === "sig"}
             <a id="signatures-link" href={signaturesUrl} target="_blank"
                 >[?]
-                <span id="signatures-link-tooltip">Descriptions of land use signatures on the Urban Grammar website.</span>
+                <span id="signatures-link-tooltip">A link to their descriptions on the Urban Grammar website.</span>
             </a>
         {/if}
         <br />
@@ -90,8 +90,9 @@
         color: #000;
         position: absolute;
         bottom: 18px;
-        left: 10px;
-        width: 120px;
+        left: 0px;
+        transform: translateX(-50%);
+        width: 160px;
         background-color: #fff;
         line-height: 1.2;
         text-align: center;
