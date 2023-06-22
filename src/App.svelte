@@ -18,7 +18,9 @@
     /* --------- STATE VARIABLES ---------------------------------------- */
 
     // Whether the welcome screen should be shown
-    const welcomeVisible: boolean = !(localStorage.getItem("doNotShowWelcome") === "true");
+    const welcomeVisible: boolean = !(
+        localStorage.getItem("doNotShowWelcome") === "true"
+    );
     // The layer for the OA data
     const NEWCASTLE_LAYER = "newcastle-layer";
     // The currently active indicator
@@ -129,6 +131,7 @@
     }
 
     /* --------- SETUP FUNCTIONS - MAP CREATION ------------------------- */
+
     // We have to use Svelte's 'onMount' so that the code here is only executed
     // after the DOM is generated.
     onMount(() => {
@@ -347,7 +350,6 @@
                 map.getSource(NEWCASTLE_LAYER) as maplibregl.GeoJSONSource
             ).setData(mapData);
             updateLayers();
-            refreshClickedFeature(mapData);
         }
     }
 
@@ -377,6 +379,8 @@
             "boundary"
         ) as maplibregl.GeoJSONSource;
         boundarySource.setData(scenario.boundary);
+        // Update the hover
+        refreshClickedFeature(mapData);
     }
 
     // Refresh the click popup whenever the underlying data is changed. This is
