@@ -7,9 +7,9 @@
     import Welcome from "./lib/Welcome.svelte";
     import { makePopup } from "./hover";
     import {
-        allFactors,
+        allLayers,
         allScenarios,
-        type FactorName,
+        type LayerName,
         type ScenarioName,
         type CompareView,
     } from "./constants";
@@ -23,8 +23,8 @@
     );
     // The layer for the OA data
     const NEWCASTLE_LAYER = "newcastle-layer";
-    // The currently active indicator
-    let activeFactor: FactorName = "sig";
+    // The currently active map layer
+    let activeLayer: LayerName = "sig";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
@@ -167,7 +167,7 @@
                         map,
                         feat,
                         compareScenarioName,
-                        activeFactor,
+                        activeLayer,
                         false
                     );
                 }
@@ -201,7 +201,7 @@
                     map,
                     feat,
                     compareScenarioName,
-                    activeFactor,
+                    activeLayer,
                     true
                 );
                 clickPopup.on("close", clickPopupCleanup);
@@ -249,20 +249,19 @@
 
         // Generate all polygon layers with an initial opacity of 0.01.
         //
-        // The choice to use five different layers here --- one per factor ---
-        // seems to be suboptimal at first glance. Indeed, virtually all the
-        // same functionality can be accomplished by using only one layer, and
-        // toggling fill-color when the active indicator is changed. However,
-        // fill-color is a data-driven property, and these do not work with
-        // transitions: see https://github.com/mapbox/mapbox-gl-js/issues/3170.
-        // (MapLibre, as a fork of Mapbox, inherits this issue.) So, changing
-        // the fill-color leads to a 'flickering' effect when the active
-        // indicator is changed. The way around it is to use fill-opacity
-        // (which is not data-driven) for four different layers. The only real
-        // drawback is (in principle) performance, but I haven't really noticed
-        // any issues so far.
-        for (const factor of allFactors) {
-            const layerName = `${factor.name}-layer`;
+        // The choice to use five different layers here seems to be suboptimal
+        // at first glance. Indeed, virtually all the same functionality can be
+        // accomplished by using only one layer, and toggling fill-color when
+        // the active indicator is changed. However, fill-color is a
+        // data-driven property, and these do not work with transitions: see
+        // https://github.com/mapbox/mapbox-gl-js/issues/3170. (MapLibre, as a
+        // fork of Mapbox, inherits this issue.) So, changing the fill-color
+        // leads to a 'flickering' effect when the active indicator is changed.
+        // The way around it is to use fill-opacity (which is not data-driven)
+        // for four different layers. The only real drawback is (in principle)
+        // performance, but I haven't really noticed any issues so far.
+        for (const layer of allLayers) {
+            const layerName = `${layer.name}-layer`;
             map.addLayer({
                 id: layerName,
                 type: "fill",
@@ -273,8 +272,8 @@
                         "get",
                         compareScenarioName === null ||
                         compareView === "original"
-                            ? `${factor.name}-color`
-                            : `${factor.name}-diff-color`,
+                            ? `${layer.name}-color`
+                            : `${layer.name}-diff-color`,
                     ],
                     "fill-opacity": 0.01,
                     // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
@@ -327,12 +326,12 @@
         // Fade in the layers that we want, after a small delay to allow for
         // loading.
         setTimeout(function () {
-            for (const factor of allFactors) {
-                const layerName = `${factor.name}-layer`;
+            for (const layer of allLayers) {
+                const layerName = `${layer.name}-layer`;
                 map.setPaintProperty(
                     layerName,
                     "fill-opacity",
-                    factor.name === activeFactor ? opacity : 0.01 * opacity
+                    layer.name === activeLayer ? opacity : 0.01 * opacity
                 );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
@@ -358,17 +357,17 @@
     // as the opacity slider.
     function updateLayers() {
         if (map) {
-            for (const factor of allFactors) {
-                map.setPaintProperty(`${factor.name}-layer`, "fill-color", [
+            for (const layer of allLayers) {
+                map.setPaintProperty(`${layer.name}-layer`, "fill-color", [
                     "get",
                     compareScenarioName === null || compareView === "original"
-                        ? `${factor.name}-color`
-                        : `${factor.name}-diff-color`,
+                        ? `${layer.name}-color`
+                        : `${layer.name}-diff-color`,
                 ]);
                 map.setPaintProperty(
-                    `${factor.name}-layer`,
+                    `${layer.name}-layer`,
                     "fill-opacity",
-                    factor.name === activeFactor ? opacity : 0.01 * opacity
+                    layer.name === activeLayer ? opacity : 0.01 * opacity
                 );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
@@ -401,7 +400,7 @@
                 map,
                 feat,
                 compareScenarioName,
-                activeFactor,
+                activeLayer,
                 true
             );
             clickPopup.on("close", clickPopupCleanup);
@@ -423,7 +422,7 @@
             compareView = "original";
         }
         // show difference if possible
-        if (activeFactor !== "sig" && compareView === "original") {
+        if (activeLayer !== "sig" && compareView === "original") {
             compareView = "difference";
         }
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
@@ -469,8 +468,8 @@
         </div>
 
         <RightSidebar
-            bind:activeFactor
-            on:changeFactor={updateLayers}
+            bind:activeLayer
+            on:changeLayer={updateLayers}
             bind:opacity
             on:changeOpacity={updateLayers}
             {scenarioName}

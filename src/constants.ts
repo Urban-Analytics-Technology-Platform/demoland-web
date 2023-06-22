@@ -14,6 +14,9 @@ import scenario67Boundary from "./assets/boundaries/scenario67.json";
 
 export type CompareView = "original" | "difference";
 
+
+/* Output indicators */
+
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
 
 export type Indicator = { name: IndicatorName, short: string, less: string, more: string, less_diff: string, more_diff: string };
@@ -53,19 +56,31 @@ export const allIndicators: Indicator[] = [
     },
 ];
 
-export type FactorName = IndicatorName | "sig";
 
-export type Factor = { name: FactorName, short: string };
+/* Model inputs (land use) */
 
-export const allFactors = [...allIndicators] as Factor[];
-allFactors.unshift({ "name": "sig", "short": "Spatial signatures" });
-// must add to the front so that the radio button appears first
+export type InputName = "sig";
+
+export type Input = { name: InputName, short: string };
+
+export const allInputs = [{ "name": "sig", "short": "Spatial signatures" }];
+
+/* A generic type, handling all inputs and outputs which can be visualised as a
+ * map layer */
+
+export type LayerName = InputName | IndicatorName;
+
+export type Layer = { name: LayerName, short: string };
+
+export const allLayers = [...allInputs, ...allIndicators] as Layer[];
+
+/* Scenarios */
 
 export type OA = string;
 
 export type ScenarioName = "baseline" | "scenario1" | "scenario2" | "scenario3" | "scenario4" | "scenario5" | "scenario6" | "scenario7";
 
-export type Scenario = { name: ScenarioName, short: string, long: string, values: Map<OA, Map<FactorName, number>>, description: string[], boundary: GeoJSON.FeatureCollection };
+export type Scenario = { name: ScenarioName, short: string, long: string, values: Map<OA, Map<LayerName, number>>, description: string[], boundary: GeoJSON.FeatureCollection };
 
 // Range to scale all indicator values to
 export const GLOBALMIN = 0;
@@ -73,10 +88,10 @@ export const GLOBALMAX = 100;
 
 function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
     // Generate a Map containing all unscaled values from a JSON file
-    function makeValuesMapFromJson(json: object): Map<OA, Map<FactorName, number>> {
-        const map = new Map<OA, Map<FactorName, number>>();
+    function makeValuesMapFromJson(json: object): Map<OA, Map<LayerName, number>> {
+        const map = new Map<OA, Map<LayerName, number>>();
         for (const oa in json) {
-            const oaMap = new Map<FactorName, number>();
+            const oaMap = new Map<LayerName, number>();
             for (const indicator in json[oa]) {
                 const val = Math.max(json[oa][indicator], 0);
                 oaMap.set(indicator as IndicatorName, val);

@@ -3,7 +3,7 @@ import maplibregl from "maplibre-gl";
 import {
     allIndicators,
     type Indicator,
-    type FactorName,
+    type LayerName,
     type ScenarioName,
     signatures,
 } from "./constants";
@@ -12,7 +12,7 @@ import {
 // enough for our small use case.
 function makeHoverHtml(feat: GeoJSON.Feature,
     compareScenarioName: ScenarioName | null,
-    activeFactor: FactorName,
+    activeFactor: LayerName,
 ) {
     function makeSig(): string {
         const sig = signatures[feat.properties.sig].name;
@@ -64,7 +64,7 @@ export function makePopup(
     map: maplibregl.Map,
     feat: GeoJSON.Feature,
     compareScenarioName: ScenarioName | null,
-    activeFactor: FactorName,
+    activeFactor: LayerName,
     closeButton: boolean,
 ) {
     const bounds = getGeometryBounds(feat.geometry);

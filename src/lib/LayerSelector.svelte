@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { allFactors, type FactorName, signaturesUrl } from "../constants";
+    import { allInputs, allIndicators, signaturesUrl } from "../constants";
     import { createEventDispatcher } from "svelte";
-    export let activeFactor: FactorName;
+    export let activeLayer: LayerName;
     export let opacity: number;
     const dispatch = createEventDispatcher();
 
-    function changeFactor() {
-        dispatch("changeFactor", {});
+    function changeLayer() {
+        dispatch("changeLayer", {});
     }
     function changeOpacity() {
         dispatch("changeOpacity", {});
@@ -14,28 +14,40 @@
 </script>
 
 <div id="indicators">
-    {#each allFactors as fact}
-        {#if fact.name === "sig"}
-            <div class="category-first">Land use</div>
-        {:else if fact.name === "air_quality"}
-            <div class="category-second">Indicators</div>
-        {/if}
-        <label id={fact.name + "-label"}
+    <div class="category-first">Land use</div>
+    {#each allInputs as inp}
+        <label id={inp.name + "-label"}
             ><input
-                bind:group={activeFactor}
+                bind:group={activeLayer}
                 type="radio"
-                on:change={changeFactor}
-                value={fact.name}
-            />{fact.short}
+                on:change={changeLayer}
+                value={inp.name}
+            />{inp.short}
         </label>
-        {#if fact.name === "sig"}
+        {#if inp.name === "sig"}
             <a id="signatures-link" href={signaturesUrl} target="_blank"
                 >[?]
-                <span id="signatures-link-tooltip">A link to their descriptions on the Urban Grammar website.</span>
+                <span id="signatures-link-tooltip"
+                    >A link to their descriptions on the Urban Grammar website.</span
+                >
             </a>
         {/if}
         <br />
     {/each}
+
+    <div class="category-second">Indicators</div>
+    {#each allIndicators as indi}
+        <label id={indi.name + "-label"}
+            ><input
+                bind:group={activeLayer}
+                type="radio"
+                on:change={changeLayer}
+                value={indi.name}
+            />{indi.short}
+        </label>
+        <br />
+    {/each}
+
     <div id="opacity-slider">
         Opacity:
         <input
@@ -66,6 +78,10 @@
         margin-right: 10px;
     }
 
+    div#opacity-slider {
+        margin-top: 10px;
+    }
+
     div.category-first {
         margin-bottom: 5px;
         font-style: italic;
@@ -80,7 +96,7 @@
     a#signatures-link {
         font-size: 80%;
         margin-left: 5px;
-        position: relative;  /* allows the tooltip to be placed absolutely */
+        position: relative; /* allows the tooltip to be placed absolutely */
     }
 
     span#signatures-link-tooltip {
@@ -104,9 +120,5 @@
 
     a#signatures-link:hover span#signatures-link-tooltip {
         opacity: 1;
-    }
-
-    div#opacity-slider {
-        margin-top: 10px;
     }
 </style>
