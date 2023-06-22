@@ -27,16 +27,14 @@
                 on:change={changeFactor}
                 value={fact.name}
             />{fact.short}
-            {#if fact.name === "sig"}
-                <a
-                    class="smaller"
-                    href={signaturesUrl}
-                    target="_blank"
-                    title="Descriptions of the land use signatures on the Urban Grammar website."
-                    >[?]</a
-                >
-            {/if}
-        </label><br />
+        </label>
+        {#if fact.name === "sig"}
+            <a id="signatures-link" href={signaturesUrl} target="_blank"
+                >[?]
+                <span id="signatures-link-tooltip">Descriptions of land use signatures on the Urban Grammar website.</span>
+            </a>
+        {/if}
+        <br />
     {/each}
     <div id="opacity-slider">
         Opacity:
@@ -79,9 +77,32 @@
         font-style: italic;
     }
 
-    a.smaller {
+    a#signatures-link {
         font-size: 80%;
         margin-left: 5px;
+        position: relative;  /* allows the tooltip to be placed absolutely */
+    }
+
+    span#signatures-link-tooltip {
+        opacity: 0;
+        transition: opacity 0.6s;
+
+        color: #000;
+        position: absolute;
+        bottom: 18px;
+        left: 10px;
+        width: 120px;
+        background-color: #fff;
+        line-height: 1.2;
+        text-align: center;
+
+        border-radius: 5px;
+        padding: 1px 3px;
+        box-shadow: 0 0 3px #999;
+    }
+
+    a#signatures-link:hover span#signatures-link-tooltip {
+        opacity: 1;
     }
 
     div#opacity-slider {
