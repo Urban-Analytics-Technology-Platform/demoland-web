@@ -15,7 +15,12 @@
 
 <div id="indicators">
     {#each allFactors as fact}
-        <label
+        {#if fact.name === "sig"}
+            <div class="category-first">Input</div>
+        {:else if fact.name === "air_quality"}
+            <div class="category-second">Outputs</div>
+        {/if}
+        <label id={fact.name + "-label"}
             ><input
                 bind:group={activeFactor}
                 type="radio"
@@ -50,7 +55,19 @@
 
     div#indicators > label > input[type="radio"] {
         vertical-align: baseline;
+        margin-left: 10px;
         margin-right: 10px;
+    }
+
+    div.category-first {
+        margin-bottom: 5px;
+        font-style: italic;
+    }
+    
+    div.category-second {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-style: italic;
     }
 
     div#opacity-slider {
