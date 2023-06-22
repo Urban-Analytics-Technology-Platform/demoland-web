@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { allFactors, type FactorName } from "../constants";
+    import { allFactors, type FactorName, signaturesUrl } from "../constants";
     import { createEventDispatcher } from "svelte";
     export let activeFactor: FactorName;
     export let opacity: number;
@@ -26,8 +26,17 @@
                 type="radio"
                 on:change={changeFactor}
                 value={fact.name}
-            />{fact.short}</label
-        ><br />
+            />{fact.short}
+            {#if fact.name === "sig"}
+                <a
+                    class="smaller"
+                    href={signaturesUrl}
+                    target="_blank"
+                    title="Descriptions of the land use signatures on the Urban Grammar website."
+                    >[?]</a
+                >
+            {/if}
+        </label><br />
     {/each}
     <div id="opacity-slider">
         Opacity:
@@ -63,11 +72,16 @@
         margin-bottom: 5px;
         font-style: italic;
     }
-    
+
     div.category-second {
         margin-top: 5px;
         margin-bottom: 5px;
         font-style: italic;
+    }
+
+    a.smaller {
+        font-size: 80%;
+        margin-left: 5px;
     }
 
     div#opacity-slider {
