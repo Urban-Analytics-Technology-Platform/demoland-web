@@ -125,7 +125,6 @@
             compareScenarioName !== null && compareView !== "difference";
         chart.options.plugins.legend.labels.generateLabels = (chart) =>
             patchedGenerateLabels(chart, chartData.datasets);
-        console.log(chartData.datasets);
         noChangesAtAll = chartData.datasets.length === 1 && chartData.datasets[0].data.filter((x) => x !== 0).length === 0;
         chart.update("none");
     }

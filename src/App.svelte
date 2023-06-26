@@ -18,7 +18,7 @@
     /* --------- STATE VARIABLES ---------------------------------------- */
 
     // Whether the welcome screen should be shown
-    const welcomeVisible: boolean = !(
+    let welcomeVisible: boolean = !(
         localStorage.getItem("doNotShowWelcome") === "true"
     );
     // The layer for the OA data
@@ -444,7 +444,7 @@
 <main>
     <div id="map" />
 
-    <Welcome {welcomeVisible} />
+    <Welcome bind:welcomeVisible />
 
     <div id="other-content-container">
         <LeftSidebar
@@ -454,6 +454,7 @@
             on:changeScenario={updateScenario}
             on:changeCompareScenario={updateCompareScenario}
             on:changeCompareView={updateLayers}
+            on:showWelcome={() => {welcomeVisible = true;}}
         />
 
         <div id="recentre">

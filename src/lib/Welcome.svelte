@@ -1,20 +1,27 @@
 <script lang="ts">
-    export let welcomeVisible: boolean;
-    let doNotShowChecked: boolean;
     // Must be imported here and used in the HTML rather than being placed in
     // the CSS itself, otherwise the file will be lost when building.
     import closeButtonUrl from "../assets/close-button.svg";
 
-    function hideWelcome() {
-        if (doNotShowChecked) {
-            localStorage.setItem("doNotShowWelcome", "true");
-        }
-        welcomeVisible = false;
+    // Whether to show the welcome screen when the page is loaded
+    let doNotShowOnPageLoad: boolean =
+        localStorage.getItem("doNotShowWelcome") === "true";
+
+    // Whether the welcome screen is visible (initialised based on page load
+    // setting, but can be toggled if the user wants to re-display it)
+    export let welcomeVisible: boolean = !doNotShowOnPageLoad;
+
+    // Store the value of the 'show next time' checkbox in local storage
+    function storeCheckboxValue() {
+        localStorage.setItem(
+            "doNotShowWelcome",
+            doNotShowOnPageLoad ? "true" : "false"
+        );
     }
 </script>
 
 {#if welcomeVisible}
-    <div id="cover" />
+    <div id="background-cover" />
     <div id="welcome">
         <div id="heading-and-close">
             <h1>Welcome</h1>
@@ -24,12 +31,15 @@
                     <input
                         type="checkbox"
                         id="doNotShowNextTime"
-                        bind:checked={doNotShowChecked}
+                        bind:checked={doNotShowOnPageLoad}
+                        on:change={storeCheckboxValue}
                     /><label for="doNotShowNextTime">Do not show again</label>
                 </span>
                 <button
                     id="close-button"
-                    on:click={hideWelcome}
+                    on:click={() => {
+                        welcomeVisible = false;
+                    }}
                     style="background-image: url('{closeButtonUrl}');"
                 />
             </div>
@@ -87,7 +97,7 @@
 {/if}
 
 <style>
-    div#cover {
+    div#background-cover {
         width: 100vw;
         height: 100vh;
         position: absolute;

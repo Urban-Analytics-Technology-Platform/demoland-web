@@ -22,6 +22,9 @@
     function changeCompareView() {
         dispatch("changeCompareView", {});
     }
+    function showWelcome() {
+        dispatch("showWelcome", {});
+    }
 
     function swapScenarios() {
         if (compareScenarioName !== null) {
@@ -46,8 +49,14 @@
         Wear on four indicators of quality of life.
     </p>
 
+    <p>
+        <button id="show-welcome" on:click={showWelcome}>(show welcome screen again)</button>
+    </p>
+
+    <h2>Scenario selection</h2>
+
     <div id="dropdowns">
-        <span>Choose scenario:</span>
+        <span>Main scenario:</span>
         <select
             id="scenario"
             bind:value={scenarioName}
@@ -145,8 +154,15 @@
         grid-column: 2/4;
     }
 
-    h2#scenario-title {
-        margin-top: 20px;
+    h2 {
+        margin-top: 15px;
+    }
+
+    button#show-welcome {
+        font-size: 80%;
+        cursor: pointer;
+        font-family: inherit;
+        font-style: italic;
     }
 
     button#dropdowns-swap {
