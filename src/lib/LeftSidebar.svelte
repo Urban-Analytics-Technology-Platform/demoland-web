@@ -6,6 +6,8 @@
         type CompareView,
     } from "../constants";
     import Tooltip from "./Tooltip.svelte";
+    import swapIcon from "../assets/swap.svg";
+    import swapIconDisabled from "../assets/swap-disabled.svg";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -74,7 +76,8 @@
                 slot="content"
                 id="dropdowns-swap"
                 on:click={swapScenarios}
-                disabled={compareScenarioName === null}>⇅
+                disabled={compareScenarioName === null}>
+                <img id="swap-icon" src={compareScenarioName === null ? swapIconDisabled : swapIcon} alt="Swap scenarios" height="15px" />
             </button>
             <span slot="description"
                 >Swap scenarios</span
@@ -182,12 +185,16 @@
         align-self: center;
     }
 
+    img#swap-icon {
+        padding: 1px;
+        height: 12px;
+    }
+
     button#dropdowns-swap {
         position: relative;
-        padding: 1px;
+        padding: 2px 4px 0px 4px;
         background-color: #ffffff;
         border: 1px solid #e6e6e6;
-        padding: 0px 5px;
         border-radius: 4px;
         color: #303030;
         cursor: pointer;
@@ -195,12 +202,10 @@
         font-size: 80%;
     }
     button#dropdowns-swap:disabled {
-        color: #c7c7c7;
         cursor: not-allowed;
     }
     button#dropdowns-swap:hover:enabled {
-        color: #202124;
-        background-color: #f5f5f5;
+        background-color: #f0f0f0;
         box-shadow: rgba(0, 0, 0, 0.1) 0 2px 2px;
     }
     button#dropdowns-swap:hover:active {
