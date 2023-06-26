@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="2mm" height="4.8557mm" version="1.1" viewBox="0 0 2 4.8557" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow2-3-0" overflow="visible" markerHeight="2" markerUnits="userSpaceOnUse" markerWidth="2" orient="auto-start-reverse" preserveAspectRatio="none" viewBox="0 0 7.7 5.6">
+   <path transform="scale(.7)" d="m-2-4 11 4-11 4c2-2.33 2-5.66 0-8z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+ <g transform="translate(-150.02 -285.76)">
+  <path d="m151.02 287.4v3.2194" fill="none" marker-start="url(#Arrow2-3-0)" stroke="#333" stroke-width=".62788"/>
+ </g>
+</svg>

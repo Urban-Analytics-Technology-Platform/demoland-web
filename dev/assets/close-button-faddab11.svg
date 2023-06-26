@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="15.195" height="15.195" version="1.1" viewBox="0 0 4.02 4.02" xmlns="http://www.w3.org/2000/svg">
+ <g transform="translate(-9.12 -7.515)">
+  <path d="M9.12 7.515v4.02h4.02v-4.02Zm1.262.14h1.496c.622 0 1.123.5 1.123 1.122v1.496c0 .621-.501 1.122-1.123 1.122h-1.496a1.12 1.12 0 0 1-1.122-1.122V8.777c0-.622.5-1.122 1.122-1.122z" fill="#fff"/>
+  <rect x="9.26" y="7.655" width="3.74" height="3.74" ry="1.122" fill="none" stroke="#4d4d4d" stroke-width=".28"/>
+  <text x="11.127" y="11.451" fill="#4d4d4d" font-family='"Fira Sans"' font-size="6.264px" stroke-width=".493" text-align="center" text-anchor="middle" xml:space="preserve"><tspan x="11.127" y="11.451" fill="#4d4d4d" font-family='"Fira Sans"' font-weight="300" stroke-width=".493">×</tspan></text>
+ </g>
+</svg>
