@@ -1,5 +1,11 @@
 <script lang="ts">
-    import { allInputs, allIndicators, signaturesUrl } from "../constants";
+    import {
+        allInputs,
+        type LayerName,
+        allIndicators,
+        signaturesUrl,
+    } from "../constants";
+    import Tooltip from "./Tooltip.svelte";
     import { createEventDispatcher } from "svelte";
     export let activeLayer: LayerName;
     export let opacity: number;
@@ -25,12 +31,12 @@
             />{inp.short}
         </label>
         {#if inp.name === "sig"}
-            <a id="signatures-link" href={signaturesUrl} target="_blank"
-                >[?]
-                <span id="signatures-link-tooltip"
+            <Tooltip --width="160px">
+                <a slot="content" href={signaturesUrl} target="_blank">[?]</a>
+                <span slot="description"
                     >A link to their descriptions on the Urban Grammar website.</span
                 >
-            </a>
+            </Tooltip>
         {/if}
         <br />
     {/each}
@@ -91,34 +97,5 @@
         margin-top: 5px;
         margin-bottom: 5px;
         font-style: italic;
-    }
-
-    a#signatures-link {
-        font-size: 80%;
-        margin-left: 5px;
-        position: relative; /* allows the tooltip to be placed absolutely */
-    }
-
-    span#signatures-link-tooltip {
-        opacity: 0;
-        transition: opacity 0.6s;
-
-        color: #000;
-        position: absolute;
-        bottom: 18px;
-        left: 0px;
-        transform: translateX(-50%);
-        width: 160px;
-        background-color: #fff;
-        line-height: 1.2;
-        text-align: center;
-
-        border-radius: 5px;
-        padding: 1px 3px;
-        box-shadow: 0 0 3px #999;
-    }
-
-    a#signatures-link:hover span#signatures-link-tooltip {
-        opacity: 1;
     }
 </style>

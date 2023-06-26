@@ -5,6 +5,7 @@
         allScenarios,
         type CompareView,
     } from "../constants";
+    import Tooltip from "./Tooltip.svelte";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -66,11 +67,21 @@
                 <option value={scenario.name}>{scenario.short}</option>
             {/each}
         </select>
-        <button
-            id="dropdowns-swap"
-            on:click={swapScenarios}
-            disabled={compareScenarioName === null}>⇅</button
-        >
+
+        <span id="swap-button-container">
+        <Tooltip --width="max-content">
+            <button
+                slot="content"
+                id="dropdowns-swap"
+                on:click={swapScenarios}
+                disabled={compareScenarioName === null}>⇅
+            </button>
+            <span slot="description"
+                >Swap scenarios</span
+            >
+        </Tooltip>
+        </span>
+
         <span>Compare against:</span>
         <select
             id="compare"
@@ -165,17 +176,23 @@
         font-style: italic;
     }
 
-    button#dropdowns-swap {
+    span#swap-button-container {
         grid-column: 3;
         grid-row: 1/3;
         align-self: center;
+    }
+
+    button#dropdowns-swap {
+        position: relative;
         padding: 1px;
         background-color: #ffffff;
         border: 1px solid #e6e6e6;
-        padding: 1px 3px;
+        padding: 0px 5px;
         border-radius: 4px;
         color: #303030;
         cursor: pointer;
+        font-family: inherit;
+        font-size: 80%;
     }
     button#dropdowns-swap:disabled {
         color: #c7c7c7;
@@ -189,6 +206,7 @@
     button#dropdowns-swap:hover:active {
         background-color: #d0d0d0;
     }
+
     select {
         font-family: inherit;
     }
