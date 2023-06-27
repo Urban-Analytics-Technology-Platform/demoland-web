@@ -32,7 +32,7 @@
 
     <div id="welcome">
         <div id="heading-and-close">
-            <h1>Welcome</h1>
+            <h1>Land Use Demonstrator</h1>
 
             <div id="close">
                 <span>
@@ -52,55 +52,74 @@
                 />
             </div>
         </div>
+        <h2>
+            Spatial modelling for land management predicting the impact of
+            large-scale planning and land use changes on the quality of life.
+        </h2>
 
         <p>
-            OBI-WAN: I have failed you, Anakin. I was never able to teach you to
-            think.
-        </p>
-        <p>ANAKIN and OBI-WAN confront each other on the lava river.</p>
-        <p>
-            ANAKIN: I should have known the Jedi were plotting to take over . .
-            .
-        </p>
-        <p>OBI-WAN: From the Sith!!! Anakin, Chancellor Palpatine is evil.</p>
-        <p>
-            ANAKIN: From the Jedi point of view! From my point of view, the Jedi
-            are evil.
-        </p>
-        <p>OBI-WAN: Well, then you are lost!</p>
-        <p>
-            ANAKIN: This is the end for you, My Master. I wish it were
-            otherwise.
+            This is an interactive app showcasing the outcome of a project
+            developing a modelling system which is able to quantify several
+            competing aspects of land use in a given urban environment as it
+            currently exists (baseline) and build scenarios under changes that
+            affect the distribution of such land use.
         </p>
         <p>
-            ANAKIN jumps and flips onto OBI-WAN's platform. The fighting
-            continues again until OBI-WAN jumps toward the safety of the black
-            sandy edge of the lava river. He yells at Anakin.
+            The map shows the area of Tyne and Wear as it is seen through the
+            data today and in the seven development scenarios on Census 2011
+            Output Area geometries.
         </p>
-        <p>OBI-WAN: It's over, Anakin. I have the high ground.</p>
-        <p>ANAKIN: You underestimate my power!</p>
-        <p>OBI-WAN: Don't try it.</p>
+        <h2>How to use?</h2>
+        <ul>
+            <li>
+                Use the left navigation bar to change the scenario or switch to
+                a comparison mode. Each scenario is limited to a specific area
+                of Tyne and Wear highlighted in black when a scenario is
+                selected.
+            </li>
+            <li>
+                Use the right navigation bar to change the map. You can switch
+                between land use and one of the four indicators of quality of
+                life:
+            </li>
+            <ul>
+                <li>
+                    <i>Land use</i>, as characterised by
+                    <a href="https://urbangrammarai.xyz/story/"
+                        >spatial signatures</a
+                    >.
+                </li>
+                <li>
+                    <i>Air pollution</i>, as a composite index based on PM2.5, PM10,
+                    NO2 and SO3 particles.
+                </li>
+                <li><i>House price index</i>, based on real sale prices.</li>
+                <li>
+                    <i>Job accessibility</i>, reflecting the number of jobs within
+                    15 minutes.
+                </li>
+                <li>
+                    <i>Greenspace accessibility</i>, reflecting the area of formal
+                    parks within 15 minutes.
+                </li>
+            </ul>
+        </ul>
+
+        <h2>About the project</h2>
         <p>
-            ANAKIN follows, and OBI-WAN cuts his young apprentice at the knees,
-            then cuts off his left arm in the blink of an eye. ANAKIN tumbles
-            down the embankment and rolls to a stop near the edge of the lava.
+            The project is a partnership between the Geospatial Commission and
+            The Alan Turing Institute, working with Newcastle City Council to
+            develop a modelling system that leverages data science and AI to
+            support decision-making in land use policy.
         </p>
         <p>
-            ANAKIN struggles to pull himself up the embankment with his
-            mechanical hand. His thin leather glove has been burned off. He
-            keeps sliding down in the black sand.
+            <!-- TODO: the link should go to the Turing project page once that is live -->
+            See more details at
+            <a
+                href="https://www.turing.ac.uk/research/research-programmes/urban-analytics"
+                >the project page</a
+            >.
         </p>
-        <p>
-            OBI-WAN: (continuing) . . . You were the Chosen One! It was said
-            that you would, destroy the Sith, not join them. It was you who
-            would bring balance to the Force, not leave it in Darkness.
-        </p>
-        <p>
-            OBI-WAN picks up Anakin's light saber and begins to walk away. He
-            stops and looks back.
-        </p>
-        <p>ANAKIN: I hate you!</p>
-        <p>OBI-WAN: You were my brother, Anakin. I loved you.</p>
     </div>
 {/if}
 
@@ -137,6 +156,8 @@
         border-radius: 10px;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         z-index: 5;
+        max-width: 800px;
+        line-height: 1.4;
     }
     div#welcome > :first-child {
         margin-top: 0 !important;
@@ -150,6 +171,7 @@
         gap: 15px;
         justify-content: space-between;
         align-items: baseline;
+        margin-bottom: 20px;
     }
 
     div#heading-and-close > * {
@@ -175,5 +197,9 @@
 
     button#close-button:hover {
         background-color: #dddddd;
+    }
+
+    ul > li {
+        margin-bottom: 10px;
     }
 </style>
