@@ -2,15 +2,14 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 <svg width="3.8521mm" height="4.9873mm" version="1.1" viewBox="0 0 3.8521 4.9873" xmlns="http://www.w3.org/2000/svg">
  <defs>
-  <marker id="Arrow2-3-1" overflow="visible" markerHeight="2" markerUnits="userSpaceOnUse" markerWidth="2" orient="auto-start-reverse" preserveAspectRatio="none" viewBox="0 0 7.7 5.6">
-   <path transform="scale(.7)" d="m-2-4 11 4-11 4c2-2.33 2-5.66 0-8z" fill="context-stroke" fill-rule="evenodd"/>
-  </marker>
-  <marker id="Arrow2-3-0-6" overflow="visible" markerHeight="2" markerUnits="userSpaceOnUse" markerWidth="2" orient="auto-start-reverse" preserveAspectRatio="none" viewBox="0 0 7.7 5.6">
-   <path transform="scale(.7)" d="m-2-4 11 4-11 4c2-2.33 2-5.66 0-8z" fill="context-stroke" fill-rule="evenodd"/>
+  <marker id="Arrow2-3_Fnone_S-a0a0a0_reversed" overflow="visible" markerHeight="2" markerUnits="userSpaceOnUse" markerWidth="2" orient="auto" preserveAspectRatio="none" viewBox="0 0 7.7 5.6">
+   <g transform="rotate(180)">
+    <path transform="scale(.7)" d="m-2-4 11 4-11 4c2-2.33 2-5.66 0-8z" fill="#a0a0a0" fill-rule="evenodd"/>
+   </g>
   </marker>
  </defs>
- <g transform="translate(-103.16 -146.01)" fill="none" stroke="#a0a0a0" stroke-width=".62788">
-  <path d="m106.01 149.36v-3.2194" marker-start="url(#Arrow2-3-1)"/>
-  <path d="m104.16 147.64v3.2194" marker-start="url(#Arrow2-3-0-6)"/>
+ <g transform="translate(-102.53 -146.01)" fill="none" stroke="#a0a0a0" stroke-width=".62788">
+  <path d="m105.38 149.36v-3.2194" marker-start="url(#Arrow2-3_Fnone_S-a0a0a0_reversed)"/>
+  <path d="m103.53 147.64v3.2194" marker-start="url(#Arrow2-3_Fnone_S-a0a0a0_reversed)"/>
  </g>
 </svg>
