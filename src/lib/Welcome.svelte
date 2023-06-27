@@ -66,7 +66,8 @@
         </p>
         <p>
             The map shows the area of Tyne and Wear as it is seen through the
-            data today and in the sevendevelopment scenarios.
+            data today and in the seven development scenarios on Census 2011
+            Output Area geometries.
         </p>
         <h2>How to use?</h2>
         <ul>
