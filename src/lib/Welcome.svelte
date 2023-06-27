@@ -21,7 +21,15 @@
 </script>
 
 {#if welcomeVisible}
-    <div id="background-cover" />
+    <button
+        id="background-cover-button"
+        on:click={() => {
+            welcomeVisible = false;
+        }}
+    >
+        <div id="background-cover" />
+    </button>
+
     <div id="welcome">
         <div id="heading-and-close">
             <h1>Welcome</h1>
@@ -97,6 +105,13 @@
 {/if}
 
 <style>
+    button#background-cover-button {
+        /* remove all styling */
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
     div#background-cover {
         width: 100vw;
         height: 100vh;
@@ -106,6 +121,7 @@
         background-color: #eee;
         opacity: 0.7;
         z-index: 4;
+        cursor: pointer;
     }
 
     div#welcome {
