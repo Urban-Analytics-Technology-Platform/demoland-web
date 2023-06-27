@@ -71,7 +71,7 @@
         </select>
 
         <span id="swap-button-container">
-        <Tooltip --width="max-content" --transformx="-80%" --transformy="-120%">
+        <Tooltip --width="max-content" --transformy="-7px">
             <button
                 slot="content"
                 id="dropdowns-swap"
