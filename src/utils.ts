@@ -131,14 +131,14 @@ export function makeCombinedGeoJSON(
                 // The 'difference' view for land use is just the ones that are
                 // changed relative to the scenario being compared against
                 if (feature.properties["sig"] === feature.properties["sig-cmp"]) {
-                    feature.properties["sig-diff-color"] = "rgba(0, 0, 0, 0.01)";
+                    feature.properties["sig-diff-color"] = "rgba(0, 0, 0, 0.1)";
                 } else {
                     feature.properties["sig-diff-color"] = feature.properties["sig-color"];
                 }
                 feature.properties[`${n}-diff`] = oaValues.get(n) - cOaValues.get(n);
                 feature.properties[`${n}-diff-color`] =
                     oaValues.get(n) === cOaValues.get(n)
-                        ? "rgba(0, 0, 0, 0.01)"
+                        ? "rgba(0, 0, 0, 0.1)"
                         : getColorFromMap(colormaps["diff"], oaValues.get(n) - cOaValues.get(n), -maxDiffExtent.get(n), maxDiffExtent.get(n));
             }
         }
