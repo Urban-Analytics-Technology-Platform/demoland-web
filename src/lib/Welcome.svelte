@@ -48,8 +48,9 @@
                     on:click={() => {
                         welcomeVisible = false;
                     }}
-                    style="background-image: url('{closeButtonUrl}');"
-                />
+                >
+                    <img src={closeButtonUrl} alt="Close" />
+                </button>
             </div>
         </div>
         <h2>
@@ -90,17 +91,17 @@
                     >.
                 </li>
                 <li>
-                    <i>Air pollution</i>, as a composite index based on PM2.5, PM10,
-                    NO2 and SO3 particles.
+                    <i>Air pollution</i>, as a composite index based on PM2.5,
+                    PM10, NO2 and SO3 particles.
                 </li>
                 <li><i>House price index</i>, based on real sale prices.</li>
                 <li>
-                    <i>Job accessibility</i>, reflecting the number of jobs within
-                    15 minutes.
+                    <i>Job accessibility</i>, reflecting the number of jobs
+                    within 15 minutes.
                 </li>
                 <li>
-                    <i>Greenspace accessibility</i>, reflecting the area of formal
-                    parks within 15 minutes.
+                    <i>Greenspace accessibility</i>, reflecting the area of
+                    formal parks within 15 minutes.
                 </li>
             </ul>
         </ul>
@@ -187,13 +188,19 @@
     }
 
     button#close-button {
-        width: 23px;
-        height: 23px;
-        background-color: #ffffff;
-        background-repeat: no-repeat;
-        background-size: cover;
         border: none;
         cursor: pointer;
+        background-color: #ffffff;
+        padding: 0;
+        margin: 0;
+        width: 20px;
+        height: 20px;
+        transform: translate3d(0, 0, 0);
+    }
+    button#close-button > img {
+        width: 100%;
+        height: 100%;
+        transform: translate3d(0, 0, 0);
     }
 
     button#close-button:hover {
