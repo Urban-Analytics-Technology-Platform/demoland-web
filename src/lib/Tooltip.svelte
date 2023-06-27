@@ -10,16 +10,16 @@
         font-size: 80%;
         margin-left: 5px;
         position: relative;
-        /* Below to avoid a bug in Safari, see #34 */
-        transform: translate3D(0, 0, 0);
     }
 
     span.tooltip {
         opacity: 0;
         transition: opacity 0.6s;
 
-        position: fixed;
-        transform: translate(var(--transformx, -55%), var(--transformy, -110%));
+        position: absolute;
+        left: 50%;
+        bottom: 100%;
+        transform: translate(var(--transformx, -50%), var(--transformy, -5px));
         width: var(--width);
 
         color: #000;
