@@ -32,7 +32,7 @@
 
     <div id="welcome">
         <div id="heading-and-close">
-            <h1>Land Use Demostrator</h1>
+            <h1>Land Use Demonstrator</h1>
 
             <div id="close">
                 <span>
@@ -74,7 +74,8 @@
             <li>
                 Use the left navigation bar to change the scenario or switch to
                 a comparison mode. Each scenario is limited to a specific area
-                of Tyne and Wear highlighted in red when a scenario is selected.
+                of Tyne and Wear highlighted in black when a scenario is
+                selected.
             </li>
             <li>
                 Use the right navigation bar to change the map. You can switch
@@ -83,23 +84,23 @@
             </li>
             <ul>
                 <li>
-                    Land use reflected by <a
-                        href="https://urbangrammarai.xyz/story/"
+                    <i>Land use</i>, as characterised by
+                    <a href="https://urbangrammarai.xyz/story/"
                         >spatial signatures</a
                     >.
                 </li>
                 <li>
-                    Air pollution as a composite index based on PM2.5, PM10, NO2
-                    and SO3 particles.
+                    <i>Air pollution</i>, as a composite index based on PM2.5, PM10,
+                    NO2 and SO3 particles.
                 </li>
-                <li>House price index based on real sale prices.</li>
+                <li><i>House price index</i>, based on real sale prices.</li>
                 <li>
-                    Job accessibility reflecting the number of jobs within 15
-                    minutes.
+                    <i>Job accessibility</i>, reflecting the number of jobs within
+                    15 minutes.
                 </li>
                 <li>
-                    Greenspace accessibility reflecting the area of formal parks
-                    within 15 minutes.
+                    <i>Greenspace accessibility</i>, reflecting the area of formal
+                    parks within 15 minutes.
                 </li>
             </ul>
         </ul>
@@ -156,6 +157,7 @@
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         z-index: 5;
         max-width: 800px;
+        line-height: 1.4;
     }
     div#welcome > :first-child {
         margin-top: 0 !important;
@@ -169,6 +171,7 @@
         gap: 15px;
         justify-content: space-between;
         align-items: baseline;
+        margin-bottom: 20px;
     }
 
     div#heading-and-close > * {
@@ -194,5 +197,9 @@
 
     button#close-button:hover {
         background-color: #dddddd;
+    }
+
+    ul > li {
+        margin-bottom: 10px;
     }
 </style>
