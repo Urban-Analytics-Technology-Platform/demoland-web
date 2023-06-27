@@ -8,6 +8,7 @@
     import Tooltip from "./Tooltip.svelte";
     import swapIcon from "../assets/swap.svg";
     import swapIconDisabled from "../assets/swap-disabled.svg";
+    import showWelcomeIcon from "../assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -50,10 +51,15 @@
     <p>
         Explore a modelled impact of various development scenarios in Tyne and
         Wear on four indicators of quality of life.
-    </p>
-
-    <p>
-        <button id="show-welcome" on:click={showWelcome}>(show welcome screen again)</button>
+        <Tooltip --width="max-content" --transformy="35px">
+            <button slot="content" id="show-welcome" on:click={showWelcome}
+                ><img
+                    src={showWelcomeIcon}
+                    alt="Show welcome screen again"
+                /></button
+            >
+            <span slot="description">Show welcome screen</span>
+        </Tooltip>
     </p>
 
     <h2>Scenario selection</h2>
@@ -71,18 +77,24 @@
         </select>
 
         <span id="swap-button-container">
-        <Tooltip --width="max-content" --transformy="-7px">
-            <button
-                slot="content"
-                id="dropdowns-swap"
-                on:click={swapScenarios}
-                disabled={compareScenarioName === null}>
-                <img id="swap-icon" src={compareScenarioName === null ? swapIconDisabled : swapIcon} alt="Swap scenarios" height="15px" />
-            </button>
-            <span slot="description"
-                >Swap</span
-            >
-        </Tooltip>
+            <Tooltip --width="max-content" --transformy="-7px">
+                <button
+                    slot="content"
+                    id="dropdowns-swap"
+                    on:click={swapScenarios}
+                    disabled={compareScenarioName === null}
+                >
+                    <img
+                        id="swap-icon"
+                        src={compareScenarioName === null
+                            ? swapIconDisabled
+                            : swapIcon}
+                        alt="Swap scenarios"
+                        height="15px"
+                    />
+                </button>
+                <span slot="description">Swap</span>
+            </Tooltip>
         </span>
 
         <span>Compare against:</span>
@@ -173,10 +185,20 @@
     }
 
     button#show-welcome {
-        font-size: 80%;
+        background-color: transparent;
+        border: none;
         cursor: pointer;
-        font-family: inherit;
-        font-style: italic;
+        padding: 0;
+        height: 15px;
+        width: 15px;
+        transform: translateY(2px);
+    }
+    button#show-welcome:hover {
+        background-color: #dddddd;
+    }
+    button#show-welcome > img {
+        height: 100%;
+        width: 100%;
     }
 
     span#swap-button-container {

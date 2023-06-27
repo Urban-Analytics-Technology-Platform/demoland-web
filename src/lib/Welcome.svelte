@@ -41,7 +41,7 @@
                         id="doNotShowNextTime"
                         bind:checked={doNotShowOnPageLoad}
                         on:change={storeCheckboxValue}
-                    /><label for="doNotShowNextTime">Do not show again</label>
+                    /><label for="doNotShowNextTime">Do not show on page load</label>
                 </span>
                 <button
                     id="close-button"
