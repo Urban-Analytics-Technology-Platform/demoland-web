@@ -12,7 +12,6 @@
         position: relative;
         /* Below to avoid a bug in Safari, see #34 */
         transform: translate3D(0, 0, 0);
-        -webkit-transform: translate3D(0, 0, 0);
     }
 
     span.tooltip {
@@ -21,7 +20,6 @@
 
         position: fixed;
         transform: translate(var(--transformx, -55%), var(--transformy, -110%));
-        -webkit-transform: translate(var(--transformx, -55%), var(--transformy, -110%));
         width: var(--width);
 
         color: #000;
