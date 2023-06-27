@@ -72,7 +72,8 @@
         <ul>
             <li>
                 Use the left navigation bar to change the scenario or switch to
-                a comparison mode.
+                a comparison mode. Each scenario is limited to a specific area
+                of Tyne and Wear highlighted in red when a scenario is selected.
             </li>
             <li>
                 Use the right navigation bar to change the map. You can switch
@@ -111,7 +112,8 @@
         </p>
         <p>
             <!-- TODO: the link should go to the Turing project page once that is live -->
-            See more details at <a
+            See more details at
+            <a
                 href="https://www.turing.ac.uk/research/research-programmes/urban-analytics"
                 >the project page</a
             >.
