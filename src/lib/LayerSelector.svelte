@@ -32,7 +32,7 @@
             />{inp.short}
         </label>
         {#if inp.name === "sig"}
-            <Tooltip --width="160px">
+            <Tooltip --width="140px">
                 <a id="sig-descriptions" slot="content" href={signaturesUrl} target="_blank">
                     <img
                         src={showWelcomeIcon}
@@ -41,7 +41,7 @@
                 </a>
 
                 <span slot="description"
-                    >A link to their descriptions on the Urban Grammar website.</span
+                    >View descriptions on the Urban Grammar website</span
                 >
             </Tooltip>
         {/if}
