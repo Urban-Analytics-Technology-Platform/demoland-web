@@ -40,6 +40,7 @@ div.hover-grid {
 
 span.oa-grid-item {
     grid-column: 1 / 3;
+    display: flex;
 }
 
 span.oa-name {
@@ -54,4 +55,11 @@ span.old-sig {
 
 span.right-align-grid-item {
     justify-self: end;
+    display: flex;
+}
+
+span.colored-block {
+    width: 15px;
+    height: 100%;
+    margin-left: 0px;
 }
