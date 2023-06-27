@@ -10,6 +10,9 @@
         font-size: 80%;
         margin-left: 5px;
         position: relative;
+        /* Below to avoid a bug in Safari, see #34 */
+        transform: translate3D(0, 0, 0);
+        -webkit-transform: translate3D(0, 0, 0);
     }
 
     span.tooltip {
@@ -17,8 +20,8 @@
         transition: opacity 0.6s;
 
         position: fixed;
-        /* This is not perfectly centred, but is close enough */
-        transform: translate(-55%, -110%);
+        transform: translate(var(--transformx, -55%), var(--transformy, -110%));
+        -webkit-transform: translate(var(--transformx, -55%), var(--transformy, -110%));
         width: var(--width);
 
         color: #000;

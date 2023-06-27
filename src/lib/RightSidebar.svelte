@@ -63,7 +63,7 @@
         overflow-y: auto;
 
         display: grid;
-        grid-template-columns: 15px 220px;
+        grid-template-columns: 15px 225px;
         align-items: baseline;
     }
 </style>

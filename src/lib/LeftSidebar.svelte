@@ -71,7 +71,7 @@
         </select>
 
         <span id="swap-button-container">
-        <Tooltip --width="max-content">
+        <Tooltip --width="max-content" --transformx="-80%" --transformy="-120%">
             <button
                 slot="content"
                 id="dropdowns-swap"
@@ -80,7 +80,7 @@
                 <img id="swap-icon" src={compareScenarioName === null ? swapIconDisabled : swapIcon} alt="Swap scenarios" height="15px" />
             </button>
             <span slot="description"
-                >Swap scenarios</span
+                >Swap</span
             >
         </Tooltip>
         </span>

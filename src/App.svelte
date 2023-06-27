@@ -81,8 +81,8 @@
         const e = mapBounds.getEast();
         const x = (window.innerWidth * (lng - w)) / (e - w);
         // 340 = padding of other-content-container + width of sidebar
-        // 290 = padding of other-content-container + width of right-container
-        return x < 340 || x > window.innerWidth - 290;
+        // 295 = padding of other-content-container + width of right-container
+        return x < 340 || x > window.innerWidth - 295;
     }
 
     // Callback to be run when a click popup is closed (either via the close
