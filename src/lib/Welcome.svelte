@@ -145,7 +145,8 @@
 
     div#welcome {
         width: 80%;
-        height: 60%;
+        height: min-content;
+        max-height: 60%;
         overflow-y: scroll;
         position: absolute;
         top: 50%;
@@ -170,7 +171,7 @@
         display: flex;
         gap: 15px;
         justify-content: space-between;
-        align-items: baseline;
+        align-items: center;
         margin-bottom: 20px;
     }
 
