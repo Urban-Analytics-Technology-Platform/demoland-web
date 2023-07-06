@@ -1,7 +1,7 @@
 <script lang="ts">
-    // Must be imported here and used in the HTML rather than being placed in
-    // the CSS itself, otherwise the file will be lost when building.
     import closeButtonUrl from "../assets/close-button.svg";
+    import leftSidebarScreenshot from "../assets/left-sidebar.png";
+    import rightSidebarScreenshot from "../assets/right-sidebar.png";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =
@@ -41,7 +41,9 @@
                         id="doNotShowNextTime"
                         bind:checked={doNotShowOnPageLoad}
                         on:change={storeCheckboxValue}
-                    /><label for="doNotShowNextTime">Do not show on page load</label>
+                    /><label for="doNotShowNextTime"
+                        >Do not show on page load</label
+                    >
                 </span>
                 <button
                     id="close-button"
@@ -59,68 +61,99 @@
         </h2>
 
         <p>
-            This is an interactive app showcasing the outcome of a project
-            developing a modelling system which is able to quantify several
-            competing aspects of land use in a given urban environment as it
-            currently exists (baseline) and build scenarios under changes that
-            affect the distribution of such land use.
+            This interactive app showcases the outcomes of the <i
+                >Land Use Demonstrator</i
+            >
+            project, which seeks to develop a modelling system leveraging data science
+            and AI to support decision-making in land use policy.
         </p>
-        <p>
-            The map shows the area of Tyne and Wear as it is seen through the
-            data today and in the seven development scenarios on Census 2011
-            Output Area geometries.
-        </p>
-        <h2>How to use?</h2>
-        <ul>
-            <li>
-                Use the left navigation bar to change the scenario or switch to
-                a comparison mode. Each scenario is limited to a specific area
-                of Tyne and Wear highlighted in black when a scenario is
-                selected.
-            </li>
-            <li>
-                Use the right navigation bar to change the map. You can switch
-                between land use and one of the four indicators of quality of
-                life:
-            </li>
-            <ul>
-                <li>
-                    <i>Land use</i>, as characterised by
-                    <a href="https://urbangrammarai.xyz/story/"
-                        >spatial signatures</a
-                    >.
-                </li>
-                <li>
-                    <i>Air pollution</i>, as a composite index based on PM2.5,
-                    PM10, NO2 and SO3 particles.
-                </li>
-                <li><i>House price index</i>, based on real sale prices.</li>
-                <li>
-                    <i>Job accessibility</i>, reflecting the number of jobs
-                    within 15 minutes.
-                </li>
-                <li>
-                    <i>Greenspace accessibility</i>, reflecting the area of
-                    formal parks within 15 minutes.
-                </li>
-            </ul>
-        </ul>
 
-        <h2>About the project</h2>
         <p>
-            The project is a partnership between the Geospatial Commission and
-            The Alan Turing Institute, working with Newcastle City Council to
-            develop a modelling system that leverages data science and AI to
-            support decision-making in land use policy.
+            In this project, competing aspects of land use in an urban
+            environment are identified and quantified. We first do this for
+            present-day Tyne and Wear (called the
+            <i>baseline</i>), and then create specific <i>scenarios</i> where
+            the distribution of land use is modified. These land use
+            characteristics are then used to calculate four <i>indicators</i> which
+            represent different aspects of quality of life.
         </p>
+
         <p>
-            <!-- TODO: the link should go to the Turing project page once that is live -->
-            See more details at
+            The project is led by the
             <a
-                href="https://www.turing.ac.uk/research/research-programmes/urban-analytics"
-                >the project page</a
+                href="https://www.gov.uk/government/organisations/geospatial-commission"
+                target="_blank">Geospatial Commission</a
+            >
+            and
+            <a href="https://www.turing.ac.uk/" target="_blank"
+                >The Alan Turing Institute</a
+            >, working in conjunction with
+            <a href="https://www.newcastle.gov.uk/" target="_blank"
+                >Newcastle City Council</a
             >.
         </p>
+
+        <h2>How to use</h2>
+        <p>
+            The <b>map</b> shows the area of Tyne and Wear as it is seen through
+            the data today and in the seven development scenarios on Census 2011
+            Output Area geometries.
+        </p>
+
+        <div id="flex-navigation-help">
+            <img src={leftSidebarScreenshot} alt="Screenshot of left sidebar" />
+            <div>
+                <p>
+                    Use the <b>left navigation bar</b> to change the scenario or
+                    switch to a comparison mode.
+                </p>
+                <p>
+                    The changes in each scenario (relative to the baseline) are
+                    contained within a specific area of Tyne and Wear. When a
+                    scenario is selected, the modified area is outlined on the
+                    map in black.
+                </p>
+            </div>
+        </div>
+
+        <div id="flex-navigation-help">
+            <div>
+                <p>
+                    Use the <b>right navigation bar</b> to change what is displayed
+                    on the map. You can choose between:
+                </p>
+                <ul>
+                    <li>
+                        <i>Land use</i>, as characterised by
+                        <a href="https://urbangrammarai.xyz/story/"
+                            >spatial signatures</a
+                        >;
+                    </li>
+                </ul>
+                or any of the four quality-of-life indicators:
+                <ul>
+                    <li>
+                        <i>Air pollution</i>, a composite index based on PM2.5,
+                        PM10, NO<sub>2</sub> and SO<sub>3</sub> particles;
+                    </li>
+                    <li>
+                        <i>House prices</i>, an index based on real sale prices;
+                    </li>
+                    <li>
+                        <i>Job accessibility</i>, reflecting the number of jobs
+                        within 15 minutes;
+                    </li>
+                    <li>
+                        <i>Greenspace accessibility</i>, reflecting the area of
+                        formal parks within 15 minutes.
+                    </li>
+                </ul>
+            </div>
+            <img
+                src={rightSidebarScreenshot}
+                alt="Screenshot of right sidebar"
+            />
+        </div>
     </div>
 {/if}
 
@@ -207,7 +240,23 @@
         background-color: #dddddd;
     }
 
+    h2 {
+        margin-top: 20px;
+    }
+
     ul > li {
         margin-bottom: 10px;
+    }
+
+    div#flex-navigation-help {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    div#flex-navigation-help > img {
+        width: 250px;
     }
 </style>
