@@ -21,22 +21,16 @@
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
 
+    // Keeps track of the previous scenario name to determine the direction of the transition.
+    // This variable is updated when the transition occurs.
     let previousScenarioName: ScenarioName = scenarioName;
 
-    let flyDirection: "left" | "right" = "left";
-
     function changeScenario() {
-        // To deal with a slightly annoying bug, see #38
         if (compareScenarioName === scenarioName) {
+            // To deal with a slightly annoying bug, see #38
             compareScenarioName = null;
             changeCompareScenario();
         } else {
-            const ix1 = allScenarios
-                .map((s) => s.name)
-                .indexOf(previousScenarioName);
-            const ix2 = allScenarios.map((s) => s.name).indexOf(scenarioName);
-            flyDirection = ix1 < ix2 ? "left" : "right";
-            previousScenarioName = scenarioName;
             dispatch("changeScenario", {});
         }
     }
@@ -49,7 +43,6 @@
     function showWelcome() {
         dispatch("showWelcome", {});
     }
-
     function swapScenarios() {
         if (compareScenarioName !== null) {
             const tmp = scenarioName;
@@ -63,12 +56,26 @@
         div.style.maxHeight = "0px";
     }
 
-    // Logic for the left/right buttons to control dropdowns
+    // Custom transition
+    function customFlyIn(node: HTMLElement) {
+        const increased =
+            allScenarios.map((s) => s.name).indexOf(previousScenarioName) <
+            allScenarios.map((s) => s.name).indexOf(scenarioName);
+        previousScenarioName = scenarioName;
+        return fly(node, { x: increased ? 500 : -500 });
+    }
+    function customFlyOut(node: HTMLElement) {
+        const increased =
+            allScenarios.map((s) => s.name).indexOf(previousScenarioName) <
+            allScenarios.map((s) => s.name).indexOf(scenarioName);
+        return fly(node, { x: increased ? -500 : 500 });
+    }
 
+    // Logic for the left/right buttons to control dropdowns. The variables are
+    // updated in the reactive block
     let allScenariosExceptCompare: ScenarioName[];
     let decreaseScenarioOk: boolean;
     let increaseScenarioOk: boolean;
-
     let allCompareScenariosExceptMain: Array<ScenarioName | null>;
     let decreaseCompareScenarioOk: boolean;
     let increaseCompareScenarioOk: boolean;
@@ -272,8 +279,8 @@
         {#key scenarioName}
             <div
                 id="scenario-description"
-                in:fly={{ x: flyDirection === "left" ? 500 : -500 }}
-                out:fly={{ x: flyDirection === "left" ? -500 : 500 }}
+                in:customFlyIn
+                out:customFlyOut
                 on:outrostart={setMaxHeightToZero}
             >
                 <h3 id="scenario-title">{scenario.long}</h3>
