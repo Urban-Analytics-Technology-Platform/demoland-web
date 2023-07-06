@@ -15,10 +15,18 @@
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
-
-    // TODO Can we not do this?
+    
     function changeScenario() {
-        dispatch("changeScenario", {});
+        // To deal with a slightly annoying bug, see #38
+        if (compareScenarioName === scenarioName) {
+            compareScenarioName = null;
+            dispatch("changeCompareScenario", {});
+            // changeCompareScenario also triggers all changes that changeScenario does,
+            // so we can use it here
+        }
+        else {
+            dispatch("changeScenario", {});
+        }
     }
     function changeCompareScenario() {
         dispatch("changeCompareScenario", {});
