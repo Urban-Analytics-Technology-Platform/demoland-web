@@ -27,13 +27,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="6.3632221"
-     inkscape:cx="112.75734"
-     inkscape:cy="323.34248"
+     inkscape:zoom="2.826213"
+     inkscape:cx="199.91416"
+     inkscape:cy="357.19176"
      inkscape:window-width="1050"
      inkscape:window-height="763"
-     inkscape:window-x="139"
-     inkscape:window-y="136"
+     inkscape:window-x="1703"
+     inkscape:window-y="202"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1">
     <inkscape:grid
@@ -44,43 +44,43 @@
      id="defs2">
     <marker
        style="overflow:visible"
-       id="Arrow2-3"
+       id="marker2724"
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="Arrow2"
-       markerWidth="2"
-       markerHeight="2"
-       viewBox="0 0 7.7 5.6"
+       inkscape:stockid="Arrow3"
+       markerWidth="4.2071066"
+       markerHeight="7"
+       viewBox="0 0 4.2071068 7"
        inkscape:isstock="true"
        inkscape:collect="always"
-       preserveAspectRatio="none"
-       markerUnits="userSpaceOnUse">
+       preserveAspectRatio="xMidYMid">
       <path
-         transform="scale(0.7)"
-         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
-         id="arrow2L-7" />
+         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:round"
+         d="M 3,-3 0,0 3,3"
+         id="path2722"
+         transform="rotate(180,0.125,0)"
+         sodipodi:nodetypes="ccc" />
     </marker>
     <marker
        style="overflow:visible"
-       id="Arrow2-3_Fnone_S-a0a0a0"
+       id="Arrow3"
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="Arrow2"
-       markerWidth="2"
-       markerHeight="2"
-       viewBox="0 0 7.7 5.6"
+       inkscape:stockid="Arrow3"
+       markerWidth="4.2071066"
+       markerHeight="7"
+       viewBox="0 0 4.2071068 7"
        inkscape:isstock="true"
        inkscape:collect="always"
-       preserveAspectRatio="none"
-       markerUnits="userSpaceOnUse">
+       preserveAspectRatio="xMidYMid">
       <path
-         transform="scale(0.7)"
-         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
-         style="fill:#a0a0a0;fill-rule:evenodd;stroke:none"
-         id="path7271" />
+         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:round"
+         d="M 3,-3 0,0 3,3"
+         id="arrow3"
+         transform="rotate(180,0.125,0)"
+         sodipodi:nodetypes="ccc" />
     </marker>
     <marker
        style="overflow:visible"
@@ -108,26 +108,6 @@
     </marker>
     <marker
        style="overflow:visible"
-       id="Arrow2-3_Fnone_S-333333"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Arrow2"
-       markerWidth="2"
-       markerHeight="2"
-       viewBox="0 0 7.7 5.6"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="none"
-       markerUnits="userSpaceOnUse">
-      <path
-         transform="scale(0.7)"
-         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
-         style="fill:#333333;fill-rule:evenodd;stroke:none"
-         id="path7268" />
-    </marker>
-    <marker
-       style="overflow:visible"
        id="Arrow2-3_Fnone_S-333333_reversed"
        refX="0"
        refY="0"
@@ -152,46 +132,6 @@
     </marker>
     <marker
        style="overflow:visible"
-       id="Arrow2-3-0"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Arrow2"
-       markerWidth="2"
-       markerHeight="2"
-       viewBox="0 0 7.7 5.6"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="none"
-       markerUnits="userSpaceOnUse">
-      <path
-         transform="scale(0.7)"
-         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
-         id="arrow2L-7-03" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="Arrow2-3-0_Fnone_S-333333"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Arrow2"
-       markerWidth="2"
-       markerHeight="2"
-       viewBox="0 0 7.7 5.6"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="none"
-       markerUnits="userSpaceOnUse">
-      <path
-         transform="scale(0.7)"
-         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
-         style="fill:#333333;fill-rule:evenodd;stroke:none"
-         id="path7274" />
-    </marker>
-    <marker
-       style="overflow:visible"
        id="Arrow2-3-0_Fnone_S-333333_reversed"
        refX="0"
        refY="0"
@@ -205,7 +145,7 @@
        preserveAspectRatio="none"
        markerUnits="userSpaceOnUse">
       <g
-         transform="rotate(180,0,0)"
+         transform="scale(-1)"
          id="g7284">
         <path
            transform="scale(0.7)"
@@ -213,6 +153,46 @@
            style="fill:#333333;fill-rule:evenodd;stroke:none"
            id="path7282" />
       </g>
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow3_F-ffffff_S-000000"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Arrow3"
+       markerWidth="4.2071066"
+       markerHeight="7"
+       viewBox="0 0 4.2071068 7"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:round"
+         d="M 3,-3 0,0 3,3"
+         id="path2885"
+         transform="rotate(180,0.125,0)"
+         sodipodi:nodetypes="ccc" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker2724_F-ffffff_S-a0a0a0"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Arrow3"
+       markerWidth="4.2071066"
+       markerHeight="7"
+       viewBox="0 0 4.2071068 7"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;stroke:#a0a0a0;stroke-width:1;stroke-linecap:round"
+         d="M 3,-3 0,0 3,3"
+         id="path2888"
+         transform="rotate(180,0.125,0)"
+         sodipodi:nodetypes="ccc" />
     </marker>
   </defs>
   <g
@@ -353,5 +333,21 @@
            x="29.104168"
            y="89.509598">?</tspan></text>
     </g>
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.55;stroke-linecap:round;stroke-dasharray:none;marker-end:url(#Arrow3_F-ffffff_S-000000)"
+       d="m 60.854167,84.666667 h 3.96875"
+       id="path615" />
+    <path
+       style="fill:#ffffff;stroke:#a0a0a0;stroke-width:0.55;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2724_F-ffffff_S-a0a0a0)"
+       d="m 60.854167,91.28125 h 3.96875"
+       id="path615-8" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.55;stroke-linecap:round;stroke-dasharray:none;marker-end:url(#Arrow3_F-ffffff_S-000000)"
+       d="m 56.223958,84.666667 h -3.96875"
+       id="path615-3" />
+    <path
+       style="fill:#ffffff;stroke:#a0a0a0;stroke-width:0.55;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2724_F-ffffff_S-a0a0a0)"
+       d="m 56.223958,91.281253 h -3.96875"
+       id="path615-8-6" />
   </g>
 </svg>

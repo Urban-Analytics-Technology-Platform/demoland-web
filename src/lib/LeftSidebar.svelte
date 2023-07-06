@@ -8,23 +8,35 @@
     import Tooltip from "./Tooltip.svelte";
     import swapIcon from "../assets/swap.svg";
     import swapIconDisabled from "../assets/swap-disabled.svg";
+    import leftIcon from "../assets/left.svg";
+    import leftIconDisabled from "../assets/left-disabled.svg";
+    import rightIcon from "../assets/right.svg";
+    import rightIconDisabled from "../assets/right-disabled.svg";
     import showWelcomeIcon from "../assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
+    import { fly } from "svelte/transition";
     const dispatch = createEventDispatcher();
 
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
-    
+
+    let previousScenarioName: ScenarioName = scenarioName;
+
+    let flyDirection: "left" | "right" = "left";
+
     function changeScenario() {
         // To deal with a slightly annoying bug, see #38
         if (compareScenarioName === scenarioName) {
             compareScenarioName = null;
-            dispatch("changeCompareScenario", {});
-            // changeCompareScenario also triggers all changes that changeScenario does,
-            // so we can use it here
-        }
-        else {
+            changeCompareScenario();
+        } else {
+            const ix1 = allScenarios
+                .map((s) => s.name)
+                .indexOf(previousScenarioName);
+            const ix2 = allScenarios.map((s) => s.name).indexOf(scenarioName);
+            flyDirection = ix1 < ix2 ? "left" : "right";
+            previousScenarioName = scenarioName;
             dispatch("changeScenario", {});
         }
     }
@@ -43,13 +55,80 @@
             const tmp = scenarioName;
             scenarioName = compareScenarioName;
             compareScenarioName = tmp;
-            dispatch("changeScenario", {});
+            changeScenario();
         }
+    }
+    function setMaxHeightToZero(event: CustomEvent) {
+        const div = event.target as HTMLDivElement;
+        div.style.maxHeight = "0px";
+    }
+
+    // Logic for the left/right buttons to control dropdowns
+
+    let allScenariosExceptCompare: ScenarioName[];
+    let decreaseScenarioOk: boolean;
+    let increaseScenarioOk: boolean;
+
+    let allCompareScenariosExceptMain: Array<ScenarioName | null>;
+    let decreaseCompareScenarioOk: boolean;
+    let increaseCompareScenarioOk: boolean;
+
+    function decreaseScenario() {
+        const index = allScenariosExceptCompare.indexOf(scenarioName);
+        if (index > 0) {
+            scenarioName = allScenariosExceptCompare[index - 1];
+        }
+        changeScenario();
+    }
+    function increaseScenario() {
+        const index = allScenariosExceptCompare.indexOf(scenarioName);
+        if (index < allScenariosExceptCompare.length - 1) {
+            scenarioName = allScenariosExceptCompare[index + 1];
+        }
+        changeScenario();
+    }
+    function decreaseCompareScenario() {
+        const index =
+            allCompareScenariosExceptMain.indexOf(compareScenarioName);
+        if (index > 0) {
+            compareScenarioName = allCompareScenariosExceptMain[index - 1];
+        }
+        changeCompareScenario();
+    }
+    function increaseCompareScenario() {
+        const index =
+            allCompareScenariosExceptMain.indexOf(compareScenarioName);
+        if (index < allCompareScenariosExceptMain.length - 1) {
+            compareScenarioName = allCompareScenariosExceptMain[index + 1];
+        }
+        changeCompareScenario();
     }
 
     let scenario: Scenario;
     $: {
         scenario = allScenarios.find((s) => s.name === scenarioName);
+
+        allScenariosExceptCompare = allScenarios
+            .map((s) => s.name)
+            .filter((s) => s !== compareScenarioName);
+        decreaseScenarioOk = scenarioName !== allScenariosExceptCompare[0];
+        increaseScenarioOk =
+            scenarioName !==
+            allScenariosExceptCompare[allScenariosExceptCompare.length - 1];
+
+        allCompareScenariosExceptMain = [
+            null,
+            ...allScenarios
+                .map((s) => s.name)
+                .filter((s) => s !== scenarioName),
+        ];
+        decreaseCompareScenarioOk =
+            compareScenarioName !== allCompareScenariosExceptMain[0];
+        increaseCompareScenarioOk =
+            compareScenarioName !==
+            allCompareScenariosExceptMain[
+                allCompareScenariosExceptMain.length - 1
+            ];
     }
 </script>
 
@@ -74,6 +153,17 @@
 
     <div id="dropdowns">
         <span>Main scenario:</span>
+        <button
+            class="controls"
+            on:click={decreaseScenario}
+            disabled={!decreaseScenarioOk}
+        >
+            <img
+                class="control-arrows"
+                src={decreaseScenarioOk ? leftIcon : leftIconDisabled}
+                alt="Decrease scenario"
+            />
+        </button>
         <select
             id="scenario"
             bind:value={scenarioName}
@@ -83,12 +173,23 @@
                 <option value={scenario.name}>{scenario.short}</option>
             {/each}
         </select>
+        <button
+            class="controls"
+            on:click={increaseScenario}
+            disabled={!increaseScenarioOk}
+        >
+            <img
+                class="control-arrows"
+                src={increaseScenarioOk ? rightIcon : rightIconDisabled}
+                alt="Increase scenario"
+            />
+        </button>
 
         <span id="swap-button-container">
             <Tooltip --width="max-content" --transformy="-7px">
                 <button
                     slot="content"
-                    id="dropdowns-swap"
+                    class="controls"
                     on:click={swapScenarios}
                     disabled={compareScenarioName === null}
                 >
@@ -106,6 +207,17 @@
         </span>
 
         <span>Compare against:</span>
+        <button
+            class="controls"
+            on:click={decreaseCompareScenario}
+            disabled={!decreaseCompareScenarioOk}
+        >
+            <img
+                class="control-arrows"
+                src={decreaseCompareScenarioOk ? leftIcon : leftIconDisabled}
+                alt="Decrease compare scenario"
+            />
+        </button>
         <select
             id="compare"
             bind:value={compareScenarioName}
@@ -120,6 +232,17 @@
                 {/if}
             {/each}
         </select>
+        <button
+            class="controls"
+            on:click={increaseCompareScenario}
+            disabled={!increaseCompareScenarioOk}
+        >
+            <img
+                class="control-arrows"
+                src={increaseCompareScenarioOk ? rightIcon : rightIconDisabled}
+                alt="Increase compare scenario"
+            />
+        </button>
         {#if compareScenarioName !== null}
             <span>View:</span>
             <span id="view-choices">
@@ -143,15 +266,28 @@
             </span>
         {/if}
     </div>
-    <h2 id="scenario-title">{scenario.long}</h2>
-    <p>
-        <!-- eslint-disable-next-line -->
-        {@html scenario.description[0]}
-    </p>
-    {#each scenario.description.slice(1) as para}
-        <!-- eslint-disable-next-line -->
-        <p>{@html para}</p>
-    {/each}
+
+    <!-- This wrapper container is used to make the fly transition work without a 'jumping' effect'. See https://stackoverflow.com/questions/59882179 -->
+    <div id="scenario-description-container">
+        {#key scenarioName}
+            <div
+                id="scenario-description"
+                in:fly={{ x: flyDirection === "left" ? 500 : -500 }}
+                out:fly={{ x: flyDirection === "left" ? -500 : 500 }}
+                on:outrostart={setMaxHeightToZero}
+            >
+                <h3 id="scenario-title">{scenario.long}</h3>
+                <p>
+                    <!-- eslint-disable-next-line -->
+                    {@html scenario.description[0]}
+                </p>
+                {#each scenario.description.slice(1) as para}
+                    <!-- eslint-disable-next-line -->
+                    <p>{@html para}</p>
+                {/each}
+            </div>
+        {/key}
+    </div>
 </div>
 
 <style>
@@ -165,6 +301,7 @@
         background-color: #ffffff;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         max-height: calc(100vh - 40px);
+        overflow-x: clip;
         overflow-y: auto;
 
         margin-left: 0px;
@@ -174,18 +311,16 @@
     div#sidebar > :first-child {
         margin-top: 0 !important;
     }
-    div#sidebar > :last-child {
-        margin-bottom: 0 !important;
-    }
+
     div#dropdowns {
         display: grid;
-        grid-template-columns: max-content 1fr max-content;
-        column-gap: 10px;
+        grid-template-columns: max-content min-content 1fr min-content max-content;
+        column-gap: 4px;
         row-gap: 5px;
-        align-items: baseline;
+        align-items: center;
     }
     span#view-choices {
-        grid-column: 2/4;
+        grid-column: 2/6;
     }
 
     h2 {
@@ -210,7 +345,7 @@
     }
 
     span#swap-button-container {
-        grid-column: 3;
+        grid-column: 5;
         grid-row: 1/3;
         align-self: center;
     }
@@ -220,7 +355,7 @@
         height: 12px;
     }
 
-    button#dropdowns-swap {
+    button.controls {
         position: relative;
         padding: 2px 4px 0px 4px;
         background-color: #ffffff;
@@ -231,18 +366,37 @@
         font-family: inherit;
         font-size: 80%;
     }
-    button#dropdowns-swap:disabled {
+    button.controls:disabled {
         cursor: not-allowed;
     }
-    button#dropdowns-swap:hover:enabled {
+    button.controls:hover:enabled {
         background-color: #f0f0f0;
         box-shadow: rgba(0, 0, 0, 0.1) 0 2px 2px;
     }
-    button#dropdowns-swap:hover:active {
+    button.controls:hover:active {
         background-color: #d0d0d0;
+    }
+
+    img.control-arrows {
+        width: 8px;
+        padding-bottom: 1px;
     }
 
     select {
         font-family: inherit;
+    }
+
+    div#scenario-description-container {
+        display: grid;
+    }
+    h3#scenario-title {
+        font-size: 110%;
+    }
+    div#scenario-description {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    div#scenario-description > :last-child {
+        margin-bottom: 0 !important;
     }
 </style>
