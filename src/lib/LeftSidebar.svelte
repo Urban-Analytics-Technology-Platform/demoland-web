@@ -46,9 +46,19 @@
             changeScenario();
         }
     }
-    function setMaxHeightToZero(event: CustomEvent) {
+    function setMaxHeightToZeroAndDisableOverflow(event: CustomEvent) {
         const div = event.target as HTMLDivElement;
         div.style.maxHeight = "0px";
+        const sidebar = document.getElementById("sidebar") as HTMLDivElement;
+        // Stop scrollbars from showing up until transition finishes
+        sidebar.style.overflowX = "hidden";
+        sidebar.style.overflowY = "hidden";
+    }
+    function resetOverflow() {
+        // Reset overflow so that scrollbars show up again (if needed)
+        const sidebar = document.getElementById("sidebar") as HTMLDivElement;
+        sidebar.style.overflowX = "clip";
+        sidebar.style.overflowY = "auto";
     }
 
     // Custom transition
@@ -276,7 +286,8 @@
                 id="scenario-description"
                 in:customFlyIn
                 out:customFlyOut
-                on:outrostart={setMaxHeightToZero}
+                on:outrostart={setMaxHeightToZeroAndDisableOverflow}
+                on:outroend={() => resetOverflow()}
             >
                 <h3 id="scenario-title">{scenario.long}</h3>
                 <p>
