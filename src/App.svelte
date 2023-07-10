@@ -13,7 +13,11 @@
         type ScenarioName,
         type CompareView,
     } from "./constants";
-    import { makeCombinedGeoJSON, getGeometryBounds } from "./utils";
+    import {
+        makeCombinedGeoJSON,
+        getGeometryBounds,
+        mergeBoundaries,
+    } from "./utils";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
@@ -307,10 +311,13 @@
 
         // Generate the LineString layer showing the boundary of the changed
         // areas.
-        const scenario = allScenarios.find((s) => s.name === scenarioName);
+        const mergedBoundaries = mergeBoundaries(
+            scenarioName,
+            compareScenarioName
+        );
         map.addSource("boundary", {
             type: "geojson",
-            data: scenario.boundary,
+            data: mergedBoundaries,
         });
         map.addLayer({
             id: "boundary-layer",
@@ -373,11 +380,11 @@
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
         // Update the LineString layer
-        const scenario = allScenarios.find((s) => s.name === scenarioName);
+        const mergedBoundaries = mergeBoundaries(scenarioName, compareScenarioName);
         const boundarySource = map.getSource(
             "boundary"
         ) as maplibregl.GeoJSONSource;
-        boundarySource.setData(scenario.boundary);
+        boundarySource.setData(mergedBoundaries);
         // Update the hover
         refreshClickedFeature(mapData);
     }
@@ -439,7 +446,9 @@
             bind:compareView
             on:changeScenario={updateScenario}
             on:changeCompareView={updateLayers}
-            on:showWelcome={() => {welcomeVisible = true;}}
+            on:showWelcome={() => {
+                welcomeVisible = true;
+            }}
         />
 
         <div id="recentre">

@@ -80,7 +80,7 @@ export type OA = string;
 
 export type ScenarioName = "baseline" | "scenario1" | "scenario2" | "scenario3" | "scenario4" | "scenario5" | "scenario6" | "scenario7";
 
-export type Scenario = { name: ScenarioName, short: string, long: string, values: Map<OA, Map<LayerName, number>>, description: string[], boundary: GeoJSON.FeatureCollection };
+export type Scenario = { name: ScenarioName, short: string, long: string, values: Map<OA, Map<LayerName, number>>, description: string[], boundary: GeoJSON.FeatureCollection | null };
 
 // Range to scale all indicator values to
 export const GLOBALMIN = 0;
@@ -114,7 +114,7 @@ function setupScenarios(globalMin: number, globalMax: number): Scenario[] {
                 "Select a development scenario above and compare it against the baseline to see the impact of the modelled development strategies on any of the four indicators."
             ],
             // This is an empty value which doesn't trigger an error when calling addSource.
-            "boundary": { type: "FeatureCollection", features: [] },
+            "boundary": null,
         },
         {
             "name": "scenario1",

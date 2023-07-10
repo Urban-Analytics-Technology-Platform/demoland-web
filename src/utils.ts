@@ -1,7 +1,8 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
+import { GeoJSON } from "geojson";
+import { allIndicators, type IndicatorName, allScenarios, type Scenario, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "air_quality") {
@@ -180,5 +181,29 @@ export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLat
     }
     else {
         throw new Error(`Unsupported geometry type: ${geometryType}`);
+    }
+}
+
+export function mergeBoundaries(scenarioName: ScenarioName, compareScenarioName: ScenarioName | null) {
+    const scenario: Scenario = allScenarios.find((s) => s.name === scenarioName);
+    const cScenario: Scenario | null = compareScenarioName === null ? null : allScenarios.find((s) => s.name === compareScenarioName);
+
+    // These must both be MultiLineStrings
+    const boundary: GeoJSON.FeatureCollection | null = scenario.boundary;
+    const cBoundary: GeoJSON.FeatureCollection | null = cScenario === null ? null : cScenario.boundary;
+    
+    if (boundary === null && cBoundary === null) {
+        return { type: "FeatureCollection", features: [] }  // Empty GeoJSON.
+    }
+    else if (boundary === null) {
+        return cBoundary;
+    }
+    else if (cBoundary === null) {
+        return boundary;
+    }
+    else {
+        const mergedBoundaries = JSON.parse(JSON.stringify(boundary));
+        mergedBoundaries.features = mergedBoundaries.features.concat(cBoundary.features);
+        return mergedBoundaries;
     }
 }
