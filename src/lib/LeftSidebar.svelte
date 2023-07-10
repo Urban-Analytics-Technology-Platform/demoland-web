@@ -29,13 +29,8 @@
         if (compareScenarioName === scenarioName) {
             // To deal with a slightly annoying bug, see #38
             compareScenarioName = null;
-            changeCompareScenario();
-        } else {
-            dispatch("changeScenario", {});
         }
-    }
-    function changeCompareScenario() {
-        dispatch("changeCompareScenario", {});
+        dispatch("changeScenario", {});
     }
     function changeCompareView() {
         dispatch("changeCompareView", {});
@@ -100,7 +95,7 @@
         if (index > 0) {
             compareScenarioName = allCompareScenariosExceptMain[index - 1];
         }
-        changeCompareScenario();
+        changeScenario();
     }
     function increaseCompareScenario() {
         const index =
@@ -108,7 +103,7 @@
         if (index < allCompareScenariosExceptMain.length - 1) {
             compareScenarioName = allCompareScenariosExceptMain[index + 1];
         }
-        changeCompareScenario();
+        changeScenario();
     }
 
     let scenario: Scenario;
@@ -228,7 +223,7 @@
         <select
             id="compare"
             bind:value={compareScenarioName}
-            on:change={changeCompareScenario}
+            on:change={changeScenario}
         >
             <option value={null}>None</option>
             {#each allScenarios as compareScenario}

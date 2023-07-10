@@ -409,22 +409,8 @@
 
     /* --------- EVENT HANDLERS ----------------------------------------- */
 
-    // Redraw layers when scenario is changed
+    // Redraw layers when scenario or compareScenario is changed
     function updateScenario() {
-        mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
-        updateMapData(mapData);
-    }
-
-    // Redraw layers when compareScenario is changed
-    function updateCompareScenario() {
-        // reset compareView
-        if (compareScenarioName === null) {
-            compareView = "original";
-        }
-        // show difference if possible
-        if (activeLayer !== "sig" && compareView === "original") {
-            compareView = "difference";
-        }
         mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
         updateMapData(mapData);
     }
@@ -452,7 +438,6 @@
             bind:compareScenarioName
             bind:compareView
             on:changeScenario={updateScenario}
-            on:changeCompareScenario={updateCompareScenario}
             on:changeCompareView={updateLayers}
             on:showWelcome={() => {welcomeVisible = true;}}
         />
