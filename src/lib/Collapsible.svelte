@@ -2,6 +2,9 @@
     import { slide } from "svelte/transition";
     import { quintOut } from "svelte/easing";
 
+    import closeTriangle from "../assets/close.svg";
+    import openTriangle from "../assets/open.svg";
+
     export let title: string;
     export let collapsed: boolean = false;
 
@@ -10,14 +13,27 @@
     }
 </script>
 
-<label class="collapsible-toggle {collapsed ? 'closed' : 'opened'}" transition:slide={{ duration: 400, easing: quintOut }}><input type="button" on:click={toggle} />
-    {collapsed ? '⏵' : '⏷'}
+<label
+    class="collapsible-toggle {collapsed ? 'closed' : 'opened'}"
+    transition:slide={{ duration: 400, easing: quintOut }}
+    ><input type="button" on:click={toggle} />
+    <img
+        src={collapsed ? closeTriangle : openTriangle}
+        alt={collapsed ? "closed" : "open"}
+        width="10px"
+    />
 </label>
-<label class="collapsible-title {collapsed ? 'closed' : 'opened'}" transition:slide={{ duration: 400, easing: quintOut }}><input type="button" on:click={toggle} />
+<label
+    class="collapsible-title {collapsed ? 'closed' : 'opened'}"
+    transition:slide={{ duration: 400, easing: quintOut }}
+    ><input type="button" on:click={toggle} />
     <h2>{title}</h2>
 </label>
 {#if !collapsed}
-    <div class="collapsible-content opened" transition:slide={{ duration: 400, easing: quintOut }}>
+    <div
+        class="collapsible-content opened"
+        transition:slide={{ duration: 400, easing: quintOut }}
+    >
         <slot />
     </div>
 {/if}
@@ -29,17 +45,12 @@
     input {
         display: none;
     }
-    label.collapsible-toggle {
-        font-size: 120%;
-        background: none;
-        border: none;
-        margin: 0px;
-        padding: 0px;
-    }
     label:hover {
         cursor: pointer;
     }
-
+    img {
+        padding-bottom: 0.5px;
+    }
     .closed {
         color: #666;
     }

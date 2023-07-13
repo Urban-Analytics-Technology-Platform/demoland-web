@@ -1,15 +1,18 @@
-name: publish-website
+name: publish-website-main
 on:
   push:
     branches:
       - main
 
 jobs:
-  publish:
+  publish-main:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        ref: main
+
     - uses: actions/setup-node@v3
       with:
         node-version: 20

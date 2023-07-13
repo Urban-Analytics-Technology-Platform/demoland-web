@@ -1,7 +1,8 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
+import { GeoJSON } from "geojson";
+import { allIndicators, type IndicatorName, allScenarios, type Scenario, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "air_quality") {
@@ -131,14 +132,14 @@ export function makeCombinedGeoJSON(
                 // The 'difference' view for land use is just the ones that are
                 // changed relative to the scenario being compared against
                 if (feature.properties["sig"] === feature.properties["sig-cmp"]) {
-                    feature.properties["sig-diff-color"] = "rgba(0, 0, 0, 0.01)";
+                    feature.properties["sig-diff-color"] = "rgba(0, 0, 0, 0.1)";
                 } else {
                     feature.properties["sig-diff-color"] = feature.properties["sig-color"];
                 }
                 feature.properties[`${n}-diff`] = oaValues.get(n) - cOaValues.get(n);
                 feature.properties[`${n}-diff-color`] =
                     oaValues.get(n) === cOaValues.get(n)
-                        ? "rgba(0, 0, 0, 0.01)"
+                        ? "rgba(0, 0, 0, 0.1)"
                         : getColorFromMap(colormaps["diff"], oaValues.get(n) - cOaValues.get(n), -maxDiffExtent.get(n), maxDiffExtent.get(n));
             }
         }
@@ -180,5 +181,29 @@ export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLat
     }
     else {
         throw new Error(`Unsupported geometry type: ${geometryType}`);
+    }
+}
+
+export function mergeBoundaries(scenarioName: ScenarioName, compareScenarioName: ScenarioName | null) {
+    const scenario: Scenario = allScenarios.find((s) => s.name === scenarioName);
+    const cScenario: Scenario | null = compareScenarioName === null ? null : allScenarios.find((s) => s.name === compareScenarioName);
+
+    // These must both be MultiLineStrings
+    const boundary: GeoJSON.FeatureCollection | null = scenario.boundary;
+    const cBoundary: GeoJSON.FeatureCollection | null = cScenario === null ? null : cScenario.boundary;
+    
+    if (boundary === null && cBoundary === null) {
+        return { type: "FeatureCollection", features: [] }  // Empty GeoJSON.
+    }
+    else if (boundary === null) {
+        return cBoundary;
+    }
+    else if (cBoundary === null) {
+        return boundary;
+    }
+    else {
+        const mergedBoundaries = JSON.parse(JSON.stringify(boundary));
+        mergedBoundaries.features = mergedBoundaries.features.concat(cBoundary.features);
+        return mergedBoundaries;
     }
 }

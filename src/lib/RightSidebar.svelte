@@ -1,15 +1,15 @@
 <script lang="ts">
     import Chart from "./Chart.svelte";
-    import Indicators from "./Indicators.svelte";
+    import LayerSelector from "./LayerSelector.svelte";
     import Collapsible from "./Collapsible.svelte";
     import {
-        type FactorName,
+        type LayerName,
         type ScenarioName,
         type CompareView,
         allIndicators,
     } from "../constants";
 
-    export let activeFactor: FactorName;
+    export let activeLayer: LayerName;
     export let opacity: number;
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
@@ -18,8 +18,8 @@
     // Events which need to bubble up to main App
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
-    function changeFactor() {
-        dispatch("changeFactor", {});
+    function changeLayer() {
+        dispatch("changeLayer", {});
     }
     function changeOpacity() {
         dispatch("changeOpacity", {});
@@ -29,16 +29,16 @@
 
 <div id="right-container">
     <Collapsible title="Map values">
-        <Indicators
-            bind:activeFactor
+        <LayerSelector
+            bind:activeLayer
             bind:opacity
-            on:changeFactor={changeFactor}
+            on:changeLayer={changeLayer}
             on:changeOpacity={changeOpacity}
         />
     </Collapsible>
 
     {#each allIndicators as indi}
-        <Collapsible title={indi.short} collapsed={activeFactor !== "sig" && indi.name !== activeFactor}>
+        <Collapsible title={indi.short} collapsed={activeLayer !== "sig" && indi.name !== activeLayer}>
             <Chart
                 indicatorName={indi.name}
                 {scenarioName}
@@ -63,7 +63,7 @@
         overflow-y: auto;
 
         display: grid;
-        grid-template-columns: 15px 220px;
+        grid-template-columns: 15px 225px;
         align-items: baseline;
     }
 </style>
