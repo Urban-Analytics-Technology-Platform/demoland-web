@@ -6,7 +6,7 @@ Frontend for visualisation of modelling and results from the Land Use Demonstrat
 
 - [The Geospatial Commission's blog post](https://www.landusedialogues.gov.uk/2023/03/13/using-spatial-data-science-to-deliver-more-from-the-same-land/) about the project
 - The GitHub repositories containing the code powering this project: [LandUseDemonstrator](https://github.com/ciupava/LandUseDemonstrator), [demoland_engine](https://github.com/martinfleis/demoland_engine)
-- [A page on the Alan Turing Institute's intranet, Mathison](https://mathison.turing.ac.uk/page/2864)), about the project.
+- [A page on the Alan Turing Institute's intranet, Mathison](https://mathison.turing.ac.uk/page/2864), about the project.
 
 ## Local usage
 
