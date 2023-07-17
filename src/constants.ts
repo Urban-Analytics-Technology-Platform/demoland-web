@@ -243,3 +243,5 @@ export const signatures = [
 ];
 
 export const signaturesUrl: string = "https://urbangrammarai.xyz/story/#ss"
+
+export const bookUrl: string = "https://ciupava.github.io/LandUseDemonstrator"

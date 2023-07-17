@@ -3,6 +3,7 @@
     import leftSidebarScreenshot from "../assets/left-sidebar.png";
     import rightSidebarScreenshot from "../assets/right-sidebar.png";
     import mapScreenshot from "../assets/map.png";
+    import { bookUrl } from "../constants";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =
@@ -60,25 +61,27 @@
         <div id="welcome-content">
             <h2>
                 Spatial modelling for land management predicting the impact of
-                large-scale planning and land use changes on the quality of life.
+                large-scale planning and land use changes on the quality of
+                life.
             </h2>
 
             <p>
                 This interactive app showcases the outcomes of the <i
                     >Land Use Demonstrator</i
                 >
-                project, which seeks to develop a modelling system leveraging data science
-                and AI to support decision-making in land use policy.
+                project, which seeks to develop a modelling system leveraging data
+                science and AI to support decision-making in land use policy.
             </p>
 
             <p>
                 In this project, competing aspects of land use in an urban
                 environment are identified and quantified. We first do this for
                 present-day Tyne and Wear (called the
-                <i>baseline</i>), and then create specific <i>scenarios</i> where
-                the distribution of land use is modified. These land use
-                characteristics are then used to calculate four <i>indicators</i> which
-                represent different aspects of quality of life.
+                <i>baseline</i>), and then create specific <i>scenarios</i>
+                where the distribution of land use is modified. These land use characteristics
+                are then used to calculate four
+                <i>indicators</i> which represent different aspects of quality of
+                life.
             </p>
 
             <p>
@@ -93,7 +96,8 @@
                 >, working in conjunction with
                 <a href="https://www.newcastle.gov.uk/" target="_blank"
                     >Newcastle City Council</a
-                >.
+                >. You can read more about the project in the associated
+                <a href={bookUrl}>Land Use Demonstrator book</a>.
             </p>
 
             <h2 class="smaller-bottom-margin">How to use</h2>
@@ -101,8 +105,9 @@
             <div id="flex-navigation-help">
                 <div>
                     <p>
-                        The <b>map</b> shows the area of Tyne and Wear county as it is
-                        seen through the data today and in the seven development scenarios.
+                        The <b>map</b> shows the area of Tyne and Wear county as
+                        it is seen through the data today and in the seven development
+                        scenarios.
                     </p>
                     <p>
                         The county is subdivided into 3,795
@@ -118,17 +123,20 @@
             </div>
 
             <div id="flex-navigation-help">
-                <img src={leftSidebarScreenshot} alt="Screenshot of left sidebar" />
+                <img
+                    src={leftSidebarScreenshot}
+                    alt="Screenshot of left sidebar"
+                />
                 <div>
                     <p>
-                        Use the <b>left navigation bar</b> to change the scenario or
-                        switch to a comparison mode.
+                        Use the <b>left navigation bar</b> to change the scenario
+                        or switch to a comparison mode.
                     </p>
                     <p>
-                        The changes in each scenario (relative to the baseline) are
-                        contained within a specific area of Tyne and Wear. When a
-                        scenario is selected, the modified area is outlined on the
-                        map in black.
+                        The changes in each scenario (relative to the baseline)
+                        are contained within a specific area of Tyne and Wear.
+                        When a scenario is selected, the modified area is
+                        outlined on the map in black.
                     </p>
                 </div>
             </div>
@@ -150,19 +158,20 @@
                     or any of the four quality-of-life indicators:
                     <ul>
                         <li>
-                            <i>Air pollution</i>, a composite index based on PM2.5,
-                            PM10, NO<sub>2</sub> and SO<sub>3</sub> particles;
+                            <i>Air pollution</i>, a composite index based on
+                            PM2.5, PM10, NO<sub>2</sub> and SO<sub>3</sub> particles;
                         </li>
                         <li>
-                            <i>House prices</i>, an index based on real sale prices;
+                            <i>House prices</i>, an index based on real sale
+                            prices;
                         </li>
                         <li>
-                            <i>Job accessibility</i>, reflecting the number of jobs
-                            within 15 minutes;
+                            <i>Job accessibility</i>, reflecting the number of
+                            jobs within 15 minutes;
                         </li>
                         <li>
-                            <i>Greenspace accessibility</i>, reflecting the area of
-                            formal parks within 15 minutes.
+                            <i>Greenspace accessibility</i>, reflecting the area
+                            of formal parks within 15 minutes.
                         </li>
                     </ul>
                 </div>
