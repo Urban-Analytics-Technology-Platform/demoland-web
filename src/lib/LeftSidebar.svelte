@@ -15,6 +15,9 @@
     import showWelcomeIcon from "../assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
     import { fly } from "svelte/transition";
+    import "overlayscrollbars/overlayscrollbars.css";
+    import { overlayScrollbars } from "../utils";
+    import { onMount } from "svelte";
     const dispatch = createEventDispatcher();
 
     export let scenarioName: ScenarioName;
@@ -46,19 +49,9 @@
             changeScenario();
         }
     }
-    function setMaxHeightToZeroAndDisableOverflow(event: CustomEvent) {
+    function setMaxHeightToZero(event: CustomEvent) {
         const div = event.target as HTMLDivElement;
         div.style.maxHeight = "0px";
-        const sidebar = document.getElementById("sidebar") as HTMLDivElement;
-        // Stop scrollbars from showing up until transition finishes
-        sidebar.style.overflowX = "hidden";
-        sidebar.style.overflowY = "hidden";
-    }
-    function resetOverflow() {
-        // Reset overflow so that scrollbars show up again (if needed)
-        const sidebar = document.getElementById("sidebar") as HTMLDivElement;
-        sidebar.style.overflowX = "clip";
-        sidebar.style.overflowY = "auto";
     }
 
     // Custom transition
@@ -116,6 +109,10 @@
         changeScenario();
     }
 
+    onMount(() => {
+        overlayScrollbars("sidebar");
+    });
+
     let scenario: Scenario;
     $: {
         scenario = allScenarios.find((s) => s.name === scenarioName);
@@ -144,8 +141,8 @@
     }
 </script>
 
-<div id="sidebar">
-    <h1>Tyne and Wear development scenario modelling</h1>
+<div id="sidebar" class="data-overlayscrollbars-initialize">
+    <h1 class="title">Tyne and Wear development scenario modelling</h1>
 
     <p>
         Explore a modelled impact of various development scenarios in Tyne and
@@ -286,8 +283,7 @@
                 id="scenario-description"
                 in:customFlyIn
                 out:customFlyOut
-                on:outrostart={setMaxHeightToZeroAndDisableOverflow}
-                on:outroend={() => resetOverflow()}
+                on:outrostart={setMaxHeightToZero}
             >
                 <h3 id="scenario-title">{scenario.long}</h3>
                 <p>
@@ -314,15 +310,14 @@
         background-color: #ffffff;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         max-height: calc(100vh - 40px);
-        overflow-x: clip;
-        overflow-y: auto;
 
         margin-left: 0px;
         margin-right: auto;
         pointer-events: auto;
     }
-    div#sidebar > :first-child {
-        margin-top: 0 !important;
+
+    h1.title {
+        margin-top: 0px !important;
     }
 
     div#dropdowns {

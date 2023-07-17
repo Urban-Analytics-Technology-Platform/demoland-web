@@ -9,6 +9,10 @@
         allIndicators,
     } from "../constants";
 
+    import "overlayscrollbars/overlayscrollbars.css";
+    import { overlayScrollbars } from "../utils";
+    import { onMount } from "svelte";
+
     export let activeLayer: LayerName;
     export let opacity: number;
     export let scenarioName: ScenarioName;
@@ -25,28 +29,31 @@
         dispatch("changeOpacity", {});
     }
 
+    onMount(() => {overlayScrollbars("right-container")});
 </script>
 
-<div id="right-container">
-    <Collapsible title="Map values">
-        <LayerSelector
-            bind:activeLayer
-            bind:opacity
-            on:changeLayer={changeLayer}
-            on:changeOpacity={changeOpacity}
-        />
-    </Collapsible>
-
-    {#each allIndicators as indi}
-        <Collapsible title={indi.short} collapsed={activeLayer !== "sig" && indi.name !== activeLayer}>
-            <Chart
-                indicatorName={indi.name}
-                {scenarioName}
-                {compareView}
-                {compareScenarioName}
+<div id="right-container" class="data-overlayscrollbars-initialize">
+    <div id="right-sidebar">
+        <Collapsible title="Map values">
+            <LayerSelector
+                bind:activeLayer
+                bind:opacity
+                on:changeLayer={changeLayer}
+                on:changeOpacity={changeOpacity}
             />
         </Collapsible>
-    {/each}
+
+        {#each allIndicators as indi}
+            <Collapsible title={indi.short} collapsed={activeLayer !== "sig" && indi.name !== activeLayer}>
+                <Chart
+                    indicatorName={indi.name}
+                    {scenarioName}
+                    {compareView}
+                    {compareScenarioName}
+                />
+            </Collapsible>
+        {/each}
+    </div>
 </div>
 
 <style>
@@ -60,8 +67,11 @@
 
         min-height: min-content;
         max-height: calc(100vh - 50px);
-        overflow-y: auto;
+    }
 
+    div#right-sidebar {
+        height: 100%;
+        width: 100%;
         display: grid;
         grid-template-columns: 15px 225px;
         align-items: baseline;

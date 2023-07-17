@@ -31,6 +31,7 @@
     "@types/geojson": "^7946.0.10",
     "chart.js": "^4.3.0",
     "colormap": "^2.3.2",
-    "maplibre-gl": "^2.4.0"
+    "maplibre-gl": "^2.4.0",
+    "overlayscrollbars": "^2.2.1"
   }
 }
