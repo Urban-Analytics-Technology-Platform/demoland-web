@@ -142,7 +142,7 @@
 </script>
 
 <div id="sidebar" class="data-overlayscrollbars-initialize">
-    <h1>Tyne and Wear development scenario modelling</h1>
+    <h1 class="title">Tyne and Wear development scenario modelling</h1>
 
     <p>
         Explore a modelled impact of various development scenarios in Tyne and
@@ -315,8 +315,9 @@
         margin-right: auto;
         pointer-events: auto;
     }
-    div#sidebar > :first-child {
-        margin-top: 0 !important;
+
+    h1.title {
+        margin-top: 0px !important;
     }
 
     div#dropdowns {
