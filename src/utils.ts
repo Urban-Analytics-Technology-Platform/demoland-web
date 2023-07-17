@@ -1,7 +1,7 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
-import { GeoJSON } from "geojson";
+import { OverlayScrollbars } from "overlayscrollbars";
 import { allIndicators, type IndicatorName, allScenarios, type Scenario, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
@@ -206,4 +206,18 @@ export function mergeBoundaries(scenarioName: ScenarioName, compareScenarioName:
         mergedBoundaries.features = mergedBoundaries.features.concat(cBoundary.features);
         return mergedBoundaries;
     }
+}
+
+export function overlayScrollbars(id: string) {
+    OverlayScrollbars(document.getElementById(id), {
+        overflow: {
+            x: 'hidden',
+        },
+        scrollbars: {
+            autoHide: "leave",
+            autoHideDelay: 100,
+            clickScroll: true,
+            dragScroll: true,
+        },
+    });
 }
