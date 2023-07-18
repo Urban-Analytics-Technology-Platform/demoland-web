@@ -5,36 +5,7 @@ import { OverlayScrollbars } from "overlayscrollbars";
 import { allIndicators, type IndicatorName, allScenarios, type Scenario, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
-    if (indicator === "air_quality") {
-        return colormap({
-            colormap: "magma",
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        }).reverse();
-    } else if (indicator === "house_price") {
-        return colormap({
-            colormap: "viridis",
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        });
-    } else if (indicator === "job_accessibility") {
-        return colormap({
-            colormap: "plasma",
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        });
-    } else if (indicator === "greenspace_accessibility") {
-        return colormap({
-            colormap: "chlorophyll",
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        }).reverse();
-    }
-    else if (indicator === "diff") {
+    if (indicator === "diff") {
         return colormap({
             colormap: "RdBu",
             nshades: n,
@@ -42,11 +13,21 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
             alpha: 1,
         });
     }
+    else {
+        const indi = allIndicators.get(indicator);
+        const cmap = colormap({
+            colormap: indi.colormap,
+            nshades: n,
+            format: "hex",
+            alpha: 1,
+        });
+        return indi.colormapReversed ? cmap.reverse() : cmap;
+    }
 }
 
 // Get all values for a given indicator in a given scenario.
 export function getValues(indicator: IndicatorName, scenarioName: ScenarioName): number[] {
-    const scenario = allScenarios.find(s => s.name === scenarioName);
+    const scenario = allScenarios.get(scenarioName);
     return [...scenario.values.values()].map(m => m.get(indicator));
 }
 
@@ -83,21 +64,20 @@ export function makeCombinedGeoJSON(
     scenarioName: ScenarioName,
     compareScenarioName: ScenarioName | null,
 ): GeoJSON.FeatureCollection {
-    const scenario = allScenarios.find(s => s.name === scenarioName);
+    const scenario = allScenarios.get(scenarioName);
 
     // Precalculate differences between scenarios being compared
     const maxDiffExtent: Map<IndicatorName, number> = new Map();
     if (compareScenarioName !== null) {
-        const scenario = allScenarios.find(s => s.name === scenarioName);
-        const cScenario = allScenarios.find(s => s.name === compareScenarioName);
-        for (const indi of allIndicators) {
-            const n = indi.name;
+        const scenario = allScenarios.get(scenarioName);
+        const cScenario = allScenarios.get(compareScenarioName);
+        for (const indiName of allIndicators.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
-                diffs.push(scenario.values.get(oa).get(n) - cScenario.values.get(oa).get(n));
+                diffs.push(scenario.values.get(oa).get(indiName) - cScenario.values.get(oa).get(indiName));
             }
             const maxDiff = Math.max(...diffs.map(d => Math.abs(d)));
-            maxDiffExtent.set(n, maxDiff === 0 ? 1 : maxDiff);
+            maxDiffExtent.set(indiName, maxDiff === 0 ? 1 : maxDiff);
         }
     }
 
@@ -108,25 +88,23 @@ export function makeCombinedGeoJSON(
         if (oaValues === undefined) {
             throw new Error(`${oaName} not found in values!`);
         }
-        for (const indi of allIndicators) {
-            const n = indi.name;
-            feature.properties[n] = oaValues.get(n);
-            feature.properties[`${n}-color`] =
-                getColorFromMap(colormaps[n], oaValues.get(n), GLOBALMIN, GLOBALMAX);
+        for (const indiName of allIndicators.keys()) {
+            feature.properties[indiName] = oaValues.get(indiName);
+            feature.properties[`${indiName}-color`] =
+                getColorFromMap(colormaps[indiName], oaValues.get(indiName), GLOBALMIN, GLOBALMAX);
         }
         feature.properties["sig"] = scenario.values.get(oaName).get("sig");
         feature.properties["sig-color"] = signatures[feature.properties["sig"]].color;
         if (compareScenarioName !== null) {
-            const cScenario = allScenarios.find(s => s.name === compareScenarioName);
+            const cScenario = allScenarios.get(compareScenarioName);
             const cOaValues = cScenario.values.get(oaName);
             if (cOaValues === undefined) {
                 throw new Error(`${oaName} not found in compare values!`);
             }
-            for (const indi of allIndicators) {
-                const n = indi.name;
-                feature.properties[`${n}-cmp`] = cOaValues.get(n);
-                feature.properties[`${n}-cmp-color`] =
-                    getColorFromMap(colormaps[n], cOaValues.get(n), GLOBALMIN, GLOBALMAX);
+            for (const indiName of allIndicators.keys()) {
+                feature.properties[`${indiName}-cmp`] = cOaValues.get(indiName);
+                feature.properties[`${indiName}-cmp-color`] =
+                    getColorFromMap(colormaps[indiName], cOaValues.get(indiName), GLOBALMIN, GLOBALMAX);
                 feature.properties["sig-cmp"] = cScenario.values.get(oaName).get("sig");
                 feature.properties["sig-cmp-color"] = signatures[feature.properties["sig-cmp"]].color;
                 // The 'difference' view for land use is just the ones that are
@@ -136,11 +114,11 @@ export function makeCombinedGeoJSON(
                 } else {
                     feature.properties["sig-diff-color"] = feature.properties["sig-color"];
                 }
-                feature.properties[`${n}-diff`] = oaValues.get(n) - cOaValues.get(n);
-                feature.properties[`${n}-diff-color`] =
-                    oaValues.get(n) === cOaValues.get(n)
+                feature.properties[`${indiName}-diff`] = oaValues.get(indiName) - cOaValues.get(indiName);
+                feature.properties[`${indiName}-diff-color`] =
+                    oaValues.get(indiName) === cOaValues.get(indiName)
                         ? "rgba(0, 0, 0, 0.1)"
-                        : getColorFromMap(colormaps["diff"], oaValues.get(n) - cOaValues.get(n), -maxDiffExtent.get(n), maxDiffExtent.get(n));
+                        : getColorFromMap(colormaps["diff"], oaValues.get(indiName) - cOaValues.get(indiName), -maxDiffExtent.get(indiName), maxDiffExtent.get(indiName));
             }
         }
 
@@ -185,13 +163,13 @@ export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLat
 }
 
 export function mergeBoundaries(scenarioName: ScenarioName, compareScenarioName: ScenarioName | null) {
-    const scenario: Scenario = allScenarios.find((s) => s.name === scenarioName);
-    const cScenario: Scenario | null = compareScenarioName === null ? null : allScenarios.find((s) => s.name === compareScenarioName);
+    const scenario: Scenario = allScenarios.get(scenarioName);
+    const cScenario: Scenario | null = compareScenarioName === null ? null : allScenarios.get(compareScenarioName);
 
     // These must both be MultiLineStrings
     const boundary: GeoJSON.FeatureCollection | null = scenario.boundary;
     const cBoundary: GeoJSON.FeatureCollection | null = cScenario === null ? null : cScenario.boundary;
-    
+
     if (boundary === null && cBoundary === null) {
         return { type: "FeatureCollection", features: [] }  // Empty GeoJSON.
     }

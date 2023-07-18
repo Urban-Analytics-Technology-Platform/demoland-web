@@ -3,6 +3,7 @@ import maplibregl from "maplibre-gl";
 import {
     allIndicators,
     type Indicator,
+    type IndicatorName,
     type LayerName,
     type ScenarioName,
     signatures,
@@ -38,17 +39,17 @@ function makeHoverHtml(feat: GeoJSON.Feature,
             }
         }
     }
-    function makeIndi(indi: Indicator): string {
-        const val = feat.properties[indi.name];
+    function makeIndi(name: IndicatorName, indi: Indicator): string {
+        const val = feat.properties[name];
         let color: string;
         let valString: string;
         if (compareScenarioName === null) {
             valString = val.toFixed(2);
-            color = feat.properties[`${indi.name}-color`];
+            color = feat.properties[`${name}-color`];
         } else {
-            const cmpVal = feat.properties[`${indi.name}-cmp`];
+            const cmpVal = feat.properties[`${name}-cmp`];
             const chg = cmpVal === 0 ? 0 : ((val - cmpVal) / cmpVal) * 100;
-            color = feat.properties[`${indi.name}-diff-color`];
+            color = feat.properties[`${name}-diff-color`];
             valString = `${val.toFixed(2)} (${chg >= 0 ? "+" : "−"
                 }${Math.abs(chg).toFixed(1)}%)`;
         }
@@ -57,9 +58,9 @@ function makeHoverHtml(feat: GeoJSON.Feature,
                 "accessibility",
                 "access."
             )}</span>`,
-            `<span class="right-align-grid-item ${activeFactor === indi.name ? "strong" : ""
+            `<span class="right-align-grid-item ${activeFactor === name ? "strong" : ""
             }">`,
-            activeFactor === indi.name ? `${makeColoredBlock(color)}&nbsp;` : ``,
+            activeFactor === name ? `${makeColoredBlock(color)}&nbsp;` : ``,
             valString,
             `</span>`,
         ].join("");
@@ -68,7 +69,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
         `<div class="hover-grid">`,
         `<span class="oa-grid-item oa-name">${feat.properties.OA11CD}</span>`,
         makeSig(),
-        ...allIndicators.map(makeIndi),
+        ...[...allIndicators.entries()].map(([name, indi]) => makeIndi(name, indi)),
         `</div>`,
     ].join("");
 }
