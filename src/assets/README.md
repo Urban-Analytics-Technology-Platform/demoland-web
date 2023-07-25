@@ -1,44 +1,10 @@
 ## Static files
 
-- `values/baseline_prediction.json`, `values/scenario{i}.json` (i = 1 to 7)
+- `values/*.json`, `changes/*.json`
 
-  - These are generated from the corresponding `scenario{i}.csv` and `scenario{i}_landuse.csv` files stored in the OneDrive `scenarios` directory, using the following script. For the baseline land use, read it instead from `sampling/oa_key.parquet` in OneDrive.
+  - These represent respectively *values* which are plotted on the map (including land use signatures and the output indicators), and *changes* of input macro variables relative to the baseline.
 
-    ```python
-    import pandas as pd
-
-    SIGS = {
-        "Wild countryside": 0,
-        "Countryside agriculture": 1,
-        "Urban buffer": 2,
-        "Warehouse/Park land": 3,
-        "Open sprawl": 4,
-        "Disconnected suburbia": 5,
-        "Accessible suburbia": 6,
-        "Connected residential neighbourhoods": 7,
-        "Dense residential neighbourhoods": 8,
-        "Gridded residential quarters": 9,
-        "Dense urban neighbourhoods": 10,
-        "Local urbanity": 11,
-        "Regional urbanity": 12,
-        "Metropolitan urbanity": 13,
-        "Concentrated urbanity": 14,
-        "Hyper concentrated urbanity": 15,
-    }
-
-    for scen in [3, 6, 7]:
-        df = pd.read_csv(f'scenario{scen}.csv')
-        df = df.set_index('geo_code')
-
-        landuse_df = pd.read_csv(f'scenario{scen}_landuse.csv')
-        landuse_df = landuse_df.set_index('OA11CD')
-        landuse_df.index.name = 'geo_code'
-        landuse_df['sig'] = landuse_df['primary_type'].map(SIGS)
-        landuse_df = landuse_df[['sig']]
-        df = df.join(landuse_df, validate='one_to_one')
-
-        df.to_json(path_or_buf=f'scenario{scen}.json', orient='index')
-    ```
+  - Generate these by running the `generate.py` script. Set the `$DEMOLAND_DATA` environment variable to point to the shared OneDrive DemoLand folder before running it.
 
 - `newcastle.json`
 
@@ -51,23 +17,10 @@
     ```python
     import pandas as pd
     import geopandas as gpd
-    baseline = pd.read_json('baseline_prediction.json', orient='index')
+    baseline = pd.read_json('baseline.json', orient='index')
     oas = baseline.index.values
     gj = gpd.read_file('Output_Areas_Dec_2011_Boundaries_EW_BGC_2022_3211360474256931029.geojson')
     gj = gj.query('OA11CD in @oas')[['OA11CD', 'geometry']]
     gj['id'] = range(len(gj))
     gj.to_crs(epsg=4326).to_file('newcastle.json', driver='GeoJSON')
-    ```
-- `/boundaries/scenario{n}.json`
-
-  Boundaries of the areas being modified in each scenario. Note that scenario 1 = scenario 2, scenario 4 = scenario 5, and scenario 6 = scenario 7 (as suggested by the file names).
-
-  Obtained from the OneDrive in `scenarios/data/*_boundary.json` and converted to the appropriate CRS using
-
-    ```python
-    import geopandas as gpd
-
-    for fname in ['12', '3', '45', '67']:
-        gj = gpd.read_file(f'scenario{fname}.json')
-        gj.to_crs(epsg=4326).to_file(f'scenario{fname}.json', driver='GeoJSON')
     ```
