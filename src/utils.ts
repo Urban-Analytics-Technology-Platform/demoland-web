@@ -2,7 +2,7 @@ import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import { OverlayScrollbars } from "overlayscrollbars";
-import { allIndicators, type IndicatorName, allScenarios, type Scenario, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX } from "./constants";
+import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX, type MacroVar } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "diff") {
@@ -162,28 +162,63 @@ export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLat
     }
 }
 
-export function mergeBoundaries(scenarioName: ScenarioName, compareScenarioName: ScenarioName | null) {
-    const scenario: Scenario = allScenarios.get(scenarioName);
-    const cScenario: Scenario | null = compareScenarioName === null ? null : allScenarios.get(compareScenarioName);
 
-    // These must both be MultiLineStrings
-    const boundary: GeoJSON.FeatureCollection | null = scenario.boundary;
-    const cBoundary: GeoJSON.FeatureCollection | null = cScenario === null ? null : cScenario.boundary;
+// Helper function to check if two maps are equal
+function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
+    // Check if the maps have the same number of keys
+    if (m1.size !== m2.size) {
+        return false;
+    }
+    // Then check each key
+    for (const [k, v] of m1.entries()) {
+        if (m2.get(k) !== v) {
+            return false;
+        }
+    }
+    return true;
+}
 
-    if (boundary === null && cBoundary === null) {
-        return { type: "FeatureCollection", features: [] }  // Empty GeoJSON.
+export function getInputDiffBoundaries(
+    scenarioName: ScenarioName,
+    compareScenarioName: ScenarioName | null
+): GeoJSON.FeatureCollection {
+    type MVMap = Map<string, Map<MacroVar, number | null>>;
+    const changed: MVMap = allScenarios.get(scenarioName).changed;
+    const cChanged: MVMap = compareScenarioName === null
+        ? new Map()
+        : allScenarios.get(compareScenarioName).changed;
+
+    // Determine OAs which are different
+    const allPossibleOAs: Set<string> = new Set([
+        ...changed.keys(), ...cChanged.keys()
+    ]);
+    const differentOAs: Set<string> = new Set();
+    for (const oa of allPossibleOAs) {
+        const m1 = changed.get(oa);
+        const m2 = cChanged.get(oa);
+        if (m1 === undefined && m2 === undefined) {
+            // Both undefined - no changes occurred wrt baseline
+            continue;
+        }
+        else if (m1 === undefined || m2 === undefined) {
+            // One undefined - two scenarios are definitely different
+            differentOAs.add(oa);
+        }
+        else {
+            // Both defined - need to check if they are equal
+            if (!mapsAreEqual(m1, m2)) differentOAs.add(oa);
+        }
     }
-    else if (boundary === null) {
-        return cBoundary;
-    }
-    else if (cBoundary === null) {
-        return boundary;
-    }
-    else {
-        const mergedBoundaries = JSON.parse(JSON.stringify(boundary));
-        mergedBoundaries.features = mergedBoundaries.features.concat(cBoundary.features);
-        return mergedBoundaries;
-    }
+
+    // Extract these OAs from the base geography
+    const boundary = {
+        "type": "FeatureCollection",
+        "crs": geography.crs,
+        "features": geography.features.filter(
+            feature => differentOAs.has(feature.properties.OA11CD)
+        ),
+    } as GeoJSON.FeatureCollection;
+    return boundary;
 }
 
 export function overlayScrollbars(id: string) {

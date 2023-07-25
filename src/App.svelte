@@ -8,7 +8,6 @@
     import { makePopup } from "./hover";
     import {
         allLayers,
-        allScenarios,
         type LayerName,
         type ScenarioName,
         type CompareView,
@@ -16,7 +15,7 @@
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
-        mergeBoundaries,
+        getInputDiffBoundaries,
     } from "./utils";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
@@ -311,13 +310,13 @@
 
         // Generate the LineString layer showing the boundary of the changed
         // areas.
-        const mergedBoundaries = mergeBoundaries(
+        const diffedBoundaries = getInputDiffBoundaries(
             scenarioName,
             compareScenarioName
         );
         map.addSource("boundary", {
             type: "geojson",
-            data: mergedBoundaries,
+            data: diffedBoundaries,
         });
         map.addLayer({
             id: "boundary-layer",
@@ -380,11 +379,11 @@
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
         // Update the LineString layer
-        const mergedBoundaries = mergeBoundaries(scenarioName, compareScenarioName);
+        const diffedBoundaries = getInputDiffBoundaries(scenarioName, compareScenarioName);
         const boundarySource = map.getSource(
             "boundary"
         ) as maplibregl.GeoJSONSource;
-        boundarySource.setData(mergedBoundaries);
+        boundarySource.setData(diffedBoundaries);
         // Update the hover
         refreshClickedFeature(mapData);
     }
