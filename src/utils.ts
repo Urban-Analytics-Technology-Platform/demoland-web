@@ -1,6 +1,7 @@
 import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
+import union from "@turf/union";
 import { OverlayScrollbars } from "overlayscrollbars";
 import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX, type MacroVar } from "./constants";
 
@@ -218,6 +219,19 @@ export function getInputDiffBoundaries(
             feature => differentOAs.has(feature.properties.OA11CD)
         ),
     } as GeoJSON.FeatureCollection;
+
+    // Dissolve the boundaries. But we can't actually use dissolve because that
+    // doesn't work with MultiPolygons. We instead use union in a nice,
+    // functional-style loop.
+    if (boundary.features.length > 0) {
+        const unioned = boundary.features.reduce((acc, feature) => {
+            const featureGeometry = feature.geometry;
+            // Not sure how to best coerce GeoJSON types right now. But it
+            // works.
+            return union(acc, featureGeometry);
+        });
+        boundary.features = [unioned];
+    }
     return boundary;
 }
 
