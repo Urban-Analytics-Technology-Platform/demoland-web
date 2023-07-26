@@ -105,10 +105,6 @@ export function makeChartData(
     nbars: number
 ): ChartData {
 
-    function getScenarioShort(name: ScenarioName): string {
-        return allScenarios.find((s) => s.name === name).short;
-    }
-
     if (compareScenarioName === null) {
         // Plot one dataset only (current indicator, current scenario)
         const colors: string[] = makeColormap(indicator, nbars);
@@ -118,7 +114,7 @@ export function makeChartData(
         return {
             datasets: [
                 {
-                    label: getScenarioShort(scenarioName),
+                    label: allScenarios.get(scenarioName).short,
                     data: bins.counts,
                     backgroundColor: colors,
                     borderWidth: 0,
@@ -145,7 +141,7 @@ export function makeChartData(
             return {
                 datasets: [
                     {
-                        label: getScenarioShort(compareScenarioName),
+                        label: allScenarios.get(compareScenarioName).short,
                         data: cmpBins.counts,
                         // @ts-ignore backgroundColor can be string or string[]
                         backgroundColor: "rgba(1, 1, 1, 0)",
@@ -157,7 +153,7 @@ export function makeChartData(
                         categoryPercentage: 1.0,
                     },
                     {
-                        label: getScenarioShort(scenarioName),
+                        label: allScenarios.get(scenarioName).short,
                         data: bins.counts,
                         backgroundColor: colors,
                         borderWidth: 0,

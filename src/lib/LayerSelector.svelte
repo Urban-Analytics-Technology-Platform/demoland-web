@@ -22,16 +22,16 @@
 
 <div id="indicators">
     <div class="category-first">Land use</div>
-    {#each allInputs as inp}
-        <label id={inp.name + "-label"}
+    {#each [...allInputs.entries()] as [inputName, input]}
+        <label id={inputName + "-label"}
             ><input
                 bind:group={activeLayer}
                 type="radio"
                 on:change={changeLayer}
-                value={inp.name}
-            />{inp.short}
+                value={inputName}
+            />{input.short}
         </label>
-        {#if inp.name === "sig"}
+        {#if inputName === "sig"}
             <Tooltip --width="140px">
                 <a id="sig-descriptions" slot="content" href={signaturesUrl} target="_blank">
                     <img
@@ -49,13 +49,13 @@
     {/each}
 
     <div class="category-second">Indicators</div>
-    {#each allIndicators as indi}
-        <label id={indi.name + "-label"}
+    {#each [...allIndicators.entries()] as [indiName, indi]}
+        <label id={indiName + "-label"}
             ><input
                 bind:group={activeLayer}
                 type="radio"
                 on:change={changeLayer}
-                value={indi.name}
+                value={indiName}
             />{indi.short}
         </label>
         <br />

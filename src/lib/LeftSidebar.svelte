@@ -24,6 +24,8 @@
     export let compareScenarioName: ScenarioName | null;
     export let compareView: CompareView;
 
+    const allScenarioNames = [...allScenarios.keys()];
+
     // Keeps track of the previous scenario name to determine the direction of the transition.
     // This variable is updated when the transition occurs.
     let previousScenarioName: ScenarioName = scenarioName;
@@ -57,15 +59,15 @@
     // Custom transition
     function customFlyIn(node: HTMLElement) {
         const increased =
-            allScenarios.map((s) => s.name).indexOf(previousScenarioName) <
-            allScenarios.map((s) => s.name).indexOf(scenarioName);
+            allScenarioNames.indexOf(previousScenarioName) <
+            allScenarioNames.indexOf(scenarioName);
         previousScenarioName = scenarioName;
         return fly(node, { x: increased ? 500 : -500 });
     }
     function customFlyOut(node: HTMLElement) {
         const increased =
-            allScenarios.map((s) => s.name).indexOf(previousScenarioName) <
-            allScenarios.map((s) => s.name).indexOf(scenarioName);
+            allScenarioNames.indexOf(previousScenarioName) <
+            allScenarioNames.indexOf(scenarioName);
         return fly(node, { x: increased ? -500 : 500 });
     }
 
@@ -115,11 +117,11 @@
 
     let scenario: Scenario;
     $: {
-        scenario = allScenarios.find((s) => s.name === scenarioName);
+        scenario = allScenarios.get(scenarioName);
 
-        allScenariosExceptCompare = allScenarios
-            .map((s) => s.name)
-            .filter((s) => s !== compareScenarioName);
+        allScenariosExceptCompare = allScenarioNames.filter(
+            (s) => s !== compareScenarioName
+        );
         decreaseScenarioOk = scenarioName !== allScenariosExceptCompare[0];
         increaseScenarioOk =
             scenarioName !==
@@ -127,9 +129,7 @@
 
         allCompareScenariosExceptMain = [
             null,
-            ...allScenarios
-                .map((s) => s.name)
-                .filter((s) => s !== scenarioName),
+            ...allScenarioNames.filter((s) => s !== scenarioName),
         ];
         decreaseCompareScenarioOk =
             compareScenarioName !== allCompareScenariosExceptMain[0];
@@ -178,8 +178,8 @@
             bind:value={scenarioName}
             on:change={changeScenario}
         >
-            {#each allScenarios as scenario}
-                <option value={scenario.name}>{scenario.short}</option>
+            {#each [...allScenarios.entries()] as [name, scenario]}
+                <option value={name}>{scenario.short}</option>
             {/each}
         </select>
         <button
@@ -233,11 +233,9 @@
             on:change={changeScenario}
         >
             <option value={null}>None</option>
-            {#each allScenarios as compareScenario}
-                {#if compareScenario.name !== scenarioName}
-                    <option value={compareScenario.name}
-                        >{compareScenario.short}</option
-                    >
+            {#each [...allScenarios.entries()] as [name, compareScenario]}
+                {#if name !== scenarioName}
+                    <option value={name}>{compareScenario.short}</option>
                 {/if}
             {/each}
         </select>

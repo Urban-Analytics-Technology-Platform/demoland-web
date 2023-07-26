@@ -142,7 +142,7 @@
     });
     onDestroy(destroyChart);
 
-    let indi: Indicator = allIndicators.find((i) => i.name === indicatorName);
+    let indi: Indicator = allIndicators.get(indicatorName);
     let values: number[];
     let cmpValues: number[];
     let mean: number;

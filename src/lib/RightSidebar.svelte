@@ -43,10 +43,10 @@
             />
         </Collapsible>
 
-        {#each allIndicators as indi}
-            <Collapsible title={indi.short} collapsed={activeLayer !== "sig" && indi.name !== activeLayer}>
+        {#each [...allIndicators.entries()] as [indiName, indi]}
+            <Collapsible title={indi.short} collapsed={activeLayer !== "sig" && indiName !== activeLayer}>
                 <Chart
-                    indicatorName={indi.name}
+                    indicatorName={indiName}
                     {scenarioName}
                     {compareView}
                     {compareScenarioName}

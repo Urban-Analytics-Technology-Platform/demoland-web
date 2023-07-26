@@ -8,7 +8,6 @@
     import { makePopup } from "./hover";
     import {
         allLayers,
-        allScenarios,
         type LayerName,
         type ScenarioName,
         type CompareView,
@@ -16,7 +15,7 @@
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
-        mergeBoundaries,
+        getInputDiffBoundaries,
     } from "./utils";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
@@ -264,10 +263,10 @@
         // The way around it is to use fill-opacity (which is not data-driven)
         // for four different layers. The only real drawback is (in principle)
         // performance, but I haven't really noticed any issues so far.
-        for (const layer of allLayers) {
-            const layerName = `${layer.name}-layer`;
+        for (const layerName of allLayers.keys()) {
+            const mapLayerId = `${layerName}-layer`;
             map.addLayer({
-                id: layerName,
+                id: mapLayerId,
                 type: "fill",
                 source: NEWCASTLE_LAYER,
                 layout: {},
@@ -276,8 +275,8 @@
                         "get",
                         compareScenarioName === null ||
                         compareView === "original"
-                            ? `${layer.name}-color`
-                            : `${layer.name}-diff-color`,
+                            ? `${layerName}-color`
+                            : `${layerName}-diff-color`,
                     ],
                     "fill-opacity": 0.01,
                     // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
@@ -311,13 +310,13 @@
 
         // Generate the LineString layer showing the boundary of the changed
         // areas.
-        const mergedBoundaries = mergeBoundaries(
+        const diffedBoundaries = getInputDiffBoundaries(
             scenarioName,
             compareScenarioName
         );
         map.addSource("boundary", {
             type: "geojson",
-            data: mergedBoundaries,
+            data: diffedBoundaries,
         });
         map.addLayer({
             id: "boundary-layer",
@@ -333,12 +332,12 @@
         // Fade in the layers that we want, after a small delay to allow for
         // loading.
         setTimeout(function () {
-            for (const layer of allLayers) {
-                const layerName = `${layer.name}-layer`;
+            for (const layerName of allLayers.keys()) {
+                const mapLayerId = `${layerName}-layer`;
                 map.setPaintProperty(
-                    layerName,
+                    mapLayerId,
                     "fill-opacity",
-                    layer.name === activeLayer ? opacity : 0.01 * opacity
+                    layerName === activeLayer ? opacity : 0.01 * opacity
                 );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
@@ -364,27 +363,27 @@
     // as the opacity slider.
     function updateLayers() {
         if (map) {
-            for (const layer of allLayers) {
-                map.setPaintProperty(`${layer.name}-layer`, "fill-color", [
+            for (const layerName of allLayers.keys()) {
+                map.setPaintProperty(`${layerName}-layer`, "fill-color", [
                     "get",
                     compareScenarioName === null || compareView === "original"
-                        ? `${layer.name}-color`
-                        : `${layer.name}-diff-color`,
+                        ? `${layerName}-color`
+                        : `${layerName}-diff-color`,
                 ]);
                 map.setPaintProperty(
-                    `${layer.name}-layer`,
+                    `${layerName}-layer`,
                     "fill-opacity",
-                    layer.name === activeLayer ? opacity : 0.01 * opacity
+                    layerName === activeLayer ? opacity : 0.01 * opacity
                 );
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
         // Update the LineString layer
-        const mergedBoundaries = mergeBoundaries(scenarioName, compareScenarioName);
+        const diffedBoundaries = getInputDiffBoundaries(scenarioName, compareScenarioName);
         const boundarySource = map.getSource(
             "boundary"
         ) as maplibregl.GeoJSONSource;
-        boundarySource.setData(mergedBoundaries);
+        boundarySource.setData(diffedBoundaries);
         // Update the hover
         refreshClickedFeature(mapData);
     }
