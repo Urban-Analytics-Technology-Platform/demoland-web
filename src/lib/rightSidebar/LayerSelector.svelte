@@ -4,9 +4,9 @@
         type LayerName,
         allIndicators,
         signaturesUrl,
-    } from "../constants";
-    import Tooltip from "./Tooltip.svelte";
-    import showWelcomeIcon from "../assets/show-welcome.svg";
+    } from "../../constants";
+    import Tooltip from "../reusable/Tooltip.svelte";
+    import showWelcomeIcon from "../../assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
     export let activeLayer: LayerName;
     export let opacity: number;
@@ -33,7 +33,12 @@
         </label>
         {#if inputName === "signature_type"}
             <Tooltip --width="140px">
-                <a id="sig-descriptions" slot="content" href={signaturesUrl} target="_blank">
+                <a
+                    id="sig-descriptions"
+                    slot="content"
+                    href={signaturesUrl}
+                    target="_blank"
+                >
                     <img
                         src={showWelcomeIcon}
                         alt="A link to descriptions of spatial signatures on the Urban Grammar website."

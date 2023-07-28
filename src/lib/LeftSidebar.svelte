@@ -5,7 +5,7 @@
         allScenarios,
         type CompareView,
     } from "../constants";
-    import Tooltip from "./Tooltip.svelte";
+    import Tooltip from "./reusable/Tooltip.svelte";
     import swapIcon from "../assets/swap.svg";
     import swapIconDisabled from "../assets/swap-disabled.svg";
     import leftIcon from "../assets/left.svg";

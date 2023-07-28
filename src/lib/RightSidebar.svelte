@@ -1,7 +1,7 @@
 <script lang="ts">
-    import Chart from "./Chart.svelte";
-    import LayerSelector from "./LayerSelector.svelte";
-    import Collapsible from "./Collapsible.svelte";
+    import Chart from "./rightSidebar/Chart.svelte";
+    import LayerSelector from "./rightSidebar/LayerSelector.svelte";
+    import Collapsible from "./reusable/Collapsible.svelte";
     import {
         type LayerName,
         type ScenarioName,
