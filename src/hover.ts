@@ -9,8 +9,8 @@ import {
     signatures,
 } from "./constants";
 
-// Construct raw HTML for the hover popup. This is really ugly, but works well
-// enough for our small use case.
+// Construct raw HTML for the hover popup. This is really ugly, but MapLibre
+// doesn't seem to let us do much else (?).
 function makeHoverHtml(feat: GeoJSON.Feature,
     compareScenarioName: ScenarioName | null,
     activeFactor: LayerName,
@@ -20,25 +20,27 @@ function makeHoverHtml(feat: GeoJSON.Feature,
     }
 
     function makeSig(): string {
-        const sig = signatures[feat.properties.sig].name;
-        const sigColor = signatures[feat.properties.sig].color;
+        const sig: number = feat.properties["signature_type"];
+        const sigName: string = signatures[sig].name;
+        const sigColor: string = signatures[sig].color;
         if (compareScenarioName === null) {
-            return activeFactor === "sig"
-                ? `<span class="oa-grid-item strong">${makeColoredBlock(sigColor)}&nbsp;${sig}</span>`
-                : `<span class="oa-grid-item strong">${sig}</span>`;
+            return activeFactor === "signature_type"
+                ? `<span class="oa-grid-item strong">${makeColoredBlock(sigColor)}&nbsp;${sigName}</span>`
+                : `<span class="oa-grid-item strong">${sigName}</span>`;
         } else {
-            const cmpSig = signatures[feat.properties["sig-cmp"]].name;
-            if (sig === cmpSig) {
-                return activeFactor === "sig"
-                    ? `<span class="oa-grid-item strong">${makeColoredBlock(sigColor)}&nbsp;${sig}</span>`
-                    : `<span class="oa-grid-item strong">${sig}</span>`;
+            const cmpSig = signatures[feat.properties["signature_type-cmp"]].name;
+            if (sigName === cmpSig) {
+                return activeFactor === "signature_type"
+                    ? `<span class="oa-grid-item strong">${makeColoredBlock(sigColor)}&nbsp;${sigName}</span>`
+                    : `<span class="oa-grid-item strong">${sigName}</span>`;
             } else {
-                return activeFactor === "sig"
-                    ? `<span class="oa-grid-item old-sig">${cmpSig}</span><span class="oa-grid-item strong">&nbsp;&nbsp;↳ &nbsp;${makeColoredBlock(sigColor)}&nbsp;${sig}</span>`
-                    : `<span class="oa-grid-item old-sig">${cmpSig}</span><span class="oa-grid-item strong">&nbsp;&nbsp;↳ ${sig}</span>`;
+                return activeFactor === "signature_type"
+                    ? `<span class="oa-grid-item old-sig">${cmpSig}</span><span class="oa-grid-item strong">&nbsp;&nbsp;↳ &nbsp;${makeColoredBlock(sigColor)}&nbsp;${sigName}</span>`
+                    : `<span class="oa-grid-item old-sig">${cmpSig}</span><span class="oa-grid-item strong">&nbsp;&nbsp;↳ ${sigName}</span>`;
             }
         }
     }
+
     function makeIndi(name: IndicatorName, indi: Indicator): string {
         const val = feat.properties[name];
         let color: string;
@@ -65,6 +67,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
             `</span>`,
         ].join("");
     }
+
     return [
         `<div class="hover-grid">`,
         `<span class="oa-grid-item oa-name">${feat.properties.OA11CD}</span>`,

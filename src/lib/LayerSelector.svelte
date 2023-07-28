@@ -31,7 +31,7 @@
                 value={inputName}
             />{input.short}
         </label>
-        {#if inputName === "sig"}
+        {#if inputName === "signature_type"}
             <Tooltip --width="140px">
                 <a id="sig-descriptions" slot="content" href={signaturesUrl} target="_blank">
                     <img

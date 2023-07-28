@@ -44,7 +44,7 @@
         </Collapsible>
 
         {#each [...allIndicators.entries()] as [indiName, indi]}
-            <Collapsible title={indi.short} collapsed={activeLayer !== "sig" && indiName !== activeLayer}>
+            <Collapsible title={indi.short} collapsed={activeLayer !== "signature_type" && indiName !== activeLayer}>
                 <Chart
                     indicatorName={indiName}
                     {scenarioName}

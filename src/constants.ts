@@ -65,12 +65,12 @@ export const allIndicators: Map<IndicatorName, Indicator> = new Map([
 
 /* Model inputs (land use) */
 
-export type InputName = "sig";
+export type InputName = "signature_type";
 
 export type Input = { short: string };
 
 export const allInputs: Map<InputName, Input> = new Map([
-    ["sig", { "short": "Spatial signatures" }]
+    ["signature_type", { "short": "Spatial signatures" }]
 ]);
 
 /* A generic type, handling all inputs and outputs which can be visualised as a
@@ -118,7 +118,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
                 const val = Math.max(json[oa][indicator], 0);
                 oaMap.set(indicator as IndicatorName, val);
             }
-            oaMap.set("sig", json[oa]["sig"]);
+            oaMap.set("signature_type", json[oa]["signature_type"]);
             map.set(oa, oaMap);
         }
         return map;

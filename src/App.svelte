@@ -27,7 +27,7 @@
     // The layer for the OA data
     const NEWCASTLE_LAYER = "newcastle-layer";
     // The currently active map layer
-    let activeLayer: LayerName = "sig";
+    let activeLayer: LayerName = "signature_type";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
