@@ -153,7 +153,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["scenario1", {
             "name": "scenario1",
             "short": "Scenario 1",
-            "long": "Scenario 1: low-density residential development",
+            "long": "1: Low-density residential development",
             "values": makeValuesMapFromJson(scenario1Vals),
             "description": [
                 "This scenario models the situation where land in the green belt is released for development. The area is taken over by a large developer used to build residential areas around the country. The new neighbourhood is a combination of low-rise detached and semi-detached housing with only minimal additional land use. The primarily residential neighbourhood does not generate a significant amount of jobs, inducing higher traffic to industrial zones and Newcastle city centre. The development is located west of the city around Callerton.",
@@ -164,7 +164,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["scenario2", {
             "name": "scenario2",
             "short": "Scenario 2",
-            "long": "Scenario 2: mid-density mixed neighbourhood",
+            "long": "2: Mid-density mixed neighbourhood",
             "values": makeValuesMapFromJson(scenario2Vals),
             "description": [
                 "This scenario models the development in the green belt under the idea of a 15-minute neighbourhood that is dense, therefore taking up less space and mixed in terms of use. Such a neighbourhood contains not only residential housing but also a few places for new retail, commercial, and other uses. As such, it should be more self-sufficient than the low-density Scenario 1, inducing less traffic from the neighbourhood to other areas in the city. The development is assumed to be in the same area west of Callerton as in Scenario 1. The form is composed more of row houses and multi-story tenement buildings forming the centre of the new neighbourhood.",
@@ -175,7 +175,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["scenario3", {
             "name": "scenario3",
             "short": "Scenario 3",
-            "long": "Scenario 3: densification of inner city",
+            "long": "3: Densification of inner city",
             "values": makeValuesMapFromJson(scenario3Vals),
             "description": [
                 "This densification scenario models a high-density development in the already developed areas, following the gradual infill and rebuilding existing buildings into higher ones with more mixed-use. It is a long-term strategy aimed at preserving green spaces (especially the green belt) and creating 15-minute neighbourhoods in the existing city by adding new layers of functionality and new inhabitants to places that are already built. The scenario affects most of the city, with higher densification levels around local centres and main streets and lower levels in suburban residential areas.",
@@ -186,7 +186,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["scenario4", {
             "name": "scenario4",
             "short": "Scenario 4",
-            "long": "Scenario 4: brownfields to dense neighbourhoods",
+            "long": "4: Brownfields to dense neighbourhoods",
             "values": makeValuesMapFromJson(scenario4Vals),
             "description": [
                 "Existing brownfield land is redeveloped into high-density neighbourhoods with mixed-use, providing housing, services, and commercial units in an attempt to densify the inner city without affecting existing areas. Compared to Scenario 3, this strategy is less invasive but has a lower scale. However, both scenarios can be potentially combined, as shown in Scenario 6.",
@@ -197,7 +197,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["scenario5", {
             "name": "scenario5",
             "short": "Scenario 5",
-            "long": "Scenario 5: brownfields into parks",
+            "long": "5: Brownfields into parks",
             "values": makeValuesMapFromJson(scenario5Vals),
             "description": [
                 "Contrary to Scenario 4, this scenario assumes that all the brownfield land is turned into urban parks with no development. While it does not help to solve the issue of the capacity of a city, it may be viewed favourably by the local population and can balance potential densification as outlined in Scenario 3. Both Scenarios 3 and 5 can be combined, as shown in Scenario 7.",
@@ -209,7 +209,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["scenario6", {
             "name": "scenario6",
             "short": "Scenario 6",
-            "long": "Scenario 6: urbanisation to the edge",
+            "long": "6: Urbanisation to the edge",
             "values": makeValuesMapFromJson(scenario6Vals),
             "description": [
                 "This scenario models the city following the densification strategies outlined in both Scenarios 3, where we target higher density to already-dense central areas, and Scenario 4, we model the development of dense neighbourhoods in the brownfield and industrial areas around the River Tyne. As such, the scenario combines changes from Scenarios 3 and 4."
@@ -220,7 +220,7 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["scenario7", {
             "name": "scenario7",
             "short": "Scenario 7",
-            "long": "Scenario 7: urbanisation with greenery",
+            "long": "7: Urbanisation with greenery",
             "values": makeValuesMapFromJson(scenario7Vals),
             "description": [
                 "This scenario directs changes to two locations in two different directions. First, it assumes the densification of an already-dense city centre as outlined in Scenario 3, adding further population, jobs, and services to the area. Second, it combines this densification with the creation of new large parks around the River Tyne, where current brownfields and industrial areas are. As such, the scenario is, in principle, a combination of changes from Scenarios 3 and 5."
