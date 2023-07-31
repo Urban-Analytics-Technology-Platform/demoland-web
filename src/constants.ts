@@ -278,3 +278,5 @@ export const signatures = [
 export const signaturesUrl: string = "https://urbangrammarai.xyz/story/#ss"
 
 export const bookUrl: string = "https://ciupava.github.io/LandUseDemonstrator"
+
+export const engineGithubUrl: string = "https://github.com/martinfleis/demoland_engine"

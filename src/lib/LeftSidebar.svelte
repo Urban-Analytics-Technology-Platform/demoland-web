@@ -1,7 +1,5 @@
 <script lang="ts">
-    import {
-        type ScenarioName,
-    } from "../constants";
+    import { type ScenarioName } from "../constants";
     import Tooltip from "./reusable/Tooltip.svelte";
     import showWelcomeIcon from "../assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
@@ -9,7 +7,9 @@
     import { overlayScrollbars } from "../utils";
     import { onMount } from "svelte";
     const dispatch = createEventDispatcher();
-    import ScenarioSelector from "./leftSidebar/ScenarioSelector.svelte";
+    import Choose from "./leftSidebar/Choose.svelte";
+    import Create from "./leftSidebar/Create.svelte";
+    import Import from "./leftSidebar/Import.svelte";
 
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
@@ -17,6 +17,8 @@
     function showWelcome() {
         dispatch("showWelcome", {});
     }
+
+    let selectedTab: "choose" | "create" | "import" = "choose";
 
     onMount(() => {
         overlayScrollbars("sidebar");
@@ -43,11 +45,51 @@
 
     <p>All indicator values range from 0 to 100.</p>
 
-    <ScenarioSelector
-        bind:scenarioName
-        bind:compareScenarioName
-        on:changeScenario
-    />
+    <div id="scenario-selector">
+        <div class="tabs">
+            <input
+                type="radio"
+                class="tab-input"
+                id="choose"
+                bind:group={selectedTab}
+                value="choose"
+                checked
+            />
+            <label for="choose" class="tab-label">Choose scenario</label>
+
+            <input
+                type="radio"
+                class="tab-input"
+                id="create"
+                bind:group={selectedTab}
+                value="create"
+            />
+            <label for="create" class="tab-label">Create your own</label>
+
+            <input
+                type="radio"
+                class="tab-input"
+                id="import"
+                bind:group={selectedTab}
+                value="import"
+            />
+            <label for="import" class="tab-label">Import from file</label>
+        </div>
+
+        <div class="tab-content">
+            {#if selectedTab === "choose"}
+                <Choose
+                    bind:scenarioName
+                    bind:compareScenarioName
+                    on:changeScenario
+                />
+            {:else if selectedTab === "create"}
+                <Create />
+            {:else if selectedTab === "import"}
+                <Import />
+            {/if}
+        </div>
+    </div>
 </div>
 
 <style>
@@ -86,5 +128,45 @@
     button#show-welcome > img {
         height: 100%;
         width: 100%;
+    }
+
+    div#scenario-selector {
+        margin-top: 15px;
+    }
+    div.tabs {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    input.tab-input {
+        display: none;
+    }
+
+    label.tab-label {
+        display: block;
+        padding: 5px 10px;
+        border: 1px solid #e6e6e6;
+        border-bottom: none;
+        border-radius: 6px 6px 0px 0px;
+        background-color: #f0f0f0;
+        color: #333333;
+        cursor: pointer;
+        font-family: inherit;
+        text-align: center;
+        font-size: 90%;
+    }
+
+    input.tab-input:checked + label.tab-label {
+        background-color: #ffffff;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    div.tab-content {
+        padding: 10px 10px 12px 10px;
+        border: 1px solid #e6e6e6;
+        border-radius: 0px 0px 6px 6px;
+        background-color: #ffffff;
     }
 </style>
