@@ -140,12 +140,10 @@ function setupScenarios(globalMin: number, globalMax: number): Map<ScenarioName,
         ["baseline", {
             "name": "baseline",
             "short": "Baseline",
-            "long": "Tyne and Wear today",
+            "long": "Baseline: Tyne and Wear now",
             "values": makeValuesMapFromJson(baselineVals),
             "description": [
                 "The baseline reflects the situation in Tyne and Wear as our models see it today. It shows what the four indicators are predicted to be using existing land use data.",
-                `All indicator values range from ${GLOBALMIN} to ${GLOBALMAX}.`,
-                "Select a development scenario above and compare it against the baseline to see the impact of the modelled development strategies on any of the four indicators."
             ],
             // This is an empty value which doesn't trigger an error when calling addSource.
             "changed": makeChangedMapFromJson({}),

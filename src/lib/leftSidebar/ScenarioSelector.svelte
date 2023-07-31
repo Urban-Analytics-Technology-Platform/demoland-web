@@ -1,11 +1,8 @@
 <script lang="ts">
-    import swapIcon from "../../assets/swap.svg";
-    import swapIconDisabled from "../../assets/swap-disabled.svg";
     import leftIcon from "../../assets/left.svg";
     import leftIconDisabled from "../../assets/left-disabled.svg";
     import rightIcon from "../../assets/right.svg";
     import rightIconDisabled from "../../assets/right-disabled.svg";
-    import Tooltip from "../reusable/Tooltip.svelte";
     import {
         type Scenario,
         allScenarios,
@@ -13,19 +10,21 @@
         type CompareView,
     } from "../../constants";
     import { createEventDispatcher } from "svelte";
-    import { fly } from "svelte/transition";
+    import { fly, slide } from "svelte/transition";
 
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null = null;
-    export let compareView: CompareView;
+    export let compareView: CompareView = "original";
 
     const dispatch = createEventDispatcher();
 
     const allScenarioNames = [...allScenarios.keys()];
+    const allCompareScenarioNames = [null, ...allScenarioNames];
 
     // Keeps track of the previous scenario name to determine the direction of the transition.
     // This variable is updated when the transition occurs.
     let previousScenarioName: ScenarioName = scenarioName;
+    let previousCompareScenarioName: ScenarioName | null = compareScenarioName;
 
     function changeScenario() {
         if (compareScenarioName === scenarioName) {
@@ -34,21 +33,19 @@
         }
         dispatch("changeScenario", {});
     }
-    function changeCompareView() {
-        dispatch("changeCompareView", {});
-    }
 
-    function swapScenarios() {
-        if (compareScenarioName !== null) {
-            const tmp = scenarioName;
-            scenarioName = compareScenarioName;
-            compareScenarioName = tmp;
-            changeScenario();
-        }
-    }
     function setMaxHeightToZero(event: CustomEvent) {
         const div = event.target as HTMLDivElement;
         div.style.maxHeight = "0px";
+    }
+
+    let descriptionVisible = false;
+    function toggleDescriptionVisible() {
+        descriptionVisible = !descriptionVisible;
+    }
+    let compareDescriptionVisible = false;
+    function toggleCompareDescriptionVisible() {
+        compareDescriptionVisible = !compareDescriptionVisible;
     }
 
     // Custom transition
@@ -65,6 +62,19 @@
             allScenarioNames.indexOf(scenarioName);
         return fly(node, { x: increased ? -500 : 500 });
     }
+    function customFlyInCmp(node: HTMLElement) {
+        const increased =
+            allCompareScenarioNames.indexOf(previousCompareScenarioName) <
+            allCompareScenarioNames.indexOf(compareScenarioName);
+        previousCompareScenarioName = compareScenarioName;
+        return fly(node, { x: increased ? 500 : -500 });
+    }
+    function customFlyOutCmp(node: HTMLElement) {
+        const increased =
+            allCompareScenarioNames.indexOf(previousCompareScenarioName) <
+            allCompareScenarioNames.indexOf(compareScenarioName);
+        return fly(node, { x: increased ? -500 : 500 });
+    }
 
     // Logic for the left/right buttons to control dropdowns. The variables are
     // updated in the reactive block
@@ -75,7 +85,7 @@
     let decreaseCompareScenarioOk: boolean;
     let increaseCompareScenarioOk: boolean;
 
-    let selectedTab: "choose" | "compare" | "create" = "choose";
+    let selectedTab: "choose" | "create" | "import" = "choose";
 
     function decreaseScenario() {
         const index = allScenariosExceptCompare.indexOf(scenarioName);
@@ -109,8 +119,13 @@
     }
 
     let scenario: Scenario;
+    let compareScenario: Scenario | null;
     $: {
         scenario = allScenarios.get(scenarioName);
+        compareScenario =
+            compareScenarioName === null
+                ? null
+                : allScenarios.get(compareScenarioName);
 
         allScenariosExceptCompare = allScenarioNames.filter(
             (s) => s !== compareScenarioName
@@ -134,7 +149,7 @@
     }
 </script>
 
-<div>
+<div id="scenario-selector">
     <div class="tabs">
         <input
             type="radio"
@@ -149,24 +164,29 @@
         <input
             type="radio"
             class="tab-input"
-            id="compare"
-            bind:group={selectedTab}
-            value="compare"
-        />
-        <label for="compare" class="tab-label">Compare against</label>
-
-        <input
-            type="radio"
-            class="tab-input"
             id="create"
             bind:group={selectedTab}
             value="create"
         />
         <label for="create" class="tab-label">Create your own</label>
+
+        <input
+            type="radio"
+            class="tab-input"
+            id="import"
+            bind:group={selectedTab}
+            value="import"
+        />
+        <label for="import" class="tab-label">Import from file</label>
     </div>
 
     <div class="tab-content">
         {#if selectedTab === "choose"}
+            Select a scenario and compare it against the baseline to see the
+            impact of the modelled development strategies on any of the four
+            indicators.
+
+            <h3>Main scenario</h3>
             <div class="controls-grid">
                 <button
                     class="controls"
@@ -199,29 +219,35 @@
                         alt="Increase scenario"
                     />
                 </button>
+                <button class="toggle-description" on:click={toggleDescriptionVisible}>
+                    {descriptionVisible ? " hide description " : " show description "}
+                    <span class="small-icon">{descriptionVisible ? "∧" : "∨"}</span>
+                </button>
             </div>
 
-            <!-- This wrapper container is used to make the fly transition work without a 'jumping' effect'. See https://stackoverflow.com/questions/59882179 -->
-            <div id="scenario-description-container">
-                {#key scenarioName}
-                    <div
-                        id="scenario-description"
-                        in:customFlyIn|local
-                        out:customFlyOut|local
-                        on:outrostart={setMaxHeightToZero}
-                    >
-                        <p>
-                            <!-- eslint-disable-next-line -->
-                            {@html scenario.description[0]}
-                        </p>
-                        {#each scenario.description.slice(1) as para}
-                            <!-- eslint-disable-next-line -->
-                            <p>{@html para}</p>
-                        {/each}
-                    </div>
-                {/key}
-            </div>
-        {:else if selectedTab === "compare"}
+            {#if descriptionVisible}
+                <div id="scenario-description-container" transition:slide>
+                    {#key scenarioName}
+                        <div
+                            id="scenario-description"
+                            in:customFlyIn|local
+                            out:customFlyOut|local
+                            on:outrostart={setMaxHeightToZero}
+                        >
+                            <p>
+                                <!-- eslint-disable-next-line -->
+                                {@html scenario.description[0]}
+                            </p>
+                            {#each scenario.description.slice(1) as para}
+                                <!-- eslint-disable-next-line -->
+                                <p>{@html para}</p>
+                            {/each}
+                        </div>
+                    {/key}
+                </div>
+            {/if}
+
+            <h3>Compare against</h3>
             <div class="controls-grid">
                 <button
                     class="controls"
@@ -262,59 +288,48 @@
                     />
                 </button>
                 {#if compareScenarioName !== null}
-                    <span id="view-choices">
-                        <label
-                            ><input
-                                bind:group={compareView}
-                                type="radio"
-                                value="difference"
-                                on:change={changeCompareView}
-                            />View differences</label
-                        >
-                        <br />
-                        <label
-                            ><input
-                                bind:group={compareView}
-                                type="radio"
-                                value="original"
-                                on:change={changeCompareView}
-                            />View only {scenario.short}</label
-                        >
-                    </span>
+                    <button class="toggle-description" on:click={toggleCompareDescriptionVisible}>
+                        {compareDescriptionVisible ? " hide description " : " show description "}
+                        <span class="small-icon">{compareDescriptionVisible ? "∧" : "∨"}</span>
+                    </button>
                 {/if}
             </div>
+
+            {#if compareDescriptionVisible && compareScenarioName !== null}
+                <div id="compare-scenario-description-container" transition:slide>
+                    {#key compareScenarioName}
+                        <div
+                            id="compare-scenario-description"
+                            in:customFlyInCmp|local
+                            out:customFlyOutCmp|local
+                            on:outrostart={setMaxHeightToZero}
+                        >
+                            <p>
+                                <!-- eslint-disable-next-line -->
+                                {@html compareScenario.description[0]}
+                            </p>
+                            {#each compareScenario.description.slice(1) as para}
+                                <!-- eslint-disable-next-line -->
+                                <p>{@html para}</p>
+                            {/each}
+                        </div>
+                    {/key}
+                </div>
+            {/if}
         {:else if selectedTab === "create"}
             Create your own scenario by changing values on the map. Coming soon
             to a web app near you...
+        {:else if selectedTab === "import"}
+            Import a scenario you have previously saved. Coming soon to a web
+            app near you...
         {/if}
     </div>
-
-    {#if false}
-        <!-- re-enable if needed -->
-        <div id="swap-button-container">
-            <Tooltip --width="max-content" --transformy="-7px">
-                <button
-                    slot="content"
-                    class="controls"
-                    on:click={swapScenarios}
-                    disabled={compareScenarioName === null}
-                >
-                    <img
-                        id="swap-icon"
-                        src={compareScenarioName === null
-                            ? swapIconDisabled
-                            : swapIcon}
-                        alt="Swap scenarios"
-                        height="15px"
-                    />
-                </button>
-                <span slot="description">Swap</span>
-            </Tooltip>
-        </div>
-    {/if}
 </div>
 
 <style>
+    div#scenario-selector {
+        margin-top: 15px;
+    }
     div.tabs {
         display: grid;
         gap: 10px;
@@ -346,19 +361,10 @@
     }
 
     div.tab-content {
-        padding: 10px;
+        padding: 10px 10px 12px 10px;
         border: 1px solid #e6e6e6;
         border-radius: 0px 0px 6px 6px;
         background-color: #ffffff;
-    }
-
-    span#view-choices {
-        grid-column: 2 / 3;
-    }
-
-    img#swap-icon {
-        padding: 1px;
-        height: 12px;
     }
 
     div.controls-grid {
@@ -367,6 +373,7 @@
         grid-template-columns: max-content 1fr max-content;
         align-items: center;
         gap: 10px;
+        grid-row-gap: 5px;
     }
 
     button.controls {
@@ -391,6 +398,18 @@
         background-color: #d0d0d0;
     }
 
+    button.toggle-description {
+        font-size: 80%;
+        grid-column: 2 / 3;
+        background-color: #ffffff;
+        border: 0px;
+        color: #565656;
+    }
+    span.small-icon {
+        margin-left: 5px;
+        font-size: 80%;
+    }
+
     img.control-arrows {
         width: 8px;
         padding-bottom: 1px;
@@ -399,18 +418,23 @@
     select {
         font-family: inherit;
     }
+    h3 {
+        font-size: 100%;
+        font-weight: bold;
+    }
 
-    div#scenario-description-container {
+    div#scenario-description-container, div#compare-scenario-description-container {
+        padding-top: 5px;
         display: grid;
     }
-    h3#scenario-title {
-        font-size: 110%;
-    }
-    div#scenario-description {
+    div#scenario-description, div#compare-scenario-description {
         grid-column: 1;
         grid-row: 1;
     }
-    div#scenario-description > :last-child {
+    div#scenario-description > :first-child, div#compare-scenario-description > :first-child {
+        margin-top: 0 !important;
+    }
+    div#scenario-description > :last-child, div#compare-scenario-description > :last-child {
         margin-bottom: 0 !important;
     }
 </style>

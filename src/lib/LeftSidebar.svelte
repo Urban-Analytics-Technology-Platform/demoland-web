@@ -31,6 +31,7 @@
     <p>
         Explore a modelled impact of various development scenarios in Tyne and
         Wear on four indicators of quality of life.
+
         <Tooltip --width="max-content" --transformy="35px">
             <button slot="content" id="show-welcome" on:click={showWelcome}
                 ><img
@@ -41,6 +42,8 @@
             <span slot="description">Show welcome screen</span>
         </Tooltip>
     </p>
+
+    <p>All indicator values range from 0 to 100.</p>
 
     <ScenarioSelector
         bind:scenarioName
