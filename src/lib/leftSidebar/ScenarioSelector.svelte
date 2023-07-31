@@ -220,7 +220,7 @@
                     />
                 </button>
                 <button class="toggle-description" on:click={toggleDescriptionVisible}>
-                    {descriptionVisible ? " hide description " : " show description "}
+                    <span class="instruction">{descriptionVisible ? "hide description" : "show description"}</span>
                     <span class="small-icon">{descriptionVisible ? "∧" : "∨"}</span>
                 </button>
             </div>
@@ -289,7 +289,7 @@
                 </button>
                 {#if compareScenarioName !== null}
                     <button class="toggle-description" on:click={toggleCompareDescriptionVisible}>
-                        {compareDescriptionVisible ? " hide description " : " show description "}
+                        <span class="instruction">{compareDescriptionVisible ? "hide description" : "show description"}</span>
                         <span class="small-icon">{compareDescriptionVisible ? "∧" : "∨"}</span>
                     </button>
                 {/if}
@@ -405,9 +405,18 @@
         border: 0px;
         color: #565656;
     }
+    button.toggle-description:hover {
+        color: #303030;
+        cursor: pointer;
+    }
+    button.toggle-description:hover > span.instruction {
+        text-decoration: underline;
+    }
     span.small-icon {
-        margin-left: 5px;
+        margin-left: 3px;
         font-size: 80%;
+        position: relative;
+        top: -1px;
     }
 
     img.control-arrows {
