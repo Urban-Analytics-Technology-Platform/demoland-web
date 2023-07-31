@@ -5,7 +5,6 @@
         type Indicator,
         allIndicators,
         type ScenarioName,
-        type CompareView,
     } from "../../constants";
     import {
         type ChartDataset,
@@ -18,7 +17,6 @@
     export let indicatorName: IndicatorName;
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
-    export let compareView: CompareView;
 
     // Number of bars to use in the chart
     const nbars = 11;
@@ -73,8 +71,7 @@
                             callback: (val) =>
                                 prettyLabel(
                                     val as number,
-                                    compareView === "difference" &&
-                                        compareScenarioName !== null
+                                    compareScenarioName !== null
                                 ),
                             maxRotation: 0,
                             minRotation: 0,
@@ -90,9 +87,7 @@
                 },
                 plugins: {
                     legend: {
-                        display:
-                            compareScenarioName !== null &&
-                            compareView !== "difference",
+                        display: false,
                         labels: {
                             boxWidth: 20,
                             font: { family: "IBM Plex Sans" },
@@ -112,7 +107,6 @@
         if (chart === null) return;
         const chartData = makeChartData(
             indicatorName,
-            compareView,
             scenarioName,
             compareScenarioName,
             nbars
@@ -121,8 +115,7 @@
         chart.data.labels = chartData.labels;
         // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
         chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
-        chart.options.plugins.legend.display =
-            compareScenarioName !== null && compareView !== "difference";
+        chart.options.plugins.legend.display = false;
         chart.options.plugins.legend.labels.generateLabels = (chart) =>
             patchedGenerateLabels(chart, chartData.datasets);
         noChangesAtAll =
@@ -135,7 +128,6 @@
         drawChart(
             makeChartData(
                 indicatorName,
-                compareView,
                 scenarioName,
                 compareScenarioName,
                 nbars
@@ -159,7 +151,7 @@
     }
 
     $: {
-        indicatorName, scenarioName, compareScenarioName, compareView;
+        indicatorName, scenarioName, compareScenarioName;
         updateChart();
         values = getValues(indicatorName, scenarioName);
         mean = getMean(values);
@@ -175,7 +167,7 @@
 </script>
 
 <div class="chart-container">
-    {#if compareView === "original" || compareScenarioName === null}
+    {#if compareScenarioName === null}
         <p>
             Mean: {mean.toFixed(2)}
             {#if compareScenarioName !== null}({diffMeanPct >= 0
@@ -199,14 +191,10 @@
         </div>
         <div class="chart-pointers">
             <div class="chart-pointers-left">
-                ← {compareView === "difference" && compareScenarioName !== null
-                    ? indi.less_diff
-                    : indi.less}
+                ← {compareScenarioName !== null ? indi.less_diff : indi.less}
             </div>
             <div class="chart-pointers-right">
-                {compareView === "difference" && compareScenarioName !== null
-                    ? indi.more_diff
-                    : indi.more} →
+                {compareScenarioName !== null ? indi.more_diff : indi.more} →
             </div>
         </div>
     </div>

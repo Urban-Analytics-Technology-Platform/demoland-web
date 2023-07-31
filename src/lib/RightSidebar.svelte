@@ -5,7 +5,6 @@
     import {
         type LayerName,
         type ScenarioName,
-        type CompareView,
         allIndicators,
     } from "../constants";
 
@@ -17,7 +16,6 @@
     export let opacity: number;
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
-    export let compareView: CompareView;
 
     // Events which need to bubble up to main App
     import { createEventDispatcher } from "svelte";
@@ -48,7 +46,6 @@
                 <Chart
                     indicatorName={indiName}
                     {scenarioName}
-                    {compareView}
                     {compareScenarioName}
                 />
             </Collapsible>

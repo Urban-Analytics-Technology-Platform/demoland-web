@@ -1,7 +1,6 @@
 <script lang="ts">
     import {
         type ScenarioName,
-        type CompareView,
     } from "../constants";
     import Tooltip from "./reusable/Tooltip.svelte";
     import showWelcomeIcon from "../assets/show-welcome.svg";
@@ -14,7 +13,6 @@
 
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null;
-    export let compareView: CompareView;
 
     function showWelcome() {
         dispatch("showWelcome", {});
@@ -48,9 +46,7 @@
     <ScenarioSelector
         bind:scenarioName
         bind:compareScenarioName
-        bind:compareView
         on:changeScenario
-        on:changeCompareView
     />
 </div>
 

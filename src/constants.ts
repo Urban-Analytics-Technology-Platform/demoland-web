@@ -15,8 +15,6 @@ import scenario5Changed from "./assets/input-changes/scenario5.json";
 import scenario6Changed from "./assets/input-changes/scenario6.json";
 import scenario7Changed from "./assets/input-changes/scenario7.json";
 
-export type CompareView = "original" | "difference";
-
 /* Output indicators */
 
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";

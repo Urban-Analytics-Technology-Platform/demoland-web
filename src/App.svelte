@@ -10,7 +10,6 @@
         allLayers,
         type LayerName,
         type ScenarioName,
-        type CompareView,
     } from "./constants";
     import {
         makeCombinedGeoJSON,
@@ -41,8 +40,6 @@
     let scenarioName: ScenarioName = "baseline";
     // Scenario to compare against. Null to not compare.
     let compareScenarioName: ScenarioName | null = null;
-    // Method to visualise scenario comparison
-    let compareView: CompareView = "difference";
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
@@ -275,8 +272,7 @@
                 paint: {
                     "fill-color": [
                         "get",
-                        compareScenarioName === null ||
-                        compareView === "original"
+                        compareScenarioName === null
                             ? `${layerName}-color`
                             : `${layerName}-diff-color`,
                     ],
@@ -368,7 +364,7 @@
             for (const layerName of allLayers.keys()) {
                 map.setPaintProperty(`${layerName}-layer`, "fill-color", [
                     "get",
-                    compareScenarioName === null || compareView === "original"
+                    compareScenarioName === null
                         ? `${layerName}-color`
                         : `${layerName}-diff-color`,
                 ]);
@@ -430,6 +426,8 @@
                 center: initialCentre,
                 zoom: initialZoom,
                 speed: 1.5,
+                bearing: 0,
+                pitch: 0,
             });
         }
     }
@@ -444,9 +442,7 @@
         <LeftSidebar
             bind:scenarioName
             bind:compareScenarioName
-            bind:compareView
             on:changeScenario={updateScenario}
-            on:changeCompareView={updateLayers}
             on:showWelcome={() => {
                 welcomeVisible = true;
             }}
@@ -470,7 +466,6 @@
             on:changeOpacity={updateLayers}
             {scenarioName}
             {compareScenarioName}
-            {compareView}
         />
     </div>
 </main>
