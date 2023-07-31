@@ -225,6 +225,8 @@
         map.on("move", function () {
             const bounds = map.getBounds();
             offcentre =
+                map.getPitch() !== 0 ||
+                map.getBearing() !== 0 ||
                 map.getZoom() < 6 ||
                 bounds.getWest() > -1.35 ||
                 bounds.getEast() < -1.855 ||
@@ -454,7 +456,7 @@
             {#if offcentre}
                 <input
                     type="button"
-                    value="Centre map"
+                    value="Reset view"
                     id="recentre"
                     on:click={recentreMap}
                 />
