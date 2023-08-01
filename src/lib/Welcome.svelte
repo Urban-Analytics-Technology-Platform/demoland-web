@@ -4,6 +4,7 @@
     import rightSidebarScreenshot from "../assets/right-sidebar.png";
     import mapScreenshot from "../assets/map.png";
     import { bookUrl } from "../constants";
+    import CloseButton from "./reusable/CloseButton.svelte";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =
@@ -47,14 +48,12 @@
                         >Do not show on page load</label
                     >
                 </span>
-                <button
-                    id="close-button"
+                <CloseButton
+                    --width="20px"
                     on:click={() => {
                         welcomeVisible = false;
                     }}
-                >
-                    <img src={closeButtonUrl} alt="Close" />
-                </button>
+                />
             </div>
         </div>
 
@@ -186,7 +185,7 @@
 
 <style>
     button#background-cover-button {
-        /* remove all styling */
+        /* remove all styling. Could use display: contents instead. */
         background: none;
         border: none;
         padding: 0;
@@ -254,26 +253,6 @@
         display: flex;
         gap: 20px;
         align-items: center;
-    }
-
-    button#close-button {
-        border: none;
-        cursor: pointer;
-        background-color: #ffffff;
-        padding: 0;
-        margin: 0;
-        width: 20px;
-        height: 20px;
-        transform: translate3d(0, 0, 0);
-    }
-    button#close-button > img {
-        width: 100%;
-        height: 100%;
-        transform: translate3d(0, 0, 0);
-    }
-
-    button#close-button:hover {
-        background-color: #dddddd;
     }
 
     h2 {

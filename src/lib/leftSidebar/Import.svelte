@@ -1,6 +1,7 @@
 <script lang="ts">
     import GetFile from "./GetFile.svelte";
     import { engineGithubUrl } from "../../constants";
+    import JSZip from "jszip";
 
     function processScenario(event: CustomEvent) {
         window.alert(
@@ -12,10 +13,14 @@
     }
 
     function processResults(event: CustomEvent) {
-        window.alert(
-            "Loaded into 'import results':\n\n" + event.detail.contents
-        );
-        // TODO: Validation
+        console.log(event.detail.contents);
+        // Validation
+        JSZip.loadAsync(event.detail.contents).then((zip) => {
+            zip.forEach((relativePath, zipEntry) => {
+                console.log(relativePath);
+                console.log(zipEntry);
+            });
+        });
         // TODO: Visualisation
     }
 </script>
@@ -31,7 +36,7 @@ Coming soon to a web app near you...
     modelling.
 </p>
 
-<GetFile filetype=".scenario" on:fileLoaded={processScenario} />
+<GetFile inputId="import-scenario" filetype=".scenario" on:fileLoaded={processScenario} />
 
 <h3>Import results</h3>
 
@@ -41,11 +46,11 @@ Coming soon to a web app near you...
     >), you can import it here to visualise the results.
 </p>
 
-<GetFile filetype=".scenario.zip" on:fileLoaded={processResults} />
+<GetFile inputId="import-results" filetype=".zip" on:fileLoaded={processResults} />
 
 <h3>Using the Python engine yourself</h3>
 
-Blah Blah. Look at<a href={engineGithubUrl} target="_blank">GitHub</a>.
+Blah Blah. Look at <a href={engineGithubUrl} target="_blank">GitHub</a>.
 
 <style>
     h3 {

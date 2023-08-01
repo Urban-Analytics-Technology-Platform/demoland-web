@@ -10,6 +10,7 @@
     } from "../../constants";
     import { createEventDispatcher } from "svelte";
     import { fly, slide } from "svelte/transition";
+    import Export from "./Export.svelte";
 
     export let scenarioName: ScenarioName;
     export let compareScenarioName: ScenarioName | null = null;
@@ -148,7 +149,11 @@
 Select a scenario and compare it against the baseline to see the impact of the
 modelled development strategies on any of the four indicators.
 
-<h3>Main scenario</h3>
+<div id="main-scenario">
+    <h3>Main scenario</h3>
+    <Export />
+</div>
+
 <div class="controls-grid">
     <button
         class="controls"
@@ -188,7 +193,7 @@ modelled development strategies on any of the four indicators.
 </div>
 
 {#if descriptionVisible}
-    <div id="scenario-description-container" transition:slide>
+    <div id="scenario-description-container" transition:slide|local>
         {#key scenarioName}
             <div
                 id="scenario-description"
@@ -249,7 +254,7 @@ modelled development strategies on any of the four indicators.
         <button
             class="toggle-description"
             on:click={toggleCompareDescriptionVisible}
-            transition:slide={{duration: 300}}
+            transition:slide|local={{ duration: 300 }}
         >
             <span class="instruction"
                 >{compareDescriptionVisible
@@ -264,7 +269,7 @@ modelled development strategies on any of the four indicators.
 </div>
 
 {#if compareDescriptionVisible && compareScenarioName !== null}
-    <div id="compare-scenario-description-container" transition:slide>
+    <div id="compare-scenario-description-container" transition:slide|local>
         {#key compareScenarioName}
             <div
                 id="compare-scenario-description"
@@ -349,6 +354,12 @@ modelled development strategies on any of the four indicators.
     h3 {
         font-size: 100%;
         font-weight: bold;
+    }
+
+    div#main-scenario {
+        display: grid;
+        grid-template-columns: 1fr max-content;
+        align-items: center;
     }
 
     div#scenario-description-container,

@@ -2,8 +2,10 @@ import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { OverlayScrollbars } from "overlayscrollbars";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX, allLayers, type LayerName, type MacroVar } from "./constants";
+import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, type Scenario, signatures, GLOBALMIN, GLOBALMAX, allLayers, type LayerName, type MacroVar } from "./constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "diff") {
@@ -300,5 +302,39 @@ export function overlayScrollbars(id: string) {
             clickScroll: true,
             dragScroll: true,
         },
+    });
+}
+
+export function generateScenarioDownloads(scenarioNames: ScenarioName[]) {
+    const zip = new JSZip();
+
+    for (const scenarioName of scenarioNames) {
+        const scenario = allScenarios.get(scenarioName);
+        const changed = scenario.changed;
+        const values = scenario.values;
+
+        const changedObj = {};
+        for (const [oa, m] of changed.entries()) {
+            changedObj[oa] = {};
+            for (const [mv, v] of m.entries()) {
+                changedObj[oa][mv] = v;
+            }
+        }
+        const changedJson = JSON.stringify(changedObj);
+
+        const valuesObj = {};
+        for (const [oa, m] of values.entries()) {
+            valuesObj[oa] = {};
+            for (const [mv, v] of m.entries()) {
+                valuesObj[oa][mv] = v;
+            }
+        }
+        const valuesJson = JSON.stringify(valuesObj);
+
+        zip.file(`${scenario.name}.changed.json`, changedJson);
+        zip.file(`${scenario.name}.values.json`, valuesJson);
+    }
+    zip.generateAsync({ type: "blob" }).then(function(content) {
+        saveAs(content, "demoland_scenarios.zip");
     });
 }
