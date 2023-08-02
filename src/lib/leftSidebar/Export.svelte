@@ -1,19 +1,58 @@
 <script lang="ts">
-    import { generateScenarioDownloads } from "../../utils";
-    import { allScenarios, type ScenarioName } from "../../constants";
+    import JSZip from "jszip";
+    import { saveAs } from "file-saver";
+    import { allScenarios } from "../../stores";
     import CloseButton from "../reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;
-    let exportScenarioNames: ScenarioName[] = [];
+    let exportScenarioNames: string[] = [];
 
     function exportScenarioResults() {
         if (exportScenarioNames.length === 0) {
             alert("Please select at least one scenario to export.");
             return;
         }
-        generateScenarioDownloads(exportScenarioNames);
+
+        for (const scenarioName of exportScenarioNames) {
+            const zip = new JSZip();
+            const scenario = $allScenarios.get(scenarioName);
+            const changed = scenario.changed;
+            const values = scenario.values;
+
+            const changedObj = {};
+            for (const [oa, m] of changed.entries()) {
+                changedObj[oa] = {};
+                for (const [mv, v] of m.entries()) {
+                    changedObj[oa][mv] = v;
+                }
+            }
+            const changedJson = JSON.stringify(changedObj);
+
+            const valuesObj = {};
+            for (const [oa, m] of values.entries()) {
+                valuesObj[oa] = {};
+                for (const [mv, v] of m.entries()) {
+                    valuesObj[oa][mv] = v;
+                }
+            }
+            const valuesJson = JSON.stringify(valuesObj);
+
+            const metadataJson = JSON.stringify({
+                name: scenario.name,
+                short: scenario.short,
+                description: scenario.description.join("\n"),
+            });
+
+            zip.file(`changed.json`, changedJson);
+            zip.file(`values.json`, valuesJson);
+            zip.file(`metadata.json`, metadataJson);
+            zip.generateAsync({ type: "blob" }).then(function (content) {
+                saveAs(content, `${scenario.name}.scenario.zip`);
+            });
+        }
         exportDialogVisible = false;
     }
+
 </script>
 
 <span id="export-container">
@@ -47,14 +86,15 @@
             />
         </div>
         <div id="export-list">
-            {#each [...allScenarios.entries()] as [name, scenario]}
+            {#each [...$allScenarios.entries()] as [name, scenario]}
                 <span>
                     <input
                         type="checkbox"
                         bind:group={exportScenarioNames}
                         value={name}
+                        id={name}
                     />
-                    <label for={name}> {scenario.short}</label>
+                    <label for={name}>{scenario.short}</label>
                 </span>
             {/each}
         </div>
@@ -102,8 +142,6 @@
         justify-content: space-between;
         align-items: center;
     }
-
-
 
     div#export-selector {
         width: max-content;

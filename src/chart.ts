@@ -1,11 +1,9 @@
 import {
     type IndicatorName,
-    type ScenarioName,
-    allScenarios,
     GLOBALMIN,
     GLOBALMAX,
 } from "./constants";
-import { getValues, makeColormap } from "./utils";
+import { getScenario, getValues, makeColormap } from "./utils";
 
 // Automatically calculate a suitable tick step size for a histogram. Chart.js's
 // automatic calculation is not quite as polished as matplotlib.
@@ -98,8 +96,8 @@ export type ChartData = {
 // generate chart data
 export function makeChartData(
     indicator: IndicatorName,
-    scenarioName: ScenarioName,
-    compareScenarioName: ScenarioName | null,
+    scenarioName: string,
+    compareScenarioName: string | null,
     nbars: number
 ): ChartData {
 
@@ -112,7 +110,7 @@ export function makeChartData(
         return {
             datasets: [
                 {
-                    label: allScenarios.get(scenarioName).short,
+                    label: getScenario(scenarioName).short,
                     data: bins.counts,
                     backgroundColor: colors,
                     borderWidth: 0,

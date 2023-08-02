@@ -2,10 +2,10 @@ import geography from "./assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
 import { OverlayScrollbars } from "overlayscrollbars";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, type Scenario, signatures, GLOBALMIN, GLOBALMAX, allLayers, type LayerName, type MacroVar } from "./constants";
+import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "./constants";
+import { allScenarios } from "./stores";
+import { get } from "svelte/store";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "diff") {
@@ -28,9 +28,14 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     }
 }
 
+export function getScenario(name: string) {
+    return get(allScenarios).get(name);
+}
+
+
 // Get all values for a given indicator in a given scenario.
-export function getValues(indicator: IndicatorName, scenarioName: ScenarioName): number[] {
-    const scenario = allScenarios.get(scenarioName);
+export function getValues(indicator: IndicatorName, scenarioName: string): number[] {
+    const scenario = getScenario(scenarioName);
     return [...scenario.values.values()].map(m => m.get(indicator));
 }
 
@@ -100,25 +105,25 @@ function getDiffColor(layerName: LayerName, value: number, cmpValue: number,
  * It also proves easier to encode the colours for each indicator here, because
  * otherwise it results in some really complicated expressions in MapLibre.
  * 
- * @param {ScenarioName} scenarioName: the name of the scenario being used.
- * @param {ScenarioName} compareScenarioName: the name of the scenario being
+ * @param {string} scenarioName: the name of the scenario being used.
+ * @param {string} compareScenarioName: the name of the scenario being
  * compared against.
  *
  * @returns an updated GeoJSON file with the indicator values plus associated
  * colours added to the properties of each feature.
  */
 export function makeCombinedGeoJSON(
-    scenarioName: ScenarioName,
-    compareScenarioName: ScenarioName | null,
+    scenarioName: string,
+    compareScenarioName: string | null,
 ): GeoJSON.FeatureCollection {
-    const scenario = allScenarios.get(scenarioName);
+    const scenario = getScenario(scenarioName);
 
     // Precalculate differences between scenarios being compared, which gives us
     // the min and max values for the 'diff' colormap.
     const maxDiffExtents: Map<LayerName, number> = new Map();
     if (compareScenarioName !== null) {
-        const scenario = allScenarios.get(scenarioName);
-        const cScenario = allScenarios.get(compareScenarioName);
+        const scenario = getScenario(scenarioName);
+        const cScenario = getScenario(compareScenarioName);
         for (const layerName of allLayers.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
@@ -142,7 +147,7 @@ export function makeCombinedGeoJSON(
             feature.properties[`${layerName}-color`] = getColor(layerName, value);
         }
         if (compareScenarioName !== null) {
-            const cScenario = allScenarios.get(compareScenarioName);
+            const cScenario = getScenario(compareScenarioName);
             const cOaValues = cScenario.values.get(oaName);
             if (cOaValues === undefined) {
                 throw new Error(`Output area ${oaName} not found in compare values; this should not happen`);
@@ -236,14 +241,14 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
  * as a MultiPolygon.
  */
 export function getInputDiffBoundaries(
-    scenarioName: ScenarioName,
-    compareScenarioName: ScenarioName | null
+    scenarioName: string,
+    compareScenarioName: string | null
 ): GeoJSON.FeatureCollection {
     type MVMap = Map<string, Map<MacroVar, number | null>>;
-    const changed: MVMap = allScenarios.get(scenarioName).changed;
+    const changed: MVMap = getScenario(scenarioName).changed;
     const cChanged: MVMap = compareScenarioName === null
         ? new Map()
-        : allScenarios.get(compareScenarioName).changed;
+        : getScenario(compareScenarioName).changed;
 
     // Determine OAs which are different
     const allPossibleOAs: Set<string> = new Set([
@@ -282,8 +287,7 @@ export function getInputDiffBoundaries(
     if (boundary.features.length > 0) {
         const unioned = boundary.features.reduce((acc, feature) => {
             const featureGeometry = feature.geometry;
-            // Not sure how to best coerce GeoJSON types right now. But it
-            // works.
+            // @ts-ignore Not sure how to best coerce GeoJSON types right now. But it works.
             return union(acc, featureGeometry);
         });
         boundary.features = [unioned];
@@ -302,39 +306,5 @@ export function overlayScrollbars(id: string) {
             clickScroll: true,
             dragScroll: true,
         },
-    });
-}
-
-export function generateScenarioDownloads(scenarioNames: ScenarioName[]) {
-    const zip = new JSZip();
-
-    for (const scenarioName of scenarioNames) {
-        const scenario = allScenarios.get(scenarioName);
-        const changed = scenario.changed;
-        const values = scenario.values;
-
-        const changedObj = {};
-        for (const [oa, m] of changed.entries()) {
-            changedObj[oa] = {};
-            for (const [mv, v] of m.entries()) {
-                changedObj[oa][mv] = v;
-            }
-        }
-        const changedJson = JSON.stringify(changedObj);
-
-        const valuesObj = {};
-        for (const [oa, m] of values.entries()) {
-            valuesObj[oa] = {};
-            for (const [mv, v] of m.entries()) {
-                valuesObj[oa][mv] = v;
-            }
-        }
-        const valuesJson = JSON.stringify(valuesObj);
-
-        zip.file(`${scenario.name}.changed.json`, changedJson);
-        zip.file(`${scenario.name}.values.json`, valuesJson);
-    }
-    zip.generateAsync({ type: "blob" }).then(function(content) {
-        saveAs(content, "demoland_scenarios.zip");
     });
 }

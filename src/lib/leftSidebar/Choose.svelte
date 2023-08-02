@@ -3,27 +3,24 @@
     import leftIconDisabled from "../../assets/left-disabled.svg";
     import rightIcon from "../../assets/right.svg";
     import rightIconDisabled from "../../assets/right-disabled.svg";
-    import {
-        type Scenario,
-        allScenarios,
-        type ScenarioName,
-    } from "../../constants";
+    import { type Scenario } from "../../constants";
+    import { allScenarios } from "../../stores";
     import { createEventDispatcher } from "svelte";
     import { fly, slide } from "svelte/transition";
     import Export from "./Export.svelte";
 
-    export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName | null = null;
+    export let scenarioName: string;
+    export let compareScenarioName: string | null = null;
 
     const dispatch = createEventDispatcher();
 
-    const allScenarioNames = [...allScenarios.keys()];
+    const allScenarioNames = [...$allScenarios.keys()];
     const allCompareScenarioNames = [null, ...allScenarioNames];
 
     // Keeps track of the previous scenario name to determine the direction of the transition.
     // This variable is updated when the transition occurs.
-    let previousScenarioName: ScenarioName = scenarioName;
-    let previousCompareScenarioName: ScenarioName | null = compareScenarioName;
+    let previousScenarioName: string = scenarioName;
+    let previousCompareScenarioName: string | null = compareScenarioName;
 
     function changeScenario() {
         if (compareScenarioName === scenarioName) {
@@ -77,10 +74,10 @@
 
     // Logic for the left/right buttons to control dropdowns. The variables are
     // updated in the reactive block
-    let allScenariosExceptCompare: ScenarioName[];
+    let allScenariosExceptCompare: string[];
     let decreaseScenarioOk: boolean;
     let increaseScenarioOk: boolean;
-    let allCompareScenariosExceptMain: Array<ScenarioName | null>;
+    let allCompareScenariosExceptMain: Array<string | null>;
     let decreaseCompareScenarioOk: boolean;
     let increaseCompareScenarioOk: boolean;
 
@@ -118,11 +115,11 @@
     let scenario: Scenario;
     let compareScenario: Scenario | null;
     $: {
-        scenario = allScenarios.get(scenarioName);
+        scenario = $allScenarios.get(scenarioName);
         compareScenario =
             compareScenarioName === null
                 ? null
-                : allScenarios.get(compareScenarioName);
+                : $allScenarios.get(compareScenarioName);
 
         allScenariosExceptCompare = allScenarioNames.filter(
             (s) => s !== compareScenarioName
@@ -167,7 +164,7 @@ modelled development strategies on any of the four indicators.
         />
     </button>
     <select id="scenario" bind:value={scenarioName} on:change={changeScenario}>
-        {#each [...allScenarios.entries()] as [name, scenario]}
+        {#each [...$allScenarios.entries()] as [name, scenario]}
             <option value={name}>{scenario.long}</option>
         {/each}
     </select>
@@ -233,7 +230,7 @@ modelled development strategies on any of the four indicators.
         on:change={changeScenario}
     >
         <option value={null}>None</option>
-        {#each [...allScenarios.entries()] as [name, compareScenario]}
+        {#each [...$allScenarios.entries()] as [name, compareScenario]}
             {#if name !== scenarioName}
                 <option value={name}>{compareScenario.long}</option>
             {/if}

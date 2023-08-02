@@ -1,60 +1,65 @@
 <script lang="ts">
-    import GetFile from "./GetFile.svelte";
     import { engineGithubUrl } from "../../constants";
     import JSZip from "jszip";
 
-    function processScenario(event: CustomEvent) {
-        window.alert(
-            "Loaded into 'import scenario':\n\n" + event.detail.contents
-        );
-        // TODO: Validation
-        // TODO: Modelling
-        // TODO: Visualisation
+    function cancel() {
+        const target = document.getElementById(
+            "select-files"
+        ) as HTMLInputElement;
+        target.value = "";
     }
 
-    function processResults(event: CustomEvent) {
-        console.log(event.detail.contents);
+    function process() {
+        const target = document.getElementById(
+            "select-files"
+        ) as HTMLInputElement;
+        if (!target.files || target.files.length === 0) {
+            return;
+        }
         // Validation
-        JSZip.loadAsync(event.detail.contents).then((zip) => {
-            zip.forEach((relativePath, zipEntry) => {
-                console.log(relativePath);
-                console.log(zipEntry);
+        function validateZip(file: File) {
+            JSZip.loadAsync(file).then((zip) => {
+                let s = "";
+                zip.forEach((relativePath, zipEntry) => {
+                    s += relativePath + zipEntry + "\n";
+                    zipEntry.async("string").then((data) => {
+                        console.log(JSON.parse(data));
+                    });
+                });
+                window.alert(s);
             });
-        });
+        }
+        for (const file of target.files) {
+            validateZip(file);
+        }
         // TODO: Visualisation
     }
 </script>
 
-Coming soon to a web app near you...
+<div id="import-contents">
+    If you have already modelled a custom scenario and saved the results, you
+    can import it here to visualise the results.
 
-<h3>Import scenario</h3>
+    <h3>Choose one or more .zip files...</h3>
+    <div id="getfile-container">
+        <input id="select-files" type="file" accept="*.zip" multiple />
 
-<p>
-    If you previously created a scenario file (<span class="ms"
-        >[name].scenario</span
-    >), you can import it here. The app will automatically carry out the
-    modelling.
-</p>
+        <button on:click={() => cancel()}>Cancel</button>
+        <button on:click={() => process()}>Import</button>
+    </div>
 
-<GetFile inputId="import-scenario" filetype=".scenario" on:fileLoaded={processScenario} />
+    <h3>Using the Python engine yourself</h3>
 
-<h3>Import results</h3>
-
-<p>
-    If you have already modelled a custom scenario and saved the results (<span
-        class="ms">[name].scenario.zip</span
-    >), you can import it here to visualise the results.
-</p>
-
-<GetFile inputId="import-results" filetype=".zip" on:fileLoaded={processResults} />
-
-<h3>Using the Python engine yourself</h3>
-
-Blah Blah. Look at <a href={engineGithubUrl} target="_blank">GitHub</a>.
+    Blah Blah. Look at<a href={engineGithubUrl} target="_blank">GitHub</a>.
+</div>
 
 <style>
     h3 {
         font-size: 100%;
         font-weight: bold;
+    }
+
+    div#getfile-container {
+        margin-top: 15px;
     }
 </style>
