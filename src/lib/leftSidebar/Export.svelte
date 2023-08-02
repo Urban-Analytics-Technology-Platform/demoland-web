@@ -40,6 +40,7 @@
             const metadataJson = JSON.stringify({
                 name: scenario.name,
                 short: scenario.short,
+                long: scenario.long,
                 description: scenario.description.join("\n"),
             });
 
