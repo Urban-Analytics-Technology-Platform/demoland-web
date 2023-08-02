@@ -49,7 +49,9 @@ const colormaps: { [key: string]: string[] } = {
 
 function getColorFromMap(map: string[], value: number, min: number, max: number) {
     const n = map.length;
-    const i = Math.round(((value - min) / (max - min)) * (n - 1));
+    let i = Math.round(((value - min) / (max - min)) * (n - 1));
+    // Clamp to [0, n-1]
+    i = Math.min(Math.max(i, 0), n - 1);
     return map[i];
 }
 

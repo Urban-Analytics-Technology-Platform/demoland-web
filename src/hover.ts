@@ -5,14 +5,13 @@ import {
     type Indicator,
     type IndicatorName,
     type LayerName,
-    type ScenarioName,
     signatures,
 } from "./constants";
 
 // Construct raw HTML for the hover popup. This is really ugly, but MapLibre
 // doesn't seem to let us do much else (?).
 function makeHoverHtml(feat: GeoJSON.Feature,
-    compareScenarioName: ScenarioName | null,
+    compareScenarioName: string | null,
     activeFactor: LayerName,
 ) {
     function makeColoredBlock(color: string) : string {
@@ -81,7 +80,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
 export function makePopup(
     map: maplibregl.Map,
     feat: GeoJSON.Feature,
-    compareScenarioName: ScenarioName | null,
+    compareScenarioName: string | null,
     activeFactor: LayerName,
     closeButton: boolean,
 ) {

@@ -88,7 +88,6 @@
                 <Import
                     on:import={(e) => {
                         selectedTab = "choose";
-                        console.log(e);
                         scenarioName = e.detail.name;
                         compareScenarioName = null;
                         dispatch("changeScenario");
