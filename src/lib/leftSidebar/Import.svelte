@@ -101,6 +101,15 @@
                         return;
                     }
                     for (const scenario of scenarios) {
+                        // Check for name duplication
+                        if ($allScenarios.has(scenario.name)) {
+                            let i = 1;
+                            while ($allScenarios.has(`${scenario.name}_${i})`)) {
+                                i++;
+                            }
+                            scenario.name = `${scenario.name}_${i}`;
+                        }
+                        console.log(scenario);
                         $allScenarios.set(scenario.name, scenario);
                     }
                     dispatch("import", {name: scenarios[0].name});
