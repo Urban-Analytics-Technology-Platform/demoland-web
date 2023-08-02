@@ -35,7 +35,7 @@
         div.style.maxHeight = "0px";
     }
 
-    let descriptionVisible = false;
+    let descriptionVisible = true;
     function toggleDescriptionVisible() {
         descriptionVisible = !descriptionVisible;
     }
