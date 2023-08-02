@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { type ScenarioName } from "../constants";
     import Tooltip from "./reusable/Tooltip.svelte";
     import showWelcomeIcon from "../assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
@@ -11,8 +10,8 @@
     import Create from "./leftSidebar/Create.svelte";
     import Import from "./leftSidebar/Import.svelte";
 
-    export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName | null;
+    export let scenarioName: string;
+    export let compareScenarioName: string | null;
 
     function showWelcome() {
         dispatch("showWelcome", {});
@@ -86,7 +85,15 @@
             {:else if selectedTab === "create"}
                 <Create />
             {:else if selectedTab === "import"}
-                <Import />
+                <Import
+                    on:import={(e) => {
+                        selectedTab = "choose";
+                        console.log(e);
+                        scenarioName = e.detail.name;
+                        compareScenarioName = null;
+                        dispatch("changeScenario");
+                    }}
+                />
             {/if}
         </div>
     </div>
