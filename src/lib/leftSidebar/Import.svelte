@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { engineGithubUrl } from "../../constants";
+    import { type Scenario, type MacroVar, type LayerName, engineGithubUrl } from "../../constants";
     import JSZip from "jszip";
+    import { allScenarios } from "../../stores";
 
     function cancel() {
         const target = document.getElementById(
@@ -17,22 +18,54 @@
             return;
         }
         // Validation
-        function validateZip(file: File) {
+        function createScenario(file: File) {
             JSZip.loadAsync(file).then((zip) => {
-                let s = "";
-                zip.forEach((relativePath, zipEntry) => {
-                    s += relativePath + zipEntry + "\n";
-                    zipEntry.async("string").then((data) => {
-                        console.log(JSON.parse(data));
-                    });
+                // Deal with folders which were manually compressed, which have
+                // one extra level (inside x.zip is a folder called x)
+                if (zip.file("changed.json") === null) {
+                    const directories = zip.folder(/./);
+                    if (directories.length === 1) {
+                        zip = zip.folder(directories[0].name);
+                    }
+                }
+                const newScenario: Scenario = {
+                    name: "",
+                    short: "",
+                    long: "",
+                    description: [],
+                    values: new Map(),
+                    changed: new Map(),
+                };
+                // TODO: SANITISE INPUT!!!! THIS IS A SECURITY RISK!!!!
+                zip.file("metadata.json").async("string").then((data) => {
+                    const metadata = JSON.parse(data);
+                    newScenario.name = metadata.name;
+                    newScenario.short = metadata.short;
+                    newScenario.long = metadata.long;
+                    newScenario.description = metadata.description.split("\n");
                 });
-                window.alert(s);
+                zip.file("changed.json").async("string").then((data) => {
+                    for (const [oa, map] of Object.entries(JSON.parse(data))) {
+                        newScenario.changed.set(oa, new Map());
+                        for (const [key, value] of Object.entries(map)) {
+                            newScenario.changed.get(oa).set(key as MacroVar, value);
+                        }
+                    }
+                });
+                zip.file("values.json").async("string").then((data) => {
+                    for (const [oa, map] of Object.entries(JSON.parse(data))) {
+                        newScenario.values.set(oa, new Map());
+                        for (const [key, value] of Object.entries(map)) {
+                            newScenario.values.get(oa).set(key as LayerName, value);
+                        }
+                    }
+                });
+                $allScenarios.set(newScenario.name, newScenario);
             });
         }
         for (const file of target.files) {
-            validateZip(file);
+            createScenario(file);
         }
-        // TODO: Visualisation
     }
 </script>
 
@@ -50,7 +83,7 @@
 
     <h3>Using the Python engine yourself</h3>
 
-    Blah Blah. Look at<a href={engineGithubUrl} target="_blank">GitHub</a>.
+    Blah Blah. Look at <a href={engineGithubUrl} target="_blank">GitHub</a>.
 </div>
 
 <style>
