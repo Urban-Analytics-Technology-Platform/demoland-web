@@ -1,7 +1,7 @@
 <script lang="ts">
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
-    import { allScenarios } from "../../stores";
+    import { allScenarios } from "../../scenarios";
     import CloseButton from "../reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;

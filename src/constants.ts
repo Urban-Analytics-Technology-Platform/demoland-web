@@ -66,7 +66,7 @@ export const allLayers: Map<LayerName, Layer> = new Map(
 );
 
 /* Scenarios */
-// Most of this code was shifted to stores.ts.
+// Most of this code was shifted to scenarios.ts.
 
 export type OA = string;
 

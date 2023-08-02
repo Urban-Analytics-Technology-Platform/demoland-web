@@ -4,7 +4,7 @@ import maplibregl from "maplibre-gl";
 import union from "@turf/union";
 import { OverlayScrollbars } from "overlayscrollbars";
 import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "./constants";
-import { allScenarios } from "./stores";
+import { allScenarios } from "./scenarios";
 import { get } from "svelte/store";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {

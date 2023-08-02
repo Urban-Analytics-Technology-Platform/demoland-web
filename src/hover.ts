@@ -28,6 +28,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
                 ? `<span class="oa-grid-item strong">${makeColoredBlock(sigColor)}&nbsp;${sigName}</span>`
                 : `<span class="oa-grid-item strong">${sigName}</span>`;
         } else {
+            console.log(feat.properties);
             const cmpSig = signatures[feat.properties["signature_type-cmp"]].name;
             if (sigName === cmpSig) {
                 return activeFactor === "signature_type"

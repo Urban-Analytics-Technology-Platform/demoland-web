@@ -4,7 +4,7 @@
     import rightIcon from "../../assets/right.svg";
     import rightIconDisabled from "../../assets/right-disabled.svg";
     import { type Scenario } from "../../constants";
-    import { allScenarios } from "../../stores";
+    import { allScenarios } from "../../scenarios";
     import { createEventDispatcher } from "svelte";
     import { fly, slide } from "svelte/transition";
     import Export from "./Export.svelte";

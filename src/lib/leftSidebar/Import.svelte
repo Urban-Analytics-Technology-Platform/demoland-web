@@ -1,7 +1,12 @@
 <script lang="ts">
-    import { type Scenario, type MacroVar, type LayerName, engineGithubUrl } from "../../constants";
+    import {
+        type Scenario,
+        type MacroVar,
+        type LayerName,
+        engineGithubUrl,
+    } from "../../constants";
     import JSZip from "jszip";
-    import { allScenarios } from "../../stores";
+    import { allScenarios, rescale } from "../../scenarios";
 
     function cancel() {
         const target = document.getElementById(
@@ -37,29 +42,45 @@
                     changed: new Map(),
                 };
                 // TODO: SANITISE INPUT!!!! THIS IS A SECURITY RISK!!!!
-                zip.file("metadata.json").async("string").then((data) => {
-                    const metadata = JSON.parse(data);
-                    newScenario.name = metadata.name;
-                    newScenario.short = metadata.short;
-                    newScenario.long = metadata.long;
-                    newScenario.description = metadata.description.split("\n");
-                });
-                zip.file("changed.json").async("string").then((data) => {
-                    for (const [oa, map] of Object.entries(JSON.parse(data))) {
-                        newScenario.changed.set(oa, new Map());
-                        for (const [key, value] of Object.entries(map)) {
-                            newScenario.changed.get(oa).set(key as MacroVar, value);
+                zip.file("metadata.json")
+                    .async("string")
+                    .then((data) => {
+                        const metadata = JSON.parse(data);
+                        newScenario.name = metadata.name;
+                        newScenario.short = metadata.short;
+                        newScenario.long = metadata.long;
+                        newScenario.description =
+                            metadata.description.split("\n");
+                    });
+                zip.file("changed.json")
+                    .async("string")
+                    .then((data) => {
+                        for (const [oa, map] of Object.entries(
+                            JSON.parse(data)
+                        )) {
+                            newScenario.changed.set(oa, new Map());
+                            for (const [key, value] of Object.entries(map)) {
+                                newScenario.changed
+                                    .get(oa)
+                                    .set(key as MacroVar, value);
+                            }
                         }
-                    }
-                });
-                zip.file("values.json").async("string").then((data) => {
-                    for (const [oa, map] of Object.entries(JSON.parse(data))) {
-                        newScenario.values.set(oa, new Map());
-                        for (const [key, value] of Object.entries(map)) {
-                            newScenario.values.get(oa).set(key as LayerName, value);
+                    });
+                zip.file("values.json")
+                    .async("string")
+                    .then((data) => {
+                        for (const [oa, map] of Object.entries(
+                            JSON.parse(data)
+                        )) {
+                            newScenario.values.set(oa, new Map());
+                            for (const [key, value] of Object.entries(map)) {
+                                const layerName = key as LayerName;
+                                newScenario.values
+                                    .get(oa)
+                                    .set(layerName, rescale(layerName, value));
+                            }
                         }
-                    }
-                });
+                    });
                 $allScenarios.set(newScenario.name, newScenario);
             });
         }
@@ -83,7 +104,7 @@
 
     <h3>Using the Python engine yourself</h3>
 
-    Blah Blah. Look at <a href={engineGithubUrl} target="_blank">GitHub</a>.
+    Blah Blah. Look at<a href={engineGithubUrl} target="_blank">GitHub</a>.
 </div>
 
 <style>
