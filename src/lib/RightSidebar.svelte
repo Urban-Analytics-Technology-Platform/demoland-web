@@ -4,7 +4,6 @@
     import Collapsible from "./reusable/Collapsible.svelte";
     import {
         type LayerName,
-        type ScenarioName,
         allIndicators,
     } from "../constants";
 
@@ -14,8 +13,8 @@
 
     export let activeLayer: LayerName;
     export let opacity: number;
-    export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName | null;
+    export let scenarioName: string;
+    export let compareScenarioName: string | null;
 
     // Events which need to bubble up to main App
     import { createEventDispatcher } from "svelte";
