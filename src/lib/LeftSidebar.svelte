@@ -12,6 +12,7 @@
 
     export let scenarioName: string;
     export let compareScenarioName: string | null;
+    export let clickedOAName: string | null;
 
     function showWelcome() {
         dispatch("showWelcome", {});
@@ -54,7 +55,7 @@
                 value="choose"
                 checked
             />
-            <label for="choose" class="tab-label">Choose scenario</label>
+            <label for="choose" class="tab-label">View scenarios</label>
 
             <input
                 type="radio"
@@ -62,6 +63,10 @@
                 id="create"
                 bind:group={selectedTab}
                 value="create"
+                on:click={() => {
+                    compareScenarioName = null;
+                    dispatch("changeScenario");
+                }}
             />
             <label for="create" class="tab-label">Create your own</label>
 
@@ -83,7 +88,11 @@
                     on:changeScenario
                 />
             {:else if selectedTab === "create"}
-                <Create />
+                <Create
+                    bind:scenarioName
+                    bind:clickedOAName
+                    on:changeScenario
+                />
             {:else if selectedTab === "import"}
                 <Import
                     on:import={(e) => {

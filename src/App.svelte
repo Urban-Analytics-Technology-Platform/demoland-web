@@ -6,11 +6,7 @@
     import RightSidebar from "./lib/RightSidebar.svelte";
     import Welcome from "./lib/Welcome.svelte";
     import { makePopup } from "./hover";
-    import {
-        allLayers,
-        type LayerName,
-        type ScenarioName,
-    } from "./constants";
+    import { allLayers, type LayerName, type ScenarioName } from "./constants";
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
@@ -377,7 +373,10 @@
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
         // Update the LineString layer
-        const diffedBoundaries = getInputDiffBoundaries(scenarioName, compareScenarioName);
+        const diffedBoundaries = getInputDiffBoundaries(
+            scenarioName,
+            compareScenarioName
+        );
         const boundarySource = map.getSource(
             "boundary"
         ) as maplibregl.GeoJSONSource;
@@ -431,6 +430,19 @@
             });
         }
     }
+
+    // Get the name of the OA that was clicked on (for creating custom scenarios)
+    function getOAName(featureId: number | null): string | null {
+        if (featureId === null) {
+            return null;
+        }
+        const feat = mapData.features.find((feat) => feat.id === featureId);
+        return feat.properties.OA11CD;
+    }
+    let clickedOAName: string | null = null;
+    $: {
+        clickedOAName = getOAName(clickedId);
+    }
 </script>
 
 <main>
@@ -442,6 +454,7 @@
         <LeftSidebar
             bind:scenarioName
             bind:compareScenarioName
+            bind:clickedOAName
             on:changeScenario={updateScenario}
             on:showWelcome={() => {
                 welcomeVisible = true;
