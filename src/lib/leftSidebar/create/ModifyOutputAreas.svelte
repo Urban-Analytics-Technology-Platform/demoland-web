@@ -4,36 +4,9 @@
 
     import { allScenarios } from "../../../scenarios";
     import { signatures, type MacroVar } from "../../../constants";
+    import { getLocalChanges, storeLocalChanges } from "../lsHelpers";
 
     import Slider from "./Slider.svelte";
-
-    function storeLocalChanges(map: Map<string, Map<MacroVar, number | null>>) {
-        // calling JSON.stringify directly on a map-of-a-map doesn't work, so we
-        // need to convert each inner map first
-        const intermediateMap = new Map();
-        for (const [key, value] of map.entries()) {
-            intermediateMap.set(key, [...value.entries()]);
-        }
-        localStorage.setItem(
-            "changed",
-            JSON.stringify([...intermediateMap.entries()])
-        );
-    }
-
-    function getLocalChanges(): Map<string, Map<MacroVar, number | null>> {
-        const stringified = localStorage.getItem("changed");
-        if (stringified === null) {
-            return new Map();
-        } else {
-            const intermediateMap = new Map(JSON.parse(stringified));
-            const map = new Map();
-            for (const [key, val] of intermediateMap.entries()) {
-                // @ts-ignore Cannot prove deserialisation is safe
-                map.set(key, new Map(val));
-            }
-            return map;
-        }
-    }
 
     function getOAChanges(oaName: string): Map<MacroVar, number | null> {
         const changes = getLocalChanges();
@@ -67,7 +40,7 @@
         storeLocalChanges(allChanges);
     }
 
-    function loadOAChanges(oaName: string) {
+    function loadOAChangesToUI(oaName: string) {
         const oaChanges = getOAChanges(oaName);
         sig = oaChanges.get("signature_type");
         sigModified = sig !== null;
@@ -102,7 +75,7 @@
     let greenModified: boolean;
 
     // Update values in dropdowns whenever clickedOAName is changed
-    $: loadOAChanges(clickedOAName);
+    $: loadOAChangesToUI(clickedOAName);
 </script>
 
 <h3>Step 2: modify output areas</h3>
