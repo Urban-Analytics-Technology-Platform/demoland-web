@@ -2,7 +2,7 @@
     import { createEventDispatcher } from "svelte";
     import { allScenarios } from "../../../scenarios";
     const dispatch = createEventDispatcher();
-        dispatch("changeScenario", {});
+    dispatch("changeScenario", {});
 
     export let scenarioName: string | null;
 
