@@ -1,0 +1,3 @@
+[submodule "demoland_engine"]
+	path = demoland_engine
+	url = git@github.com:martinfleis/demoland_engine.git
