@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "api-build": "cd demoland_engine; docker build -t demoland_api .",
+    "api": "cd demoland_engine; docker run -p 5174:80 demoland_api",
     "build": "vite build",
     "lint": "npx eslint .",
     "preview": "vite preview",

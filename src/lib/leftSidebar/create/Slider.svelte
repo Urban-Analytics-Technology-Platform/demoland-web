@@ -2,6 +2,9 @@
     export let modified: boolean;
     export let value: number | null;
     export let title: string;
+    export let min: number;
+    export let max: number;
+    export let step: number;
 
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
@@ -27,9 +30,9 @@
         on:change={() => {
             dispatch("modified", {});
         }}
-        min="0.00"
-        max="1.00"
-        step="0.01"
+        min="{min}"
+        max="{max}"
+        step="{step}"
     />
     <input
         type="number"
@@ -38,9 +41,9 @@
         on:change={() => {
             dispatch("modified", {});
         }}
-        min="0.00"
-        max="1.00"
-        step="0.01"
+        min="{min}"
+        max="{max}"
+        step="{step}"
     />
 {:else}
     <input
@@ -48,9 +51,9 @@
         id="range"
         value="0"
         disabled
-        min="0.00"
-        max="1.00"
-        step="0.01"
+        min="{min}"
+        max="{max}"
+        step="{step}"
     />
     <input type="number" id="value" value="" disabled />
 {/if}

@@ -125,6 +125,9 @@
             bind:modified={jobModified}
             bind:value={job}
             on:modified={updateOAChanges}
+            min={-1}
+            max={1}
+            step={0.01}
         />
 
         <Slider
@@ -132,6 +135,9 @@
             bind:modified={useModified}
             bind:value={use}
             on:modified={updateOAChanges}
+            min={0}
+            max={1}
+            step={0.01}
         />
 
         <Slider
@@ -139,6 +145,9 @@
             bind:modified={greenModified}
             bind:value={green}
             on:modified={updateOAChanges}
+            min={0}
+            max={1}
+            step={0.01}
         />
     </div>
 {:else}

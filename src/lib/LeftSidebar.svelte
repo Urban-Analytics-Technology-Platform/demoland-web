@@ -92,6 +92,12 @@
                     bind:scenarioName
                     bind:clickedOAName
                     on:changeScenario
+                    on:import={(e) => {
+                        selectedTab = "choose";
+                        scenarioName = e.detail.name;
+                        compareScenarioName = null;
+                        dispatch("changeScenario");
+                    }}
                 />
             {:else if selectedTab === "import"}
                 <Import
