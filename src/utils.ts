@@ -62,6 +62,7 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  * @param value The value of the layer in the scenario
  */
 function getColor(layerName: LayerName, value: number) {
+
     if (layerName === "signature_type") {
         // Categorical variable
         return signatures[value].color;
@@ -94,8 +95,9 @@ function getDiffColor(layerName: LayerName, value: number, cmpValue: number,
     }
     else {
         // Continuous variables, use 'diff' colormap
-        return getColorFromMap(colormaps["diff"], value - cmpValue,
-            -maxDiffExtents.get(layerName), maxDiffExtents.get(layerName));
+        return value === cmpValue
+            ? "rgba(0, 0, 0, 0.1)"
+            : getColorFromMap(colormaps["diff"], value - cmpValue, -maxDiffExtents.get(layerName), maxDiffExtents.get(layerName));
     }
 }
 
