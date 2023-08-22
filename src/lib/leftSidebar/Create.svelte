@@ -24,10 +24,9 @@
         const changedJson = changesToApiJson(getLocalChanges());
         step = 3;
 
-        // const url = window.location.href.includes("localhost")
-        //     ? "http://localhost:5174"
-        //     : "https://demoland-api.azurewebsites.net/";
-        const url = "https://demoland-api.azurewebsites.net/";
+        const url = window.location.href.includes("localhost")
+            ? "http://localhost:5174" // launch with `npm run api`
+            : "https://demoland-api.azurewebsites.net/"; // deployed to Azure
         fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
