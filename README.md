@@ -19,10 +19,9 @@ Frontend for visualisation of modelling and results from the Land Use Demonstrat
 Same as above, but additionally, run:
 
 1. `npm run api-build` to build the Docker image containing the Python API
-2. `npm run api` to launch the Python API on port 5174
+2. `npm run dev+api` to launch the web app on port 5173 and Python API on port 5174
 
-in a new terminal window.
-The API is used to calculate outputs for custom scenarios.
+Again, the app can be launched via http://localhost:5173.
 
 ## Building static files
 
