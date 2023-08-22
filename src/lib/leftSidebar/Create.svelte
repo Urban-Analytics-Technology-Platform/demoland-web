@@ -23,13 +23,18 @@
     function acceptChangesAndCalculate() {
         const changedJson = changesToApiJson(getLocalChanges());
         step = 3;
-        // TODO: where is production URL?
-        fetch("http://localhost:5174", {
+
+        // const url = window.location.href.includes("localhost")
+        //     ? "http://localhost:5174"
+        //     : "https://demoland-api.azurewebsites.net/";
+        const url = "https://demoland-api.azurewebsites.net/";
+        fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: changedJson,
         }).then((response) => {
             if (response.ok) {
+                console.log(response);
                 response.json().then((values) => {
                     console.log("Success!");
 
