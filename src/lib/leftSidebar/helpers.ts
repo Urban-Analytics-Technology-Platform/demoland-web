@@ -55,7 +55,7 @@ export function createNewScenario(
         name: name,
         short: short,
         long: long,
-        description: description.split("\n"),
+        description: description.replace(/\r/g, "").split(/\n+/),
         values: new Map(),
         changed: new Map(),
     };

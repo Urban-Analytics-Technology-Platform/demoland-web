@@ -14,16 +14,19 @@
     const dispatch = createEventDispatcher();
 
     // Stage of the scenario creation process
-    let step: number = 1;
+    let step: "choose" | "modify" | "metadata" | "calc" | "error" = "choose";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
     let controller: AbortController;
     let signal: AbortSignal;
+    // Metadata which the user can provide for the scenario
+    let scenarioShort: string = "";
+    let scenarioDescription: string = "";
 
     function changeScenarioAndProceed() {
         dispatch("changeScenario", {});
-        step = 2;
+        step = "modify"; // move on to the next step
     }
 
     function handleApiResponse(response: Response, changedJson: string) {
@@ -33,10 +36,10 @@
                 console.log("Success!");
                 const changed = JSON.parse(changedJson);
                 const newScenario = createNewScenario(
-                    "Custom scenario",
-                    "Custom scenario-short",
-                    "Custom scenario-long",
-                    "Custom scenario-description",
+                    scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
+                    scenarioShort,
+                    "Custom: " + scenarioShort,
+                    scenarioDescription,
                     changed,
                     values
                 );
@@ -52,24 +55,28 @@
                 dispatch("import", { name: newScenario.name });
             });
         } else {
-            step = 4;
+            step = "error";
             throw new Error("Failed to calculate scenario values from server");
         }
     }
 
     function handleError(error: Error) {
         if (error instanceof DOMException && error.name === "AbortError") {
-            step = 2;
+            step = "metadata"; // just go back to the previous step
             console.log("Calculation aborted!");
         } else {
-            step = 4;
+            // TODO show the user the error and ask them to report it
+            step = "error";
             throw error;
         }
     }
 
     function acceptChangesAndCalculate() {
+        // TODO should check that metadata is not empty
+        // or use a default value if it is
+
         const changedJson = changesToApiJson(getLocalChanges());
-        step = 3;
+        step = "calc"; // move on
 
         // Create a new Controller each time the button is pressed
         controller = new AbortController();
@@ -90,31 +97,54 @@
 
 Create your own scenario by modifying an existing one.
 
-{#if step === 1}
+{#if step === "choose"}
     <ChooseStartingScenario
         bind:scenarioName
         on:changeScenario={changeScenarioAndProceed}
     />
 {/if}
 
-{#if step === 2}
+{#if step === "modify"}
     <input
         type="button"
         value="Back to scenario selection"
-        on:click={() => step = 1}
+        on:click={() => (step = "choose")}
+    />
+    <input
+        type="button"
+        value="Continue to add metadata"
+        on:click={() => (step = "metadata")}
+    />
+    <ModifyOutputAreas bind:clickedOAName bind:scenarioName />
+{/if}
+
+{#if step === "metadata"}
+    <input
+        type="button"
+        value="Back to OA modification"
+        on:click={() => (step = "modify")}
     />
     <input
         type="button"
         value="Accept changes and calculate"
         on:click={acceptChangesAndCalculate}
     />
-    <ModifyOutputAreas bind:clickedOAName bind:scenarioName />
+    <input
+        type="text"
+        bind:value={scenarioShort}
+        placeholder="Scenario title..."
+    />
+    <textarea
+        bind:value={scenarioDescription}
+        placeholder="A longer textual description..."
+        spellcheck="false"
+    />
 {/if}
 
-{#if step === 3}
+{#if step === "calc"}
     <CalculatingScreen on:abort={() => controller.abort()} />
 {/if}
 
-{#if step === 4}
+{#if step === "error"}
     URK! FAILED!
 {/if}
