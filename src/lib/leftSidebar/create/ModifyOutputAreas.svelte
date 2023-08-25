@@ -4,7 +4,7 @@
 
     import { allScenarios } from "../../../scenarios";
     import { signatures, type MacroVar } from "../../../constants";
-    import { getLocalChanges, storeLocalChanges } from "../lsHelpers";
+    import { getLocalChanges, storeLocalChanges } from "../helpers";
 
     import Slider from "./Slider.svelte";
 

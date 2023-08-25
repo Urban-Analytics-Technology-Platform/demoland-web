@@ -1,12 +1,8 @@
 <script lang="ts">
-    import {
-        type Scenario,
-        type MacroVar,
-        type LayerName,
-        engineGithubUrl,
-    } from "../../constants";
+    import { engineGithubUrl } from "../../constants";
+    import { createNewScenario } from "./helpers";
     import JSZip from "jszip";
-    import { allScenarios, rescale } from "../../scenarios";
+    import { allScenarios } from "../../scenarios";
     import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
@@ -27,7 +23,7 @@
         return text.replace(/[&<>"'/`=]/g, (m) => map[m]);
     }
 
-    function createScenario(file: File) {
+    function createScenarioFromZip(file: File) {
         return JSZip.loadAsync(file).then((zip) => {
             // Deal with folders which were manually compressed, which have
             // one extra level (inside x.zip is a folder called x)
@@ -47,38 +43,14 @@
                     const metadata = JSON.parse(metadataJson);
                     const changed = JSON.parse(changedJson);
                     const values = JSON.parse(valuesJson);
-                    const newScenario: Scenario = {
-                        name: "",
-                        short: "",
-                        long: "",
-                        description: [],
-                        values: new Map(),
-                        changed: new Map(),
-                    };
-                    newScenario.name = escapeHtml(metadata.name);
-                    newScenario.short = escapeHtml(metadata.short);
-                    newScenario.long = escapeHtml(metadata.long);
-                    newScenario.description = escapeHtml(
-                        metadata.description
-                    ).split("\n");
-                    for (const [oa, map] of Object.entries(changed)) {
-                        newScenario.changed.set(oa, new Map());
-                        for (const [key, value] of Object.entries(map)) {
-                            newScenario.changed
-                                .get(oa)
-                                .set(key as MacroVar, value);
-                        }
-                    }
-                    for (const [oa, map] of Object.entries(values)) {
-                        newScenario.values.set(oa, new Map());
-                        for (const [key, value] of Object.entries(map)) {
-                            const layerName = key as LayerName;
-                            newScenario.values
-                                .get(oa)
-                                .set(layerName, rescale(layerName, value));
-                        }
-                    }
-                    return newScenario;
+                    return createNewScenario(
+                        escapeHtml(metadata.name),
+                        escapeHtml(metadata.short),
+                        escapeHtml(metadata.long),
+                        escapeHtml(metadata.description),
+                        changed,
+                        values
+                    );
                 }
             );
         });
@@ -95,7 +67,7 @@
         if (!files || files.length === 0) {
             return;
         } else {
-            Promise.all(Array.from(files).map(createScenario)).then(
+            Promise.all(Array.from(files).map(createScenarioFromZip)).then(
                 (scenarios) => {
                     if (scenarios.length === 0) {
                         return;
@@ -104,7 +76,9 @@
                         // Check for name duplication
                         if ($allScenarios.has(scenario.name)) {
                             let i = 1;
-                            while ($allScenarios.has(`${scenario.name}_${i})`)) {
+                            while (
+                                $allScenarios.has(`${scenario.name}_${i})`)
+                            ) {
                                 i++;
                             }
                             scenario.name = `${scenario.name}_${i}`;
@@ -112,7 +86,7 @@
                         console.log(scenario);
                         $allScenarios.set(scenario.name, scenario);
                     }
-                    dispatch("import", {name: scenarios[0].name});
+                    dispatch("import", { name: scenarios[0].name });
                 }
             );
         }

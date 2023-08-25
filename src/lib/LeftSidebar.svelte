@@ -116,14 +116,14 @@
 <style>
     div#sidebar {
         border-radius: 10px;
-        opacity: 90%;
         box-sizing: border-box;
         width: 320px;
         min-width: 320px;
         padding: 20px;
-        background-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.9);
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         max-height: calc(100vh - 40px);
+        z-index: 2;
 
         margin-left: 0px;
         margin-right: auto;

@@ -55,14 +55,14 @@
 <style>
     div#right-container {
         border-radius: 10px;
-        opacity: 90%;
         padding: 20px 20px 10px 15px;
-        background-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.9);
         pointer-events: auto;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 
         min-height: min-content;
         max-height: calc(100vh - 50px);
+        z-index: 1;
     }
 
     div#right-sidebar {

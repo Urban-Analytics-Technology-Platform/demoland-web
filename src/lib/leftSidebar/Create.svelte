@@ -3,17 +3,21 @@
     export let scenarioName: string | null;
     import ChooseStartingScenario from "./create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "./create/ModifyOutputAreas.svelte";
-    import { createEventDispatcher } from "svelte";
-    import { getLocalChanges, changesToApiJson } from "./lsHelpers";
+    import CalculatingScreen from "./create/CalculatingScreen.svelte";
     import {
-        type Scenario,
-        type MacroVar,
-        type LayerName,
-    } from "../../constants";
-    import { allScenarios, rescale } from "../../scenarios";
+        getLocalChanges,
+        changesToApiJson,
+        createNewScenario,
+    } from "./helpers";
+    import { allScenarios } from "../../scenarios";
+    import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
+    // Stage of the scenario creation process
     let step: number = 1;
+    // Controller to abort the fetch request if the user cancels
+    const controller = new AbortController();
+    const signal = controller.signal;
 
     function changeScenarioAndProceed() {
         dispatch("changeScenario", {});
@@ -27,44 +31,26 @@
         const url = window.location.href.includes("localhost")
             ? "http://localhost:5174" // launch with `npm run api`
             : "https://demoland-api.azurewebsites.net/"; // deployed to Azure
+
         fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: changedJson,
+            signal: signal,
         }).then((response) => {
             if (response.ok) {
                 console.log(response);
                 response.json().then((values) => {
                     console.log("Success!");
-
-                    // TODO This code is copied from Import.svelte - we should refactor
                     const changed = JSON.parse(changedJson);
-                    const newScenario: Scenario = {
-                        name: "Custom",
-                        short: "Custom scenario",
-                        long: "Custom scenario",
-                        description: ["Custom scenario"],
-                        values: new Map(),
-                        changed: new Map(),
-                    };
-                    for (const [oa, map] of Object.entries(changed)) {
-                        newScenario.changed.set(oa, new Map());
-                        for (const [key, value] of Object.entries(map)) {
-                            newScenario.changed
-                                .get(oa)
-                                .set(key as MacroVar, value);
-                        }
-                    }
-                    for (const [oa, map] of Object.entries(values)) {
-                        newScenario.values.set(oa, new Map());
-                        for (const [key, value] of Object.entries(map)) {
-                            const layerName = key as LayerName;
-                            newScenario.values
-                                .get(oa)
-                                .set(layerName, rescale(layerName, value));
-                        }
-                    }
-
+                    const newScenario = createNewScenario(
+                        "Custom scenario",
+                        "Custom scenario-short",
+                        "Custom scenario-long",
+                        "Custom scenario-description",
+                        changed,
+                        values
+                    );
                     // Check for name duplication
                     if ($allScenarios.has(newScenario.name)) {
                         let i = 1;
@@ -77,13 +63,12 @@
                     dispatch("import", { name: newScenario.name });
                 });
             } else {
+                step = 4;
                 throw new Error(
                     "Failed to calculate scenario values from server"
                 );
             }
         });
-        // TODO: parse values
-        // TODO: create a new Scenario (use code from Import.svelte)
     }
 </script>
 
@@ -108,5 +93,15 @@ Create your own scenario by modifying an existing one.
 {/if}
 
 {#if step === 3}
-    CALCULATING!! WAOW IT'S HAPPENING!!
+    <CalculatingScreen
+        on:abort={() => {
+            controller.abort();
+            console.log("Aborted!");
+            step = 2;
+        }}
+    />
+{/if}
+
+{#if step === 4}
+    URK! FAILED!
 {/if}
