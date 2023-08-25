@@ -1,7 +1,7 @@
 <script lang="ts">
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
-    import { allScenarios } from "../../scenarios";
+    import { allScenarios, unscale } from "../../scenarios";
     import CloseButton from "../reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;
@@ -31,8 +31,8 @@
             const valuesObj = {};
             for (const [oa, m] of values.entries()) {
                 valuesObj[oa] = {};
-                for (const [mv, v] of m.entries()) {
-                    valuesObj[oa][mv] = v;
+                for (const [layerName, val] of m.entries()) {
+                    valuesObj[oa][layerName] = unscale(layerName, val);
                 }
             }
             const valuesJson = JSON.stringify(valuesObj);

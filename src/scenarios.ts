@@ -18,20 +18,27 @@ import scenario5Changed from "./assets/input-changes/scenario5.json";
 import scenario6Changed from "./assets/input-changes/scenario6.json";
 import scenario7Changed from "./assets/input-changes/scenario7.json";
 
-/* This function reads the values from the baseline and returns a function
- * which, when called with a layer name and a value, returns the rescaled
- * value for that layer. 
+// Function to preprocess all raw values. Rounds to 6sf and clips negative
+// values to 0. Overly precise values lead to rounding errors and spurious
+// 'differences' in the map.
+function preprocess(num: number): number {
+    return Math.max(+num.toPrecision(6), 0);
+}
+
+/* This function reads the values from the baseline and returns a pair of
+ * functions, one for scaling and one for unscaling.
+ *
  * The rescaling is done by linearly interpolating between the global minimum
  * and maximum value for each indicator as found in the baseline.
  */
-function getRescaleFn(): (layerName: LayerName, unscaledVal: number) => number {
+function getScaleFunctions(): ((layerName: LayerName, val: number) => number)[] {
     // Calculate current minimum and maximum values
     const minValues: Map<LayerName, number> = new Map();
     const maxValues: Map<LayerName, number> = new Map();
     for (const layerName of allLayers.keys()) {
         const allValues = [];
         for (const oaValues of Object.values(baselineVals)) {
-            allValues.push(oaValues[layerName]);
+            allValues.push(preprocess(oaValues[layerName]));
         }
         minValues.set(layerName, Math.min(...allValues));
         maxValues.set(layerName, Math.max(...allValues));
@@ -41,15 +48,29 @@ function getRescaleFn(): (layerName: LayerName, unscaledVal: number) => number {
         if (layerName === "signature_type") {
             return unscaledVal;
         }
-        const val = Math.max(unscaledVal, 0);
-        const min = minValues.get(layerName);
-        const max = maxValues.get(layerName);
-        return GLOBALMIN + (GLOBALMAX - GLOBALMIN) * (val - min) / (max - min);
+        else {
+            const val = preprocess(unscaledVal);
+            const min = minValues.get(layerName);
+            const max = maxValues.get(layerName);
+            return GLOBALMIN + (GLOBALMAX - GLOBALMIN) * (val - min) / (max - min);
+        }
     }
-    return rescale;
+    function unscale(layerName: LayerName, scaledVal: number) {
+        if (layerName === "signature_type") {
+            return scaledVal;
+        }
+        else {
+            const min = minValues.get(layerName);
+            const max = maxValues.get(layerName);
+            return min + (max - min) * (scaledVal - GLOBALMIN) / (GLOBALMAX - GLOBALMIN);
+        }
+    }
+    return [rescale, unscale];
 }
 
-export const rescale = getRescaleFn();
+const scaleFunctions = getScaleFunctions();
+export const rescale = scaleFunctions[0];
+export const unscale = scaleFunctions[1];
 
 function setupBuiltinScenarios(): Map<string, Scenario> {
     function makeScaledValuesMapFromJson(json: object): Map<OA, Map<LayerName, number>> {

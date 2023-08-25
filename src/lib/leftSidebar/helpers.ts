@@ -70,6 +70,9 @@ export function createNewScenario(
     for (const [oa, map] of Object.entries(values)) {
         newScenario.values.set(oa, new Map());
         for (const [key, value] of Object.entries(map)) {
+            if (value === null) {
+                throw new Error("Null value in scenario");
+            }
             const layerName = key as LayerName;
             newScenario.values
                 .get(oa)
