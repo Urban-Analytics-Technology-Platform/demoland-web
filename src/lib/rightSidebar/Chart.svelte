@@ -12,6 +12,7 @@
         prettyLabel,
     } from "src/chart";
     import { getValues } from "src/utils";
+    import { unscale } from "src/scenarios";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
     export let scenarioName: string;
@@ -21,6 +22,7 @@
     const nbars = 11;
 
     let chart: Chart | null = null;
+    let chartStyle: "both" | "difference" = "both";
 
     // This bit of code replaces the colour of the legend label with the central
     // color of the dataset's backgroundColor (otherwise, by default it uses the
@@ -86,7 +88,7 @@
                 },
                 plugins: {
                     legend: {
-                        display: false,
+                        display: showLegend,
                         labels: {
                             boxWidth: 20,
                             font: { family: "IBM Plex Sans" },
@@ -108,13 +110,14 @@
             indicatorName,
             scenarioName,
             compareScenarioName,
-            nbars
+            nbars,
+            chartStyle
         );
         chart.data.datasets = chartData.datasets;
         chart.data.labels = chartData.labels;
         // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
         chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
-        chart.options.plugins.legend.display = false;
+        chart.options.plugins.legend.display = showLegend;
         chart.options.plugins.legend.labels.generateLabels = (chart) =>
             patchedGenerateLabels(chart, chartData.datasets);
         noChangesAtAll =
@@ -129,7 +132,8 @@
                 indicatorName,
                 scenarioName,
                 compareScenarioName,
-                nbars
+                nbars,
+                chartStyle
             )
         );
     });
@@ -138,12 +142,13 @@
     let indi: Indicator = allIndicators.get(indicatorName);
     let values: number[];
     let cmpValues: number[];
-    let mean: number;
-    let cmpMean: number;
+    let meanUnscaled: number;
+    let cmpMeanUnscaled: number;
     let diffMeanPct: number;
     let changes: number[];
     let meanChange: number;
     let noChangesAtAll: boolean;
+    let showLegend: boolean;
 
     function getMean(xs: number[]) {
         return xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -151,13 +156,16 @@
 
     $: {
         indicatorName, scenarioName, compareScenarioName;
+        showLegend = compareScenarioName !== null && chartStyle === "both";
+        console.log("showLegend", showLegend);
         updateChart();
         values = getValues(indicatorName, scenarioName);
-        mean = getMean(values);
+        meanUnscaled = unscale(indicatorName, getMean(values));
         if (compareScenarioName !== null) {
             cmpValues = getValues(indicatorName, compareScenarioName);
-            cmpMean = getMean(cmpValues);
-            diffMeanPct = ((mean - cmpMean) / cmpMean) * 100;
+            cmpMeanUnscaled = unscale(indicatorName, getMean(cmpValues));
+            diffMeanPct =
+                ((meanUnscaled - cmpMeanUnscaled) / cmpMeanUnscaled) * 100;
             changes = [...values.map((x, i) => x - cmpValues[i])];
             meanChange = getMean(changes);
             noChangesAtAll = changes.filter((x) => x !== 0).length === 0;
@@ -168,7 +176,7 @@
 <div class="chart-container">
     {#if compareScenarioName === null}
         <p>
-            Mean: {mean.toFixed(2)}
+            Mean: {meanUnscaled.toFixed(2)}
             {#if compareScenarioName !== null}({diffMeanPct >= 0
                     ? "+"
                     : "−"}{Math.abs(diffMeanPct).toFixed(1)}%){/if}
