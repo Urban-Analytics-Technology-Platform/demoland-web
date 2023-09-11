@@ -8,13 +8,25 @@ Frontend for visualisation of modelling and results from the Land Use Demonstrat
 - The GitHub repositories containing the code powering this project: [LandUseDemonstrator](https://github.com/ciupava/LandUseDemonstrator), [demoland_engine](https://github.com/martinfleis/demoland_engine)
 - [A page on the Alan Turing Institute's intranet, Mathison](https://mathison.turing.ac.uk/page/2864), about the project.
 
-## Local usage
+## Local development (without custom scenarios)
 
 1. [Download Node.js](https://nodejs.org/en/download) if you don't already have it.
 2. Clone the repository and run `npm install` inside it.
-3. To develop locally, run `npm run dev`.
-4. To build the static website, run `npm run build`.
-   The website will be built inside the `dist` folder; you can launch a HTTP server from that directory to view the website.
+3. Run `npm run dev` and open http://localhost:5173 in a browser window.
+
+## Local usage (with custom scenarios)
+
+Same as above, but additionally, run:
+
+1. `npm run api-build` to build the Docker image containing the Python API
+2. `npm run dev+api` to launch the web app on port 5173 and Python API on port 5174
+
+Again, the app can be launched via http://localhost:5173.
+
+## Building static files
+
+`npm run build` will build the website will be built inside the `dist` folder.
+You can launch a HTTP server from that directory to view the website.
 
 ## Data sources used for visualisation
 

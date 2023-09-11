@@ -62,7 +62,7 @@ SIGS = {
 BASELINE_USE = pd.read_parquet(f'{data_folder}/sampling/oa_key.parquet')
 BASELINE_USE = (BASELINE_USE
                 .assign(primary_type=BASELINE_USE['primary_type'].map(SIGS))
-                .rename(columns={'primary_type': 'sig'})
+                .rename(columns={'primary_type': 'signature_type'})
                 )
 GEOM = gpd.read_parquet(f"{data_folder}/processed/interpolated/all_oa.parquet")
 
@@ -110,7 +110,7 @@ def make_files_from_output(
     print(f"Generating files for {name}...")
     # Copy updated land use signatures from input dataframe
     use = BASELINE_USE.copy()
-    use.loc[input_df['signature_type'].notnull(), 'sig'] = input_df['signature_type']
+    use.loc[input_df['signature_type'].notnull(), 'signature_type'] = input_df['signature_type']
     # Merge to output dataframe
     values = output_df.join(use, validate='one_to_one')
     values.to_json(f'{values_dir}/{name}.json', orient='index')

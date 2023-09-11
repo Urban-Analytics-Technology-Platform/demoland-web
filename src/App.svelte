@@ -2,16 +2,11 @@
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
     import { onMount, onDestroy } from "svelte";
-    import LeftSidebar from "./lib/LeftSidebar.svelte";
-    import RightSidebar from "./lib/RightSidebar.svelte";
-    import Welcome from "./lib/Welcome.svelte";
-    import { makePopup } from "./hover";
-    import {
-        allLayers,
-        type LayerName,
-        type ScenarioName,
-        type CompareView,
-    } from "./constants";
+    import LeftSidebar from "src/lib/LeftSidebar.svelte";
+    import RightSidebar from "src/lib/RightSidebar.svelte";
+    import Welcome from "src/lib/Welcome.svelte";
+    import { makePopup } from "src/hover";
+    import { allLayers, type LayerName } from "src/constants";
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
@@ -27,7 +22,7 @@
     // The layer for the OA data
     const NEWCASTLE_LAYER = "newcastle-layer";
     // The currently active map layer
-    let activeLayer: LayerName = "sig";
+    let activeLayer: LayerName = "signature_type";
     // The numeric ID of the OA being hovered over.
     let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
@@ -38,11 +33,9 @@
     // The popup shown when clicking on an OA
     let clickPopup: maplibregl.Popup | null = null;
     // Initial scenario to show
-    let scenarioName: ScenarioName = "baseline";
+    let scenarioName: string = "baseline";
     // Scenario to compare against. Null to not compare.
-    let compareScenarioName: ScenarioName | null = null;
-    // Method to visualise scenario comparison
-    let compareView: CompareView = "difference";
+    let compareScenarioName: string | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
@@ -225,6 +218,8 @@
         map.on("move", function () {
             const bounds = map.getBounds();
             offcentre =
+                map.getPitch() !== 0 ||
+                map.getBearing() !== 0 ||
                 map.getZoom() < 6 ||
                 bounds.getWest() > -1.35 ||
                 bounds.getEast() < -1.855 ||
@@ -273,46 +268,45 @@
                 paint: {
                     "fill-color": [
                         "get",
-                        compareScenarioName === null ||
-                        compareView === "original"
-                            ? `${layerName}-color`
-                            : `${layerName}-diff-color`,
-                    ],
-                    "fill-opacity": 0.01,
-                    // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
-                    "fill-opacity-transition": { duration: 300 },
-                },
-            });
-        }
-
-        // Generate a line layer to display the borders of each OA.
-        map.addLayer({
-            id: "line-layer",
-            type: "line",
-            source: NEWCASTLE_LAYER,
-            layout: {},
-            paint: {
-                "line-color": "#ffffff",
-                "line-width": [
-                    "case",
-                    ["boolean", ["feature-state", "click"], false],
-                    3,
-                    ["boolean", ["feature-state", "hover"], false],
-                    1.5,
-                    0,
+                    compareScenarioName === null
+                        ? `${layerName}-color`
+                        : `${layerName}-diff-color`,
                 ],
-                "line-opacity": 0.01,
-                // @ts-ignore: Suppressing a known bug
-                // https://github.com/maplibre/maplibre-gl-js/issues/1708
-                "line-opacity-transition": { duration: 300 },
+                "fill-opacity": 0.01,
+                // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
+                "fill-opacity-transition": { duration: 300 },
             },
         });
+    }
 
-        // Generate the LineString layer showing the boundary of the changed
-        // areas.
-        const diffedBoundaries = getInputDiffBoundaries(
-            scenarioName,
-            compareScenarioName
+    // Generate a line layer to display the borders of each OA.
+    map.addLayer({
+        id: "line-layer",
+        type: "line",
+        source: NEWCASTLE_LAYER,
+        layout: {},
+        paint: {
+            "line-color": "#ffffff",
+            "line-width": [
+                "case",
+                ["boolean", ["feature-state", "click"], false],
+                3,
+                ["boolean", ["feature-state", "hover"], false],
+                1.5,
+                0,
+            ],
+            "line-opacity": 0.01,
+            // @ts-ignore: Suppressing a known bug
+            // https://github.com/maplibre/maplibre-gl-js/issues/1708
+            "line-opacity-transition": { duration: 300 },
+        },
+    });
+
+    // Generate the LineString layer showing the boundary of the changed
+    // areas.
+    const diffedBoundaries = getInputDiffBoundaries(
+        scenarioName,
+        compareScenarioName
         );
         map.addSource("boundary", {
             type: "geojson",
@@ -366,7 +360,7 @@
             for (const layerName of allLayers.keys()) {
                 map.setPaintProperty(`${layerName}-layer`, "fill-color", [
                     "get",
-                    compareScenarioName === null || compareView === "original"
+                    compareScenarioName === null
                         ? `${layerName}-color`
                         : `${layerName}-diff-color`,
                 ]);
@@ -379,7 +373,10 @@
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
         // Update the LineString layer
-        const diffedBoundaries = getInputDiffBoundaries(scenarioName, compareScenarioName);
+        const diffedBoundaries = getInputDiffBoundaries(
+            scenarioName,
+            compareScenarioName
+        );
         const boundarySource = map.getSource(
             "boundary"
         ) as maplibregl.GeoJSONSource;
@@ -428,8 +425,23 @@
                 center: initialCentre,
                 zoom: initialZoom,
                 speed: 1.5,
+                bearing: 0,
+                pitch: 0,
             });
         }
+    }
+
+    // Get the name of the OA that was clicked on (for creating custom scenarios)
+    function getOAName(featureId: number | null): string | null {
+        if (featureId === null) {
+            return null;
+        }
+        const feat = mapData.features.find((feat) => feat.id === featureId);
+        return feat.properties.OA11CD;
+    }
+    let clickedOAName: string | null = null;
+    $: {
+        clickedOAName = getOAName(clickedId);
     }
 </script>
 
@@ -442,9 +454,8 @@
         <LeftSidebar
             bind:scenarioName
             bind:compareScenarioName
-            bind:compareView
+            bind:clickedOAName
             on:changeScenario={updateScenario}
-            on:changeCompareView={updateLayers}
             on:showWelcome={() => {
                 welcomeVisible = true;
             }}
@@ -454,7 +465,7 @@
             {#if offcentre}
                 <input
                     type="button"
-                    value="Centre map"
+                    value="Reset view"
                     id="recentre"
                     on:click={recentreMap}
                 />
@@ -468,7 +479,6 @@
             on:changeOpacity={updateLayers}
             {scenarioName}
             {compareScenarioName}
-            {compareView}
         />
     </div>
 </main>

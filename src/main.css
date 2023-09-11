@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Mono:wght@400;700&display=swap');
 
 /* https://css-tricks.com/box-sizing/ */
 html {
@@ -29,4 +29,9 @@ h1 {
 
 h2 {
     font-size: 120%;
+}
+
+.ms {
+    font-family: "Fira Mono", monospace;
+    font-size: 95%;
 }

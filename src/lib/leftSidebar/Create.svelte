@@ -1,0 +1,150 @@
+<script lang="ts">
+    export let clickedOAName: string | null;
+    export let scenarioName: string | null;
+    import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
+    import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
+    import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
+    import {
+        getLocalChanges,
+        changesToApiJson,
+        createNewScenario,
+    } from "src/lib/leftSidebar/helpers";
+    import { allScenarios } from "src/scenarios";
+    import { createEventDispatcher } from "svelte";
+    const dispatch = createEventDispatcher();
+
+    // Stage of the scenario creation process
+    let step: "choose" | "modify" | "metadata" | "calc" | "error" = "choose";
+    // Controller to abort the fetch request if the user cancels. This is in
+    // the global scope so that it can be accessed by the abort button, but
+    // only initialised inside acceptChangesAndCalculate()
+    let controller: AbortController;
+    let signal: AbortSignal;
+    // Metadata which the user can provide for the scenario
+    let scenarioShort: string = "";
+    let scenarioDescription: string = "";
+
+    function changeScenarioAndProceed() {
+        dispatch("changeScenario", {});
+        step = "modify"; // move on to the next step
+    }
+
+    function handleApiResponse(response: Response, changedJson: string) {
+        if (response.ok) {
+            console.log(response);
+            response.json().then((values: object) => {
+                console.log("Success!");
+                const changed = JSON.parse(changedJson);
+                const newScenario = createNewScenario(
+                    scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
+                    scenarioShort,
+                    "Custom: " + scenarioShort,
+                    scenarioDescription,
+                    changed,
+                    values
+                );
+                // Check for name duplication
+                if ($allScenarios.has(newScenario.name)) {
+                    let i = 1;
+                    while ($allScenarios.has(`${newScenario.name}_${i})`)) {
+                        i++;
+                    }
+                    newScenario.name = `${newScenario.name}_${i}`;
+                }
+                $allScenarios.set(newScenario.name, newScenario);
+                dispatch("import", { name: newScenario.name });
+            });
+        } else {
+            step = "error";
+            throw new Error("Failed to calculate scenario values from server");
+        }
+    }
+
+    function handleError(error: Error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+            step = "metadata"; // just go back to the previous step
+            console.log("Calculation aborted!");
+        } else {
+            // TODO show the user the error and ask them to report it
+            step = "error";
+            throw error;
+        }
+    }
+
+    function acceptChangesAndCalculate() {
+        // TODO should check that metadata is not empty
+        // or use a default value if it is
+
+        const changedJson = changesToApiJson(getLocalChanges());
+        step = "calc"; // move on
+
+        // Create a new Controller each time the button is pressed
+        controller = new AbortController();
+        signal = controller.signal;
+
+        const url = window.location.href.includes("localhost")
+            ? "http://localhost:5174" // launch with `npm run api`
+            : "https://demoland-api.azurewebsites.net/"; // deployed to Azure
+
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: changedJson,
+            signal: signal,
+        }).then((resp) => handleApiResponse(resp, changedJson), handleError);
+    }
+</script>
+
+Create your own scenario by modifying an existing one.
+
+{#if step === "choose"}
+    <ChooseStartingScenario
+        bind:scenarioName
+        on:changeScenario={changeScenarioAndProceed}
+    />
+{/if}
+
+{#if step === "modify"}
+    <input
+        type="button"
+        value="Back to scenario selection"
+        on:click={() => (step = "choose")}
+    />
+    <input
+        type="button"
+        value="Continue to add metadata"
+        on:click={() => (step = "metadata")}
+    />
+    <ModifyOutputAreas bind:clickedOAName bind:scenarioName />
+{/if}
+
+{#if step === "metadata"}
+    <input
+        type="button"
+        value="Back to OA modification"
+        on:click={() => (step = "modify")}
+    />
+    <input
+        type="button"
+        value="Accept changes and calculate"
+        on:click={acceptChangesAndCalculate}
+    />
+    <input
+        type="text"
+        bind:value={scenarioShort}
+        placeholder="Scenario title..."
+    />
+    <textarea
+        bind:value={scenarioDescription}
+        placeholder="A longer textual description..."
+        spellcheck="false"
+    />
+{/if}
+
+{#if step === "calc"}
+    <CalculatingScreen on:abort={() => controller.abort()} />
+{/if}
+
+{#if step === "error"}
+    An error occurred, please try again...
+{/if}

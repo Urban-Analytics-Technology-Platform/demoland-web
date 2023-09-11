@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "api-build": "cd demoland_engine; docker build -t demoland_api .",
+    "api": "cd demoland_engine; docker run -p 5174:80 demoland_api",
+    "dev+api": "concurrently \"npm run dev\" \"npm run api\"",
     "build": "vite build",
     "lint": "npx eslint .",
     "preview": "vite preview",
@@ -14,8 +17,10 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.3",
     "@tsconfig/svelte": "^4.0.1",
+    "@types/file-saver": "^2.0.5",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
+    "concurrently": "^8.2.1",
     "eslint": "^8.42.0",
     "eslint-plugin-svelte": "^2.30.0",
     "svelte": "^3.59.1",
@@ -32,7 +37,10 @@
     "@types/geojson": "^7946.0.10",
     "chart.js": "^4.3.0",
     "colormap": "^2.3.2",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
     "maplibre-gl": "^2.4.0",
-    "overlayscrollbars": "^2.2.1"
+    "overlayscrollbars": "^2.2.1",
+    "vite-tsconfig-paths": "^4.2.0"
   }
 }

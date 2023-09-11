@@ -4,21 +4,18 @@
         type IndicatorName,
         type Indicator,
         allIndicators,
-        type ScenarioName,
-        type CompareView,
-    } from "../constants";
+    } from "src/constants";
     import {
         type ChartDataset,
         type ChartData,
         makeChartData,
         prettyLabel,
-    } from "../chart";
-    import { getValues } from "../utils";
+    } from "src/chart";
+    import { getValues } from "src/utils";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
-    export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName | null;
-    export let compareView: CompareView;
+    export let scenarioName: string;
+    export let compareScenarioName: string | null;
 
     // Number of bars to use in the chart
     const nbars = 11;
@@ -73,8 +70,7 @@
                             callback: (val) =>
                                 prettyLabel(
                                     val as number,
-                                    compareView === "difference" &&
-                                        compareScenarioName !== null
+                                    compareScenarioName !== null
                                 ),
                             maxRotation: 0,
                             minRotation: 0,
@@ -90,9 +86,7 @@
                 },
                 plugins: {
                     legend: {
-                        display:
-                            compareScenarioName !== null &&
-                            compareView !== "difference",
+                        display: false,
                         labels: {
                             boxWidth: 20,
                             font: { family: "IBM Plex Sans" },
@@ -112,7 +106,6 @@
         if (chart === null) return;
         const chartData = makeChartData(
             indicatorName,
-            compareView,
             scenarioName,
             compareScenarioName,
             nbars
@@ -121,11 +114,12 @@
         chart.data.labels = chartData.labels;
         // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
         chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
-        chart.options.plugins.legend.display =
-            compareScenarioName !== null && compareView !== "difference";
+        chart.options.plugins.legend.display = false;
         chart.options.plugins.legend.labels.generateLabels = (chart) =>
             patchedGenerateLabels(chart, chartData.datasets);
-        noChangesAtAll = chartData.datasets.length === 1 && chartData.datasets[0].data.filter((x) => x !== 0).length === 0;
+        noChangesAtAll =
+            chartData.datasets.length === 1 &&
+            chartData.datasets[0].data.filter((x) => x !== 0).length === 0;
         chart.update("none");
     }
 
@@ -133,7 +127,6 @@
         drawChart(
             makeChartData(
                 indicatorName,
-                compareView,
                 scenarioName,
                 compareScenarioName,
                 nbars
@@ -157,14 +150,14 @@
     }
 
     $: {
-        indicatorName, scenarioName, compareScenarioName, compareView;
+        indicatorName, scenarioName, compareScenarioName;
         updateChart();
         values = getValues(indicatorName, scenarioName);
         mean = getMean(values);
         if (compareScenarioName !== null) {
             cmpValues = getValues(indicatorName, compareScenarioName);
             cmpMean = getMean(cmpValues);
-            diffMeanPct = (mean - cmpMean) / cmpMean * 100;
+            diffMeanPct = ((mean - cmpMean) / cmpMean) * 100;
             changes = [...values.map((x, i) => x - cmpValues[i])];
             meanChange = getMean(changes);
             noChangesAtAll = changes.filter((x) => x !== 0).length === 0;
@@ -173,25 +166,34 @@
 </script>
 
 <div class="chart-container">
-    {#if compareView === "original" || compareScenarioName === null}
-        <p>Mean: {mean.toFixed(2)} {#if compareScenarioName !== null}({diffMeanPct >= 0 ? "+" : "−"}{Math.abs(diffMeanPct).toFixed(1)}%){/if}</p>
+    {#if compareScenarioName === null}
+        <p>
+            Mean: {mean.toFixed(2)}
+            {#if compareScenarioName !== null}({diffMeanPct >= 0
+                    ? "+"
+                    : "−"}{Math.abs(diffMeanPct).toFixed(1)}%){/if}
+        </p>
+    {:else if noChangesAtAll}
+        <p>No changes.</p>
     {:else}
-        {#if noChangesAtAll}
-            <p>No changes.</p>
-        {:else}
-            <p>Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(meanChange).toFixed(2)} ({diffMeanPct >= 0 ? "+" : "−"}{Math.abs(diffMeanPct).toFixed(1)}%)</p>
-        {/if}
+        <p>
+            Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(
+                meanChange
+            ).toFixed(2)} ({diffMeanPct >= 0 ? "+" : "−"}{Math.abs(
+                diffMeanPct
+            ).toFixed(1)}%)
+        </p>
     {/if}
-    <div id="chart-container" class="{noChangesAtAll ? 'hidden' : ''}">
+    <div id="chart-container" class={noChangesAtAll ? "hidden" : ""}>
         <div class="chart-canvas">
             <canvas id="chart-{indicatorName}" />
         </div>
         <div class="chart-pointers">
             <div class="chart-pointers-left">
-                ← {compareView === "difference" && compareScenarioName !== null ? indi.less_diff : indi.less}
+                ← {compareScenarioName !== null ? indi.less_diff : indi.less}
             </div>
             <div class="chart-pointers-right">
-                {compareView === "difference" && compareScenarioName !== null ? indi.more_diff : indi.more} →
+                {compareScenarioName !== null ? indi.more_diff : indi.more} →
             </div>
         </div>
     </div>
@@ -218,7 +220,7 @@
     div.chart-container > :last-child {
         margin-bottom: 0 !important;
     }
-    
+
     div.hidden {
         display: none;
     }

@@ -2,8 +2,8 @@
     import { slide } from "svelte/transition";
     import { quintOut } from "svelte/easing";
 
-    import closeTriangle from "../assets/close.svg";
-    import openTriangle from "../assets/open.svg";
+    import closeTriangle from "src/assets/close.svg";
+    import openTriangle from "src/assets/open.svg";
 
     export let title: string;
     export let collapsed: boolean = false;

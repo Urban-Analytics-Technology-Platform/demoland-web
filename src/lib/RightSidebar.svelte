@@ -1,23 +1,20 @@
 <script lang="ts">
-    import Chart from "./Chart.svelte";
-    import LayerSelector from "./LayerSelector.svelte";
-    import Collapsible from "./Collapsible.svelte";
+    import Chart from "src/lib/rightSidebar/Chart.svelte";
+    import LayerSelector from "src/lib/rightSidebar/LayerSelector.svelte";
+    import Collapsible from "src/lib/reusable/Collapsible.svelte";
     import {
         type LayerName,
-        type ScenarioName,
-        type CompareView,
         allIndicators,
-    } from "../constants";
+    } from "src/constants";
 
     import "overlayscrollbars/overlayscrollbars.css";
-    import { overlayScrollbars } from "../utils";
+    import { overlayScrollbars } from "src/utils";
     import { onMount } from "svelte";
 
     export let activeLayer: LayerName;
     export let opacity: number;
-    export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName | null;
-    export let compareView: CompareView;
+    export let scenarioName: string;
+    export let compareScenarioName: string | null;
 
     // Events which need to bubble up to main App
     import { createEventDispatcher } from "svelte";
@@ -44,11 +41,10 @@
         </Collapsible>
 
         {#each [...allIndicators.entries()] as [indiName, indi]}
-            <Collapsible title={indi.short} collapsed={activeLayer !== "sig" && indiName !== activeLayer}>
+            <Collapsible title={indi.short} collapsed={activeLayer !== "signature_type" && indiName !== activeLayer}>
                 <Chart
                     indicatorName={indiName}
                     {scenarioName}
-                    {compareView}
                     {compareScenarioName}
                 />
             </Collapsible>
@@ -59,14 +55,14 @@
 <style>
     div#right-container {
         border-radius: 10px;
-        opacity: 90%;
         padding: 20px 20px 10px 15px;
-        background-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.9);
         pointer-events: auto;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 
         min-height: min-content;
         max-height: calc(100vh - 50px);
+        z-index: 1;
     }
 
     div#right-sidebar {

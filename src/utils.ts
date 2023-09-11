@@ -1,9 +1,11 @@
-import geography from "./assets/newcastle.json";
+import geography from "src/assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
 import { OverlayScrollbars } from "overlayscrollbars";
-import { allIndicators, type IndicatorName, allScenarios, type ScenarioName, signatures, GLOBALMIN, GLOBALMAX, type MacroVar } from "./constants";
+import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "src/constants";
+import { allScenarios } from "src/scenarios";
+import { get } from "svelte/store";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "diff") {
@@ -26,9 +28,14 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     }
 }
 
+export function getScenario(name: string) {
+    return get(allScenarios).get(name);
+}
+
+
 // Get all values for a given indicator in a given scenario.
-export function getValues(indicator: IndicatorName, scenarioName: ScenarioName): number[] {
-    const scenario = allScenarios.get(scenarioName);
+export function getValues(indicator: IndicatorName, scenarioName: string): number[] {
+    const scenario = getScenario(scenarioName);
     return [...scenario.values.values()].map(m => m.get(indicator));
 }
 
@@ -42,8 +49,56 @@ const colormaps: { [key: string]: string[] } = {
 
 function getColorFromMap(map: string[], value: number, min: number, max: number) {
     const n = map.length;
-    const i = Math.round(((value - min) / (max - min)) * (n - 1));
+    let i = Math.round(((value - min) / (max - min)) * (n - 1));
+    // Clamp to [0, n-1]
+    i = Math.min(Math.max(i, 0), n - 1);
     return map[i];
+}
+
+/**
+ * Calculate the colour which should be shown on the map for a given scenario.
+ *
+ * @param layerName The name of the layer being displayed
+ * @param value The value of the layer in the scenario
+ */
+function getColor(layerName: LayerName, value: number) {
+
+    if (layerName === "signature_type") {
+        // Categorical variable
+        return signatures[value].color;
+    }
+    else {
+        // Continuous variables, use the respective colormaps
+        return getColorFromMap(colormaps[layerName], value, GLOBALMIN, GLOBALMAX);
+    }
+}
+
+/**
+ * Calculate the colour which should be shown on the map in 'difference' mode
+ * (when a scenario is being compared against).
+ *
+ * @param layerName The name of the layer being displayed
+ * @param value The value of the layer in the main scenario
+ * @param cmpValue The value of the layer in the scenario being compared
+ * against
+ * @param maxDiffExtents A map of the maximum difference between the main
+ * scenario and the scenario being compared against for each layer. This is
+ * pre-calculated for efficiency inside the `makeCombinedGeoJSON` function.
+ * @returns The colour which should be shown on the map.
+ */
+function getDiffColor(layerName: LayerName, value: number, cmpValue: number,
+    maxDiffExtents: Map<LayerName, number>) {
+    if (layerName === "signature_type") {
+        // Categorical variable. If it's the same, we don't show anything. If
+        // it's different, we show the color of the main scenario.
+        return value === cmpValue ? "rgba(0, 0, 0, 0.1)" : signatures[value].color;
+    }
+    else {
+        // Continuous variables, use 'diff' colormap
+        return value === cmpValue
+            ? "rgba(0, 0, 0, 0.1)"
+            : getColorFromMap(colormaps["diff"], value - cmpValue, -maxDiffExtents.get(layerName), maxDiffExtents.get(layerName));
+    }
 }
 
 /** The indicator values are stored as a JSON file, separate from the
@@ -54,31 +109,32 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  * It also proves easier to encode the colours for each indicator here, because
  * otherwise it results in some really complicated expressions in MapLibre.
  * 
- * @param {ScenarioName} scenarioName: the name of the scenario being used.
- * @param {ScenarioName} compareScenarioName: the name of the scenario being
+ * @param {string} scenarioName: the name of the scenario being used.
+ * @param {string} compareScenarioName: the name of the scenario being
  * compared against.
  *
  * @returns an updated GeoJSON file with the indicator values plus associated
  * colours added to the properties of each feature.
  */
 export function makeCombinedGeoJSON(
-    scenarioName: ScenarioName,
-    compareScenarioName: ScenarioName | null,
+    scenarioName: string,
+    compareScenarioName: string | null,
 ): GeoJSON.FeatureCollection {
-    const scenario = allScenarios.get(scenarioName);
+    const scenario = getScenario(scenarioName);
 
-    // Precalculate differences between scenarios being compared
-    const maxDiffExtent: Map<IndicatorName, number> = new Map();
+    // Precalculate differences between scenarios being compared, which gives us
+    // the min and max values for the 'diff' colormap.
+    const maxDiffExtents: Map<LayerName, number> = new Map();
     if (compareScenarioName !== null) {
-        const scenario = allScenarios.get(scenarioName);
-        const cScenario = allScenarios.get(compareScenarioName);
-        for (const indiName of allIndicators.keys()) {
+        const scenario = getScenario(scenarioName);
+        const cScenario = getScenario(compareScenarioName);
+        for (const layerName of allLayers.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
-                diffs.push(scenario.values.get(oa).get(indiName) - cScenario.values.get(oa).get(indiName));
+                diffs.push(scenario.values.get(oa).get(layerName) - cScenario.values.get(oa).get(layerName));
             }
             const maxDiff = Math.max(...diffs.map(d => Math.abs(d)));
-            maxDiffExtent.set(indiName, maxDiff === 0 ? 1 : maxDiff);
+            maxDiffExtents.set(layerName, maxDiff === 0 ? 1 : maxDiff);
         }
     }
 
@@ -89,37 +145,24 @@ export function makeCombinedGeoJSON(
         if (oaValues === undefined) {
             throw new Error(`${oaName} not found in values!`);
         }
-        for (const indiName of allIndicators.keys()) {
-            feature.properties[indiName] = oaValues.get(indiName);
-            feature.properties[`${indiName}-color`] =
-                getColorFromMap(colormaps[indiName], oaValues.get(indiName), GLOBALMIN, GLOBALMAX);
+        for (const layerName of allLayers.keys()) {
+            const value = oaValues.get(layerName);
+            feature.properties[layerName] = value;
+            feature.properties[`${layerName}-color`] = getColor(layerName, value);
         }
-        feature.properties["sig"] = scenario.values.get(oaName).get("sig");
-        feature.properties["sig-color"] = signatures[feature.properties["sig"]].color;
         if (compareScenarioName !== null) {
-            const cScenario = allScenarios.get(compareScenarioName);
+            const cScenario = getScenario(compareScenarioName);
             const cOaValues = cScenario.values.get(oaName);
             if (cOaValues === undefined) {
-                throw new Error(`${oaName} not found in compare values!`);
+                throw new Error(`Output area ${oaName} not found in compare values; this should not happen`);
             }
-            for (const indiName of allIndicators.keys()) {
-                feature.properties[`${indiName}-cmp`] = cOaValues.get(indiName);
-                feature.properties[`${indiName}-cmp-color`] =
-                    getColorFromMap(colormaps[indiName], cOaValues.get(indiName), GLOBALMIN, GLOBALMAX);
-                feature.properties["sig-cmp"] = cScenario.values.get(oaName).get("sig");
-                feature.properties["sig-cmp-color"] = signatures[feature.properties["sig-cmp"]].color;
-                // The 'difference' view for land use is just the ones that are
-                // changed relative to the scenario being compared against
-                if (feature.properties["sig"] === feature.properties["sig-cmp"]) {
-                    feature.properties["sig-diff-color"] = "rgba(0, 0, 0, 0.1)";
-                } else {
-                    feature.properties["sig-diff-color"] = feature.properties["sig-color"];
-                }
-                feature.properties[`${indiName}-diff`] = oaValues.get(indiName) - cOaValues.get(indiName);
-                feature.properties[`${indiName}-diff-color`] =
-                    oaValues.get(indiName) === cOaValues.get(indiName)
-                        ? "rgba(0, 0, 0, 0.1)"
-                        : getColorFromMap(colormaps["diff"], oaValues.get(indiName) - cOaValues.get(indiName), -maxDiffExtent.get(indiName), maxDiffExtent.get(indiName));
+            for (const layerName of allLayers.keys()) {
+                const value = oaValues.get(layerName);
+                const cmpValue = cOaValues.get(layerName);
+                feature.properties[`${layerName}-cmp`] = cmpValue;
+                feature.properties[`${layerName}-cmp-color`] = getColor(layerName, cmpValue);
+                feature.properties[`${layerName}-diff`] = value - cmpValue;
+                feature.properties[`${layerName}-diff-color`] = getDiffColor(layerName, value, cmpValue, maxDiffExtents);
             }
         }
 
@@ -132,7 +175,12 @@ export function makeCombinedGeoJSON(
     return geography as GeoJSON.FeatureCollection;
 }
 
-// Obtain the LngLatBoundsLike of a Polygon or MultiPolygon geometry object from its coordinates.
+/**
+ * Obtain the LngLatBoundsLike of a Polygon or MultiPolygon geometry object from its coordinates.
+ *
+ * @param geometry The geometry object to get the bounds of.
+ * @returns The bounds of the geometry.
+ */
 export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLatBounds {
     // Helper function which acts on a list of positions.
     function getBoundsFromPositionList(positions: GeoJSON.Position[]): maplibregl.LngLatBounds {
@@ -164,7 +212,13 @@ export function getGeometryBounds(geometry: GeoJSON.Geometry): maplibregl.LngLat
 }
 
 
-// Helper function to check if two maps are equal
+/**
+ * Check if two maps are equal.
+ *
+ * @param m1 The first map.
+ * @param m2 The second map.
+ * @returns true if the maps are equal, false otherwise.
+ */
 function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
     // Check if the maps have the same number of keys
     if (m1.size !== m2.size) {
@@ -179,15 +233,26 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
     return true;
 }
 
+/**
+ * Get the geographic boundary of the areas which differ between two scenarios.
+ * This is done by comparing the values of each input variable in each area,
+ * collating the areas where the values differ, and then performing a union of
+ * these areas.
+ *
+ * @param scenarioName First scenario
+ * @param compareScenarioName Second scenario
+ * @returns A GeoJSON FeatureCollection containing the boundaries of the areas
+ * as a MultiPolygon.
+ */
 export function getInputDiffBoundaries(
-    scenarioName: ScenarioName,
-    compareScenarioName: ScenarioName | null
+    scenarioName: string,
+    compareScenarioName: string | null
 ): GeoJSON.FeatureCollection {
     type MVMap = Map<string, Map<MacroVar, number | null>>;
-    const changed: MVMap = allScenarios.get(scenarioName).changed;
+    const changed: MVMap = getScenario(scenarioName).changed;
     const cChanged: MVMap = compareScenarioName === null
         ? new Map()
-        : allScenarios.get(compareScenarioName).changed;
+        : getScenario(compareScenarioName).changed;
 
     // Determine OAs which are different
     const allPossibleOAs: Set<string> = new Set([
@@ -226,8 +291,7 @@ export function getInputDiffBoundaries(
     if (boundary.features.length > 0) {
         const unioned = boundary.features.reduce((acc, feature) => {
             const featureGeometry = feature.geometry;
-            // Not sure how to best coerce GeoJSON types right now. But it
-            // works.
+            // @ts-ignore Not sure how to best coerce GeoJSON types right now. But it works.
             return union(acc, featureGeometry);
         });
         boundary.features = [unioned];
