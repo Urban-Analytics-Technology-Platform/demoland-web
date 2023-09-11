@@ -2,9 +2,9 @@
     export let clickedOAName: string | null;
     export let scenarioName: string;
 
-    import { allScenarios } from "../../../scenarios";
-    import { signatures, type MacroVar } from "../../../constants";
-    import { getLocalChanges, storeLocalChanges } from "../helpers";
+    import { allScenarios } from "src/scenarios";
+    import { signatures, type MacroVar } from "src/constants";
+    import { getLocalChanges, storeLocalChanges } from "src/lib/leftSidebar/helpers";
 
     import Slider from "./Slider.svelte";
 

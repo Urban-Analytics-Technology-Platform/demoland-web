@@ -1,5 +1,5 @@
-import { type Scenario, type MacroVar, type LayerName } from "../../constants";
-import { rescale } from "../../scenarios";
+import { type Scenario, type MacroVar, type LayerName } from "src/constants";
+import { rescale } from "src/scenarios";
 
 type Changes = Map<string, Map<MacroVar, number | null>>;
 // type Values = Map<string, Map<LayerName, number>>;

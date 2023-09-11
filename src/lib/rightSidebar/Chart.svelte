@@ -4,19 +4,18 @@
         type IndicatorName,
         type Indicator,
         allIndicators,
-        type ScenarioName,
-    } from "../../constants";
+    } from "src/constants";
     import {
         type ChartDataset,
         type ChartData,
         makeChartData,
         prettyLabel,
-    } from "../../chart";
-    import { getValues } from "../../utils";
+    } from "src/chart";
+    import { getValues } from "src/utils";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
-    export let scenarioName: ScenarioName;
-    export let compareScenarioName: ScenarioName | null;
+    export let scenarioName: string;
+    export let compareScenarioName: string | null;
 
     // Number of bars to use in the chart
     const nbars = 11;

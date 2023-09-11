@@ -1,22 +1,22 @@
 import { writable } from 'svelte/store';
-import { type OA, type LayerName, type MacroVar, type Scenario, allLayers, GLOBALMIN, GLOBALMAX } from "./constants";
+import { type OA, type LayerName, type MacroVar, type Scenario, allLayers, GLOBALMIN, GLOBALMAX } from "src/constants";
 
-import baselineVals from "./assets/values/baseline.json";
-import scenario1Vals from "./assets/values/scenario1.json";
-import scenario2Vals from "./assets/values/scenario2.json";
-import scenario3Vals from "./assets/values/scenario3.json";
-import scenario4Vals from "./assets/values/scenario4.json";
-import scenario5Vals from "./assets/values/scenario5.json";
-import scenario6Vals from "./assets/values/scenario6.json";
-import scenario7Vals from "./assets/values/scenario7.json";
+import baselineVals from "src/assets/values/baseline.json";
+import scenario1Vals from "src/assets/values/scenario1.json";
+import scenario2Vals from "src/assets/values/scenario2.json";
+import scenario3Vals from "src/assets/values/scenario3.json";
+import scenario4Vals from "src/assets/values/scenario4.json";
+import scenario5Vals from "src/assets/values/scenario5.json";
+import scenario6Vals from "src/assets/values/scenario6.json";
+import scenario7Vals from "src/assets/values/scenario7.json";
 
-import scenario1Changed from "./assets/input-changes/scenario1.json";
-import scenario2Changed from "./assets/input-changes/scenario2.json";
-import scenario3Changed from "./assets/input-changes/scenario3.json";
-import scenario4Changed from "./assets/input-changes/scenario4.json";
-import scenario5Changed from "./assets/input-changes/scenario5.json";
-import scenario6Changed from "./assets/input-changes/scenario6.json";
-import scenario7Changed from "./assets/input-changes/scenario7.json";
+import scenario1Changed from "src/assets/input-changes/scenario1.json";
+import scenario2Changed from "src/assets/input-changes/scenario2.json";
+import scenario3Changed from "src/assets/input-changes/scenario3.json";
+import scenario4Changed from "src/assets/input-changes/scenario4.json";
+import scenario5Changed from "src/assets/input-changes/scenario5.json";
+import scenario6Changed from "src/assets/input-changes/scenario6.json";
+import scenario7Changed from "src/assets/input-changes/scenario7.json";
 
 // Function to preprocess all raw values. Rounds to 6sf and clips negative
 // values to 0. Overly precise values lead to rounding errors and spurious

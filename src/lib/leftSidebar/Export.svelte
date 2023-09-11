@@ -1,8 +1,8 @@
 <script lang="ts">
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
-    import { allScenarios, unscale } from "../../scenarios";
-    import CloseButton from "../reusable/CloseButton.svelte";
+    import { allScenarios, unscale } from "src/scenarios";
+    import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;
     let exportScenarioNames: string[] = [];

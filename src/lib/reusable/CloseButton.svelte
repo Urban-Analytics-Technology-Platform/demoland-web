@@ -1,5 +1,5 @@
 <script lang="ts">
-    import closeButtonUrl from "../../assets/close-button.svg";
+    import closeButtonUrl from "src/assets/close-button.svg";
 </script>
 
 <button id="close-button" on:click>

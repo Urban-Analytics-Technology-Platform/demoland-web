@@ -1,14 +1,14 @@
 <script lang="ts">
-    import Chart from "./rightSidebar/Chart.svelte";
-    import LayerSelector from "./rightSidebar/LayerSelector.svelte";
-    import Collapsible from "./reusable/Collapsible.svelte";
+    import Chart from "src/lib/rightSidebar/Chart.svelte";
+    import LayerSelector from "src/lib/rightSidebar/LayerSelector.svelte";
+    import Collapsible from "src/lib/reusable/Collapsible.svelte";
     import {
         type LayerName,
         allIndicators,
-    } from "../constants";
+    } from "src/constants";
 
     import "overlayscrollbars/overlayscrollbars.css";
-    import { overlayScrollbars } from "../utils";
+    import { overlayScrollbars } from "src/utils";
     import { onMount } from "svelte";
 
     export let activeLayer: LayerName;

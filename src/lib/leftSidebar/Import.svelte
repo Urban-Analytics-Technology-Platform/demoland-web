@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { engineGithubUrl } from "../../constants";
-    import { createNewScenario } from "./helpers";
+    import { engineGithubUrl } from "src/constants";
+    import { createNewScenario } from "src/lib/leftSidebar/helpers";
     import JSZip from "jszip";
-    import { allScenarios } from "../../scenarios";
+    import { allScenarios } from "src/scenarios";
     import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();

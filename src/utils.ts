@@ -1,10 +1,10 @@
-import geography from "./assets/newcastle.json";
+import geography from "src/assets/newcastle.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
 import { OverlayScrollbars } from "overlayscrollbars";
-import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "./constants";
-import { allScenarios } from "./scenarios";
+import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "src/constants";
+import { allScenarios } from "src/scenarios";
 import { get } from "svelte/store";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {

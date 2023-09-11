@@ -1,14 +1,14 @@
 <script lang="ts">
-    import Tooltip from "./reusable/Tooltip.svelte";
-    import showWelcomeIcon from "../assets/show-welcome.svg";
+    import Tooltip from "src/lib/reusable/Tooltip.svelte";
+    import showWelcomeIcon from "src/assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
     import "overlayscrollbars/overlayscrollbars.css";
-    import { overlayScrollbars } from "../utils";
+    import { overlayScrollbars } from "src/utils";
     import { onMount } from "svelte";
     const dispatch = createEventDispatcher();
-    import Choose from "./leftSidebar/Choose.svelte";
-    import Create from "./leftSidebar/Create.svelte";
-    import Import from "./leftSidebar/Import.svelte";
+    import Choose from "src/lib/leftSidebar/Choose.svelte";
+    import Create from "src/lib/leftSidebar/Create.svelte";
+    import Import from "src/lib/leftSidebar/Import.svelte";
 
     export let scenarioName: string;
     export let compareScenarioName: string | null;

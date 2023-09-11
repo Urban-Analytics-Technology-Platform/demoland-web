@@ -1,10 +1,10 @@
 <script lang="ts">
-    import leftIcon from "../../assets/left.svg";
-    import leftIconDisabled from "../../assets/left-disabled.svg";
-    import rightIcon from "../../assets/right.svg";
-    import rightIconDisabled from "../../assets/right-disabled.svg";
-    import { type Scenario } from "../../constants";
-    import { allScenarios } from "../../scenarios";
+    import leftIcon from "src/assets/left.svg";
+    import leftIconDisabled from "src/assets/left-disabled.svg";
+    import rightIcon from "src/assets/right.svg";
+    import rightIconDisabled from "src/assets/right-disabled.svg";
+    import { type Scenario } from "src/constants";
+    import { allScenarios } from "src/scenarios";
     import { createEventDispatcher } from "svelte";
     import { fly, slide } from "svelte/transition";
     import Export from "./Export.svelte";

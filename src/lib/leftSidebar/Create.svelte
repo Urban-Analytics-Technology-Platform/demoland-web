@@ -1,15 +1,15 @@
 <script lang="ts">
     export let clickedOAName: string | null;
     export let scenarioName: string | null;
-    import ChooseStartingScenario from "./create/ChooseStartingScenario.svelte";
-    import ModifyOutputAreas from "./create/ModifyOutputAreas.svelte";
-    import CalculatingScreen from "./create/CalculatingScreen.svelte";
+    import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
+    import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
+    import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
     import {
         getLocalChanges,
         changesToApiJson,
         createNewScenario,
-    } from "./helpers";
-    import { allScenarios } from "../../scenarios";
+    } from "src/lib/leftSidebar/helpers";
+    import { allScenarios } from "src/scenarios";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 

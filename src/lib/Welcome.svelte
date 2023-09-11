@@ -1,10 +1,9 @@
 <script lang="ts">
-    import closeButtonUrl from "../assets/close-button.svg";
-    import leftSidebarScreenshot from "../assets/left-sidebar.png";
-    import rightSidebarScreenshot from "../assets/right-sidebar.png";
-    import mapScreenshot from "../assets/map.png";
-    import { bookUrl } from "../constants";
-    import CloseButton from "./reusable/CloseButton.svelte";
+    import leftSidebarScreenshot from "src/assets/left-sidebar.png";
+    import rightSidebarScreenshot from "src/assets/right-sidebar.png";
+    import mapScreenshot from "src/assets/map.png";
+    import { bookUrl } from "src/constants";
+    import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =

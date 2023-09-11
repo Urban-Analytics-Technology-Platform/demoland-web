@@ -1,4 +1,4 @@
-import { getGeometryBounds } from "./utils";
+import { getGeometryBounds } from "src/utils";
 import maplibregl from "maplibre-gl";
 import {
     allIndicators,
@@ -6,7 +6,7 @@ import {
     type IndicatorName,
     type LayerName,
     signatures,
-} from "./constants";
+} from "src/constants";
 
 // Construct raw HTML for the hover popup. This is really ugly, but MapLibre
 // doesn't seem to let us do much else (?).

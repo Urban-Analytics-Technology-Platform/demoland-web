@@ -4,9 +4,9 @@
         type LayerName,
         allIndicators,
         signaturesUrl,
-    } from "../../constants";
-    import Tooltip from "../reusable/Tooltip.svelte";
-    import showWelcomeIcon from "../../assets/show-welcome.svg";
+    } from "src/constants";
+    import Tooltip from "src/lib/reusable/Tooltip.svelte";
+    import showWelcomeIcon from "src/assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
     export let activeLayer: LayerName;
     export let opacity: number;

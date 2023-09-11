@@ -2,11 +2,11 @@
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
     import { onMount, onDestroy } from "svelte";
-    import LeftSidebar from "./lib/LeftSidebar.svelte";
-    import RightSidebar from "./lib/RightSidebar.svelte";
-    import Welcome from "./lib/Welcome.svelte";
-    import { makePopup } from "./hover";
-    import { allLayers, type LayerName, type ScenarioName } from "./constants";
+    import LeftSidebar from "src/lib/LeftSidebar.svelte";
+    import RightSidebar from "src/lib/RightSidebar.svelte";
+    import Welcome from "src/lib/Welcome.svelte";
+    import { makePopup } from "src/hover";
+    import { allLayers, type LayerName } from "src/constants";
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
