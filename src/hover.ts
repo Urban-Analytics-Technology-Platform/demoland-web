@@ -7,6 +7,7 @@ import {
     type LayerName,
     signatures,
 } from "src/constants";
+import { unscale } from "src/scenarios";
 
 // Construct raw HTML for the hover popup. This is really ugly, but MapLibre
 // doesn't seem to let us do much else (?).
@@ -14,10 +15,12 @@ function makeHoverHtml(feat: GeoJSON.Feature,
     compareScenarioName: string | null,
     activeFactor: LayerName,
 ) {
-    function makeColoredBlock(color: string) : string {
+    // Generate a rectangle of a given colour
+    function makeColoredBlock(color: string): string {
         return `<span class="colored-block" style="background-color: ${color}"></span>`
     }
 
+    // Generate the HTML showing the signature type
     function makeSig(): string {
         const sig: number = feat.properties["signature_type"];
         const sigName: string = signatures[sig].name;
@@ -41,6 +44,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
         }
     }
 
+    // Generate the HTML for a given indicator value
     function makeIndi(name: IndicatorName, indi: Indicator): string {
         const val = feat.properties[name];
         let color: string;
@@ -50,7 +54,11 @@ function makeHoverHtml(feat: GeoJSON.Feature,
             color = feat.properties[`${name}-color`];
         } else {
             const cmpVal = feat.properties[`${name}-cmp`];
-            const chg = cmpVal === 0 ? 0 : ((val - cmpVal) / cmpVal) * 100;
+            const cmpValUnscaled = unscale(name, cmpVal);
+            const valUnscaled = unscale(name, val);
+            const chg = cmpValUnscaled === 0
+                ? 0
+                : ((valUnscaled - cmpValUnscaled) / cmpValUnscaled) * 100;
             color = feat.properties[`${name}-diff-color`];
             valString = `${val.toFixed(2)} (${chg >= 0 ? "+" : "−"
                 }${Math.abs(chg).toFixed(1)}%)`;
@@ -68,6 +76,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
         ].join("");
     }
 
+    // Put it all together
     return [
         `<div class="hover-grid">`,
         `<span class="oa-grid-item oa-name">${feat.properties.OA11CD}</span>`,
