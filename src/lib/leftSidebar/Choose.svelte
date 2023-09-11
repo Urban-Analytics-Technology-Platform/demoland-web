@@ -321,6 +321,7 @@ modelled development strategies on any of the four indicators.
 
     button.toggle-description {
         font-size: 80%;
+        font-family: inherit;
         grid-column: 2 / 3;
         background-color: #ffffff;
         border: 0px;
@@ -347,6 +348,7 @@ modelled development strategies on any of the four indicators.
 
     select {
         font-family: inherit;
+        width: 100%;
     }
     h3 {
         font-size: 100%;
