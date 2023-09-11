@@ -146,5 +146,5 @@ Create your own scenario by modifying an existing one.
 {/if}
 
 {#if step === "error"}
-    URK! FAILED!
+    An error occurred, please try again...
 {/if}

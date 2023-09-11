@@ -7,11 +7,11 @@
 
 <div id="calculating-cover">
 <div id="calculating">
-    CALCULATING!!! WAOW
+    Calculation in progress...
 
     <br />
 
-    <input type="button" value="CANCEL"
+    <input type="button" value="Cancel"
         on:click={() => dispatch("abort", {})}
     />
 </div>
