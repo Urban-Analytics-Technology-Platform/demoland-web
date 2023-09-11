@@ -33,9 +33,9 @@
     // The popup shown when clicking on an OA
     let clickPopup: maplibregl.Popup | null = null;
     // Initial scenario to show
-    let scenarioName: ScenarioName = "baseline";
+    let scenarioName: string = "baseline";
     // Scenario to compare against. Null to not compare.
-    let compareScenarioName: ScenarioName | null = null;
+    let compareScenarioName: string | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
@@ -268,45 +268,45 @@
                 paint: {
                     "fill-color": [
                         "get",
-                        compareScenarioName === null
-                            ? `${layerName}-color`
-                            : `${layerName}-diff-color`,
-                    ],
-                    "fill-opacity": 0.01,
-                    // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
-                    "fill-opacity-transition": { duration: 300 },
-                },
-            });
-        }
-
-        // Generate a line layer to display the borders of each OA.
-        map.addLayer({
-            id: "line-layer",
-            type: "line",
-            source: NEWCASTLE_LAYER,
-            layout: {},
-            paint: {
-                "line-color": "#ffffff",
-                "line-width": [
-                    "case",
-                    ["boolean", ["feature-state", "click"], false],
-                    3,
-                    ["boolean", ["feature-state", "hover"], false],
-                    1.5,
-                    0,
+                    compareScenarioName === null
+                        ? `${layerName}-color`
+                        : `${layerName}-diff-color`,
                 ],
-                "line-opacity": 0.01,
-                // @ts-ignore: Suppressing a known bug
-                // https://github.com/maplibre/maplibre-gl-js/issues/1708
-                "line-opacity-transition": { duration: 300 },
+                "fill-opacity": 0.01,
+                // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
+                "fill-opacity-transition": { duration: 300 },
             },
         });
+    }
 
-        // Generate the LineString layer showing the boundary of the changed
-        // areas.
-        const diffedBoundaries = getInputDiffBoundaries(
-            scenarioName,
-            compareScenarioName
+    // Generate a line layer to display the borders of each OA.
+    map.addLayer({
+        id: "line-layer",
+        type: "line",
+        source: NEWCASTLE_LAYER,
+        layout: {},
+        paint: {
+            "line-color": "#ffffff",
+            "line-width": [
+                "case",
+                ["boolean", ["feature-state", "click"], false],
+                3,
+                ["boolean", ["feature-state", "hover"], false],
+                1.5,
+                0,
+            ],
+            "line-opacity": 0.01,
+            // @ts-ignore: Suppressing a known bug
+            // https://github.com/maplibre/maplibre-gl-js/issues/1708
+            "line-opacity-transition": { duration: 300 },
+        },
+    });
+
+    // Generate the LineString layer showing the boundary of the changed
+    // areas.
+    const diffedBoundaries = getInputDiffBoundaries(
+        scenarioName,
+        compareScenarioName
         );
         map.addSource("boundary", {
             type: "geojson",
