@@ -20,6 +20,10 @@ export function getLocalChanges(): Changes {
     }
 }
 
+export function clearLocalChanges() {
+    localStorage.removeItem("changed");
+}
+
 export function storeLocalChanges(changes: Changes) {
     // calling JSON.stringify directly on a map-of-a-map doesn't work, so we
     // need to convert each inner map first

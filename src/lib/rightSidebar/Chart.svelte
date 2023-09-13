@@ -10,7 +10,7 @@
         type ChartData,
         makeChartData,
         prettyLabel,
-    } from "src/chart";
+    } from "src/lib/rightSidebar/chart";
     import { getValues } from "src/utils";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
@@ -21,23 +21,39 @@
     const nbars = 11;
 
     let chart: Chart | null = null;
+    let compareChartStyle: "both" | "difference" = "both";
 
-    // This bit of code replaces the colour of the legend label with the central
-    // color of the dataset's backgroundColor (otherwise, by default it uses the
-    // first colour, which is often too light). Largely adapted from
-    // https://github.com/chartjs/Chart.js/issues/2651 but with some
-    // modifications due to the updated Chart.js API.
     function patchedGenerateLabels(chart: Chart, datasets: ChartDataset[]) {
         let labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-        if (datasets.length === 1) {
-            // Only one plot being shown
-            labels[0].fillStyle =
-                datasets[0].backgroundColor[Math.floor(nbars / 2)];
-        } else {
-            // Two plots being shown. The second one is the one with the solid
-            // background, i.e. the one we need to change
+        if (compareScenarioName === null) {
+            // labels[0] is the scatter plot showing the mean
+            labels[0].lineDash = [6, 3];
+            labels[0].strokeStyle = "#000000";
+            labels[0].lineWidth = 1.5;
+            // labels[1] is the bar plot
             labels[1].fillStyle =
                 datasets[1].backgroundColor[Math.floor(nbars / 2)];
+        } else {
+            if (compareChartStyle === "both") {
+                // labels[0] is the scatter plot showing the mean of the
+                // scenario being compared against
+                labels[0].lineDash = [6, 3];
+                labels[0].strokeStyle = "#ff0000";
+                labels[0].lineWidth = 1.5;
+                // labels[1] is the scatter plot showing the mean of the main
+                // scenario
+                labels[1].lineDash = [6, 3];
+                labels[1].strokeStyle = "#000000";
+                labels[1].lineWidth = 1.5;
+
+                // labels[2] is the bar plot for the scenario being compared
+                // against (i.e. empty bars with red outline)
+                labels[2].fillStyle = "#fff";
+                // labels[3] is the main scenario being viewed
+                labels[3].fillStyle =
+                    datasets[3].backgroundColor[Math.floor(nbars / 2)];
+            }
+            // If chartStyle = "difference" we don't show a legend
         }
         return labels;
     }
@@ -86,9 +102,9 @@
                 },
                 plugins: {
                     legend: {
-                        display: false,
+                        display: showLegend,
                         labels: {
-                            boxWidth: 20,
+                            usePointStyle: true,
                             font: { family: "IBM Plex Sans" },
                             generateLabels: (chart) =>
                                 patchedGenerateLabels(
@@ -108,13 +124,14 @@
             indicatorName,
             scenarioName,
             compareScenarioName,
-            nbars
+            nbars,
+            compareChartStyle
         );
         chart.data.datasets = chartData.datasets;
         chart.data.labels = chartData.labels;
         // @ts-ignore: stepSize only exists on linear scales, but TS can't infer that here
         chart.options.scales.x.ticks.stepSize = chartData.tickStepSize;
-        chart.options.plugins.legend.display = false;
+        chart.options.plugins.legend.display = showLegend;
         chart.options.plugins.legend.labels.generateLabels = (chart) =>
             patchedGenerateLabels(chart, chartData.datasets);
         noChangesAtAll =
@@ -129,7 +146,8 @@
                 indicatorName,
                 scenarioName,
                 compareScenarioName,
-                nbars
+                nbars,
+                compareChartStyle
             )
         );
     });
@@ -138,72 +156,89 @@
     let indi: Indicator = allIndicators.get(indicatorName);
     let values: number[];
     let cmpValues: number[];
-    let mean: number;
-    let cmpMean: number;
-    let diffMeanPct: number;
     let changes: number[];
-    let meanChange: number;
     let noChangesAtAll: boolean;
-
-    function getMean(xs: number[]) {
-        return xs.reduce((a, b) => a + b, 0) / xs.length;
-    }
+    let showLegend: boolean;
+    let chartType: "single" | "compareBoth" | "compareDifference";
+    let chartHeight: string;
 
     $: {
-        indicatorName, scenarioName, compareScenarioName;
+        // Chart should be updated whenever these variables are changed
+        indicatorName, scenarioName, compareScenarioName, compareChartStyle;
+        // Useful variable which we can use to keep track of what kind of chart is being shown
+        chartType =
+            compareScenarioName === null
+                ? "single"
+                : compareChartStyle === "both"
+                ? "compareBoth"
+                : "compareDifference";
+
+        showLegend = chartType !== "compareDifference";
+        chartHeight = chartType === "compareDifference" ? "128.6px" : "160px";
         updateChart();
         values = getValues(indicatorName, scenarioName);
-        mean = getMean(values);
         if (compareScenarioName !== null) {
             cmpValues = getValues(indicatorName, compareScenarioName);
-            cmpMean = getMean(cmpValues);
-            diffMeanPct = ((mean - cmpMean) / cmpMean) * 100;
             changes = [...values.map((x, i) => x - cmpValues[i])];
-            meanChange = getMean(changes);
             noChangesAtAll = changes.filter((x) => x !== 0).length === 0;
         }
     }
 </script>
 
 <div class="chart-container">
-    {#if compareScenarioName === null}
-        <p>
-            Mean: {mean.toFixed(2)}
-            {#if compareScenarioName !== null}({diffMeanPct >= 0
-                    ? "+"
-                    : "−"}{Math.abs(diffMeanPct).toFixed(1)}%){/if}
-        </p>
-    {:else if noChangesAtAll}
-        <p>No changes.</p>
-    {:else}
-        <p>
-            Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(
-                meanChange
-            ).toFixed(2)} ({diffMeanPct >= 0 ? "+" : "−"}{Math.abs(
-                diffMeanPct
-            ).toFixed(1)}%)
-        </p>
+    {#if compareScenarioName !== null}
+        {#if noChangesAtAll}
+            No changes.
+        {:else}
+            <div class="compare-toggle-grid">
+            <input
+                type="radio"
+                bind:group={compareChartStyle}
+                value="both"
+                id="{indicatorName}-compare-both"
+            />
+            <label for="{indicatorName}-compare-both">Show both scenarios</label>
+            <input
+                type="radio"
+                bind:group={compareChartStyle}
+                value="difference"
+                id="{indicatorName}-compare-difference"
+            />
+            <label for="{indicatorName}-compare-difference"
+                >Show differences
+            </label>
+            {#if compareChartStyle === "difference"}
+                <span></span>
+                <span class="smaller">(Note that unchanged OAs are excluded from this
+                breakdown.)</span>
+            {/if}
+            </div>
+        {/if}
     {/if}
-    <div id="chart-container" class={noChangesAtAll ? "hidden" : ""}>
-        <div class="chart-canvas">
+
+    <!-- Instead of using Svelte's {/if} here, we use CSS to hide it. This is
+    intentional and is because of an odd interaction where if a chart says 'no
+    changes', and the scenario selection is toggled back to a comparison where
+    there are changes, the chart doesn't show up again. -->
+    <div id="chart-container" class={noChangesAtAll ? "no-changes" : ""}>
+        <div class="chart-canvas" style="height: {chartHeight}">
             <canvas id="chart-{indicatorName}" />
         </div>
         <div class="chart-pointers">
             <div class="chart-pointers-left">
-                ← {compareScenarioName !== null ? indi.less_diff : indi.less}
+                ← {chartType === "compareDifference"
+                    ? indi.less_diff
+                    : indi.less}
             </div>
             <div class="chart-pointers-right">
-                {compareScenarioName !== null ? indi.more_diff : indi.more} →
+                {chartType === "compareDifference" ? indi.more_diff : indi.more}
+                →
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    div.chart-canvas {
-        height: 150px;
-    }
-
     div.chart-pointers {
         display: flex;
     }
@@ -214,14 +249,32 @@
         margin-left: auto;
     }
 
-    div.chart-container > :first-child {
-        margin-top: 0 !important;
+    div.compare-toggle-grid {
+        display: grid;
+        grid-template-columns: 35px 1fr;
+        align-items: baseline;
     }
-    div.chart-container > :last-child {
-        margin-bottom: 0 !important;
+    div.no-changes {
+        display: none;
     }
 
-    div.hidden {
-        display: none;
+    label {
+        font-size: 90%;
+    }
+    input {
+        width: 12px;
+        vertical-align: baseline;
+        margin-left: 11px;
+        margin-right: 9px;
+    }
+    input:checked + label {
+        color: #000;
+    }
+    input:not(:checked) + label {
+        color: #999;
+    }
+    span.smaller {
+        font-size: 80%;
+        font-style: italic;
     }
 </style>

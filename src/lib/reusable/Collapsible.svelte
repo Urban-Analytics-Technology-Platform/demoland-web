@@ -60,12 +60,6 @@
     }
     div.collapsible-content {
         grid-column: 2 / 3;
-        margin-bottom: 10px;
-    }
-    div.collapsible-content > :first-child {
-        margin-top: 0 !important;
-    }
-    div.collapsible-content > :last-child {
-        margin-bottom: 0 !important;
+        margin-bottom: 15px;
     }
 </style>

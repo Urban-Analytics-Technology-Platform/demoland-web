@@ -66,10 +66,9 @@
     }
 
     div#right-sidebar {
-        height: 100%;
-        width: 100%;
         display: grid;
         grid-template-columns: 15px 225px;
         align-items: baseline;
+        margin: 0px;
     }
 </style>

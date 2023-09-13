@@ -1,6 +1,7 @@
 <script lang="ts">
     export let clickedOAName: string | null;
     export let scenarioName: string;
+    export let userChangesPresent: boolean;
 
     import { allScenarios } from "src/scenarios";
     import { signatures, type MacroVar } from "src/constants";
@@ -36,8 +37,8 @@
             ]);
             allChanges.set(clickedOAName, thisChanges);
         }
-        console.log(allChanges);
         storeLocalChanges(allChanges);
+        userChangesPresent = true;
     }
 
     function loadOAChangesToUI(oaName: string) {

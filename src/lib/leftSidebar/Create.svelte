@@ -5,6 +5,7 @@
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
     import {
+        clearLocalChanges,
         getLocalChanges,
         changesToApiJson,
         createNewScenario,
@@ -23,6 +24,25 @@
     // Metadata which the user can provide for the scenario
     let scenarioShort: string = "";
     let scenarioDescription: string = "";
+
+    // Flag to keep track of whether the user has changed any of the inputs
+    // relative to the base scenario they chose
+    let userChangesPresent: boolean = false;
+
+    function returnToScenarioSelection() {
+        if (userChangesPresent) {
+            if (window.confirm(
+                "Are you sure you want to go back? All changes will be lost."
+            )) {
+                clearLocalChanges();
+                userChangesPresent = false;
+                step = "choose";
+            }
+        }
+        else {
+            step = "choose";
+        }
+    }
 
     function changeScenarioAndProceed() {
         dispatch("changeScenario", {});
@@ -108,14 +128,14 @@ Create your own scenario by modifying an existing one.
     <input
         type="button"
         value="Back to scenario selection"
-        on:click={() => (step = "choose")}
+        on:click={returnToScenarioSelection}
     />
     <input
         type="button"
         value="Continue to add metadata"
         on:click={() => (step = "metadata")}
     />
-    <ModifyOutputAreas bind:clickedOAName bind:scenarioName />
+    <ModifyOutputAreas bind:clickedOAName bind:scenarioName bind:userChangesPresent />
 {/if}
 
 {#if step === "metadata"}
