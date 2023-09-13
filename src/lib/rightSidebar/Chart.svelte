@@ -160,6 +160,7 @@
     let noChangesAtAll: boolean;
     let showLegend: boolean;
     let chartType: "single" | "compareBoth" | "compareDifference";
+    let chartHeight: string;
 
     $: {
         // Chart should be updated whenever these variables are changed
@@ -173,6 +174,7 @@
                 : "compareDifference";
 
         showLegend = chartType !== "compareDifference";
+        chartHeight = chartType === "compareDifference" ? "128.6px" : "160px";
         updateChart();
         values = getValues(indicatorName, scenarioName);
         if (compareScenarioName !== null) {
@@ -188,22 +190,29 @@
         {#if noChangesAtAll}
             No changes.
         {:else}
-            <span>
-                <label
-                    ><input
-                        type="radio"
-                        bind:group={compareChartStyle}
-                        value="both"
-                    />Show both scenarios</label
-                ><br />
-                <label
-                    ><input
-                        type="radio"
-                        bind:group={compareChartStyle}
-                        value="difference"
-                    />Show differences</label
-                >
-            </span>
+            <div class="compare-toggle-grid">
+            <input
+                type="radio"
+                bind:group={compareChartStyle}
+                value="both"
+                id="{indicatorName}-compare-both"
+            />
+            <label for="{indicatorName}-compare-both">Show both scenarios</label>
+            <input
+                type="radio"
+                bind:group={compareChartStyle}
+                value="difference"
+                id="{indicatorName}-compare-difference"
+            />
+            <label for="{indicatorName}-compare-difference"
+                >Show differences
+            </label>
+            {#if compareChartStyle === "difference"}
+                <span></span>
+                <span class="smaller">(Note that unchanged OAs are excluded from this
+                breakdown.)</span>
+            {/if}
+            </div>
         {/if}
     {/if}
 
@@ -212,25 +221,24 @@
     changes', and the scenario selection is toggled back to a comparison where
     there are changes, the chart doesn't show up again. -->
     <div id="chart-container" class={noChangesAtAll ? "no-changes" : ""}>
-        <div class="chart-canvas">
+        <div class="chart-canvas" style="height: {chartHeight}">
             <canvas id="chart-{indicatorName}" />
         </div>
         <div class="chart-pointers">
             <div class="chart-pointers-left">
-                ← {chartType === "compareDifference" ? indi.less_diff : indi.less}
+                ← {chartType === "compareDifference"
+                    ? indi.less_diff
+                    : indi.less}
             </div>
             <div class="chart-pointers-right">
-                {chartType === "compareDifference" ? indi.more_diff : indi.more} →
+                {chartType === "compareDifference" ? indi.more_diff : indi.more}
+                →
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    div.chart-canvas {
-        height: 160px;
-    }
-
     div.chart-pointers {
         display: flex;
     }
@@ -241,23 +249,32 @@
         margin-left: auto;
     }
 
-    div.chart-container {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
+    div.compare-toggle-grid {
+        display: grid;
+        grid-template-columns: 35px 1fr;
+        align-items: baseline;
     }
     div.no-changes {
         display: none;
     }
 
-    span > label {
+    label {
         font-size: 90%;
-        font-style: italic;
     }
-    span > label > input {
+    input {
         width: 12px;
         vertical-align: baseline;
-        margin-left: 10px;
-        margin-right: 10px;
+        margin-left: 11px;
+        margin-right: 9px;
+    }
+    input:checked + label {
+        color: #000;
+    }
+    input:not(:checked) + label {
+        color: #999;
+    }
+    span.smaller {
+        font-size: 80%;
+        font-style: italic;
     }
 </style>
