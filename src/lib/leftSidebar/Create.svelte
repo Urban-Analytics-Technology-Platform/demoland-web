@@ -29,7 +29,7 @@
     // relative to the base scenario they chose
     let userChangesPresent: boolean = false;
 
-    function returnToScenarioSelection() {
+    function returnToSelection() {
         if (userChangesPresent) {
             if (window.confirm(
                 "Are you sure you want to go back? All changes will be lost."
@@ -125,17 +125,10 @@ Create your own scenario by modifying an existing one.
 {/if}
 
 {#if step === "modify"}
-    <input
-        type="button"
-        value="Back to scenario selection"
-        on:click={returnToScenarioSelection}
+    <ModifyOutputAreas bind:clickedOAName bind:scenarioName bind:userChangesPresent
+        on:returnToSelection={returnToSelection}
+        on:proceedToMetadata={() => (step = "metadata")}
     />
-    <input
-        type="button"
-        value="Continue to add metadata"
-        on:click={() => (step = "metadata")}
-    />
-    <ModifyOutputAreas bind:clickedOAName bind:scenarioName bind:userChangesPresent />
 {/if}
 
 {#if step === "metadata"}

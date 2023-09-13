@@ -2,24 +2,31 @@
     export let modified: boolean;
     export let value: number | null;
     export let title: string;
+    export let defaultVal: number;
     export let min: number;
     export let max: number;
     export let step: number;
 
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
+
+    function dispatchModified() {
+        dispatch("modified", {});
+    }
 </script>
 
-<label for="job">{title}</label>
+<label for="{title}-modified">{title}</label>
 <input
     type="checkbox"
-    id="job-modified"
+    id="{title}-modified"
     bind:checked={modified}
     on:change={() => {
         if (modified) {
-            value = 0;
+            // ^ this is the state before the change, so this branch
+            // corresponds to unchecking it
+            value = defaultVal;
         }
-        dispatch("modified", {});
+        dispatchModified();
     }}
 />
 {#if modified}
@@ -27,33 +34,45 @@
         type="range"
         id="range"
         bind:value
-        on:change={() => {
-            dispatch("modified", {});
-        }}
-        min="{min}"
-        max="{max}"
-        step="{step}"
+        on:change={dispatchModified}
+        {min}
+        {max}
+        {step}
     />
     <input
         type="number"
         id="value"
         bind:value
-        on:change={() => {
-            dispatch("modified", {});
+        on:input={() => {
+            if (value > max) {
+                value = max;
+            } else if (value < min) {
+                value = min;
+            }
         }}
-        min="{min}"
-        max="{max}"
-        step="{step}"
+        on:change={() => {
+            if (value > max) {
+                value = max;
+            } else if (value < min) {
+                value = min;
+            } else if (value === null) {
+                value = defaultVal;
+            }
+            dispatchModified();
+        }}
+        {min}
+        {max}
+        {step}
     />
 {:else}
     <input
         type="range"
         id="range"
-        value="0"
+        value={defaultVal}
         disabled
-        min="{min}"
-        max="{max}"
-        step="{step}"
+        {min}
+        {max}
+        {step}
     />
     <input type="number" id="value" value="" disabled />
 {/if}

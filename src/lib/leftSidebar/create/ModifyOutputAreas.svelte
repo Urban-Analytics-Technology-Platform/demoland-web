@@ -2,10 +2,15 @@
     export let clickedOAName: string | null;
     export let scenarioName: string;
     export let userChangesPresent: boolean;
+    import { createEventDispatcher } from "svelte";
+    const dispatch = createEventDispatcher();
 
     import { allScenarios } from "src/scenarios";
     import { signatures, type MacroVar } from "src/constants";
-    import { getLocalChanges, storeLocalChanges } from "src/lib/leftSidebar/helpers";
+    import {
+        getLocalChanges,
+        storeLocalChanges,
+    } from "src/lib/leftSidebar/helpers";
 
     import Slider from "./Slider.svelte";
 
@@ -24,6 +29,7 @@
     }
 
     function updateOAChanges() {
+        console.log("Updating OA changes");
         const allChanges = getLocalChanges();
         if (!sigModified && !jobModified && !useModified && !greenModified) {
             // If no changes, remove it from the Map
@@ -79,15 +85,24 @@
     $: loadOAChangesToUI(clickedOAName);
 </script>
 
-<h3>Step 2: modify output areas</h3>
+<h3>Step 2: Modify output areas</h3>
 
-<p>
-    Currently selected OA: {clickedOAName === null ? "none" : clickedOAName}
-</p>
+<input
+    type="button"
+    value="Back to scenario selection"
+    on:click={() => dispatch("returnToSelection", {})}
+/>
+<input
+    type="button"
+    value="Continue to add metadata"
+    on:click={() => dispatch("proceedToMetadata", {})}
+/>
 
 {#if clickedOAName !== null}
+    <p>Currently selected OA: {clickedOAName}</p>
+
     <div id="changes-grid">
-        <label for="sig">Signature</label>
+        <label for="sig-modified">Signature</label>
         <input
             type="checkbox"
             id="sig-modified"
@@ -128,6 +143,7 @@
             on:modified={updateOAChanges}
             min={-1}
             max={1}
+            defaultVal={0}
             step={0.01}
         />
 
@@ -138,6 +154,7 @@
             on:modified={updateOAChanges}
             min={0}
             max={1}
+            defaultVal={0}
             step={0.01}
         />
 
@@ -148,11 +165,12 @@
             on:modified={updateOAChanges}
             min={0}
             max={1}
+            defaultVal={0}
             step={0.01}
         />
     </div>
 {:else}
-    Click an output area to begin
+    <p class="no-bottom-margin">Click on an output area on the map to begin.</p>
 {/if}
 
 <style>
@@ -176,5 +194,9 @@
 
     select#sig-dropdown {
         grid-column: 3 / span 2;
+    }
+
+    p.no-bottom-margin {
+        margin-bottom: 0;
     }
 </style>
