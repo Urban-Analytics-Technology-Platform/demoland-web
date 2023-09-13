@@ -176,23 +176,34 @@
 </script>
 
 <div class="chart-container">
-    {#if compareScenarioName === null}
-        <p>
-            Mean: {meanScaled.toFixed(2)}
-            {#if compareScenarioName !== null}({diffMeanPct >= 0
-                    ? "+"
-                    : "−"}{Math.abs(diffMeanPct).toFixed(1)}%){/if}
-        </p>
-    {:else if noChangesAtAll}
-        <p class="no-bottom-margin">No changes.</p>
-    {:else}
-        <p>
+    {#if compareScenarioName !== null}
+        {#if noChangesAtAll}
+            No changes.
+        {:else}
+            <span>
+                <label
+                    ><input
+                        type="radio"
+                        bind:group={chartStyle}
+                        value="both"
+                    />Show both scenarios</label
+                ><br />
+                <label
+                    ><input
+                        type="radio"
+                        bind:group={chartStyle}
+                        value="difference"
+                    />Show differences</label
+                >
+            </span>
             Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(
                 meanChange
             ).toFixed(2)} ({diffMeanPct >= 0 ? "+" : "−"}{Math.abs(
                 diffMeanPct
             ).toFixed(1)}%)
-        </p>
+        {/if}
+    {:else}
+        Mean: {meanScaled.toFixed(2)}
     {/if}
 
     {#if !noChangesAtAll}
@@ -202,7 +213,9 @@
             </div>
             <div class="chart-pointers">
                 <div class="chart-pointers-left">
-                    ← {compareScenarioName !== null ? indi.less_diff : indi.less}
+                    ← {compareScenarioName !== null
+                        ? indi.less_diff
+                        : indi.less}
                 </div>
                 <div class="chart-pointers-right">
                     {compareScenarioName !== null ? indi.more_diff : indi.more} →
@@ -214,7 +227,7 @@
 
 <style>
     div.chart-canvas {
-        height: 150px;
+        height: 160px;
     }
 
     div.chart-pointers {
@@ -227,10 +240,20 @@
         margin-left: auto;
     }
 
-    div.chart-container > :first-child {
-        margin-top: 0 !important;
+    div.chart-container {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
     }
-    p.no-bottom-margin {
-        margin-bottom: 0 !important;
+
+    span > label {
+        font-size: 90%;
+        font-style: italic;
+    }
+    span > label > input {
+        width: 12px;
+        vertical-align: baseline;
+        margin-left: 10px;
+        margin-right: 10px;
     }
 </style>
