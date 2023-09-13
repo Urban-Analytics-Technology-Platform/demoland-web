@@ -76,15 +76,20 @@ export function bin(
 
 // Chart.js doesn't seem to export their ChartDataset type (I think).
 export type ChartDataset = {
+    type: string,
     label: string,
-    data: number[],
-    backgroundColor: string[] | string,
+    data: number[] | {x: number, y: number}[],
+    backgroundColor?: string[] | string,
     borderWidth?: number,
+    showLine?: boolean,
     grouped?: boolean,
     order?: number,
-    categoryPercentage: number,
-    barPercentage: number,
+    categoryPercentage?: number,
+    barPercentage?: number,
     borderColor?: string,
+    options?: object,
+    pointStyle?: string,
+    pointRadius?: number,
 };
 
 export type ChartData = {
@@ -92,6 +97,10 @@ export type ChartData = {
     datasets: ChartDataset[];
     tickStepSize: number;
 };
+
+export function getMean(xs: number[]) {
+    return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
 
 
 /* Generate chart data for a single scenario. */
@@ -104,16 +113,30 @@ function makeChartDataOneScenario(
     const colors: string[] = makeColormap(indicator, nbars);
     const rawValues: number[] = getValues(indicator, scenarioName);
     const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
+    const mean = getMean(rawValues);
 
     return {
         datasets: [
             {
+                type: "scatter",
+                label: `Mean: ${mean.toFixed(2)}`,
+                data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
+                showLine: true,
+                pointStyle: "line",
+                pointRadius: 0,
+                borderDash: [6, 3],
+                borderWidth: 1.5,
+                borderColor: "#000000",
+            },
+            {
+                type: "bar",
                 label: getScenario(scenarioName).short,
                 data: bins.counts,
                 backgroundColor: colors,
                 borderWidth: 0,
                 categoryPercentage: 1.0,
                 barPercentage: 1.0,
+                pointStyle: "rect",
             },
         ],
         labels: bins.centres,
@@ -133,10 +156,35 @@ function makeChartDataTwoScenarios(
     const cmpRawValues: number[] = getValues(indicator, compareScenarioName);
     const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
     const cmpBins = bin(cmpRawValues, GLOBALMIN, GLOBALMAX, nbars);
+    const mean = getMean(rawValues);
+    const cmpMean = getMean(cmpRawValues);
 
     return {
         datasets: [
             {
+                type: "scatter",
+                label: `${getScenario(compareScenarioName).short} mean: ${cmpMean.toFixed(2)}`,
+                data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
+                showLine: true,
+                pointStyle: "line",
+                pointRadius: 0,
+                borderDash: [6, 3],
+                borderWidth: 1.5,
+                borderColor: "#ff0000",
+            },
+            {
+                type: "scatter",
+                label: `${getScenario(scenarioName).short} mean: ${mean.toFixed(2)}`,
+                data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
+                showLine: true,
+                pointStyle: "line",
+                pointRadius: 0,
+                borderDash: [6, 3],
+                borderWidth: 1.5,
+                borderColor: "#000000",
+            },
+            {
+                type: "bar",
                 label: getScenario(compareScenarioName).short,
                 data: cmpBins.counts,
                 // @ts-ignore backgroundColor can be string or string[]
@@ -147,8 +195,10 @@ function makeChartDataTwoScenarios(
                 grouped: false,
                 order: 1,
                 categoryPercentage: 1.0,
+                pointStyle: "rect",
             },
             {
+                type: "bar",
                 label: getScenario(scenarioName).short,
                 data: bins.counts,
                 backgroundColor: colors,
@@ -157,6 +207,7 @@ function makeChartDataTwoScenarios(
                 order: 2,
                 categoryPercentage: 1.0,
                 barPercentage: 1.0,
+                pointStyle: "rect",
             },
         ],
         labels: bins.centres,
@@ -187,12 +238,14 @@ function makeChartDataDifference(
     return {
         datasets: [
             {
+                type: "bar",
                 label: "Difference",
                 data: bins.counts,
                 backgroundColor: colors,
                 borderWidth: 0,
                 categoryPercentage: 1.0,
                 barPercentage: 1.0,
+                pointStyle: "rect",
             },
         ],
         labels: bins.centres,
