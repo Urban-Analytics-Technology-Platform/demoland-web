@@ -138,8 +138,9 @@ export function makeCombinedGeoJSON(
         }
     }
 
+    const newGeography = JSON.parse(JSON.stringify(geography));
     // Merge geography with indicators
-    geography.features = geography.features.map(function(feature) {
+    newGeography.features = newGeography.features.map(function(feature) {
         const oaName = feature.properties.OA11CD;
         const oaValues = scenario.values.get(oaName);
         if (oaValues === undefined) {
@@ -172,7 +173,7 @@ export function makeCombinedGeoJSON(
     });
 
     // TODO: Figure out how to not cast here
-    return geography as GeoJSON.FeatureCollection;
+    return newGeography as GeoJSON.FeatureCollection;
 }
 
 /**
