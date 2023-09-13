@@ -1,4 +1,5 @@
 <script lang="ts">
+    import geography from "src/assets/newcastle.json";
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
     import { allScenarios, unscale } from "src/scenarios";
@@ -47,6 +48,7 @@
             zip.file(`changed.json`, changedJson);
             zip.file(`values.json`, valuesJson);
             zip.file(`metadata.json`, metadataJson);
+            zip.file(`geometries.geojson`, JSON.stringify(geography));
             zip.generateAsync({ type: "blob" }).then(function (content) {
                 saveAs(content, `${scenario.name}.scenario.zip`);
             });
