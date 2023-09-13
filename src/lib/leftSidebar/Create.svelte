@@ -5,6 +5,7 @@
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
     import {
+        clearLocalChanges,
         getLocalChanges,
         changesToApiJson,
         createNewScenario,
@@ -23,6 +24,15 @@
     // Metadata which the user can provide for the scenario
     let scenarioShort: string = "";
     let scenarioDescription: string = "";
+
+    function returnToScenarioSelection() {
+        if (window.confirm(
+            "Are you sure you want to go back? All changes will be lost."
+        )) {
+            clearLocalChanges();
+            step = "choose";
+        }
+    }
 
     function changeScenarioAndProceed() {
         dispatch("changeScenario", {});
@@ -108,7 +118,7 @@ Create your own scenario by modifying an existing one.
     <input
         type="button"
         value="Back to scenario selection"
-        on:click={() => (step = "choose")}
+        on:click={returnToScenarioSelection}
     />
     <input
         type="button"
