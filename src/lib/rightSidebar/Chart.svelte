@@ -142,6 +142,7 @@
     let indi: Indicator = allIndicators.get(indicatorName);
     let values: number[];
     let cmpValues: number[];
+    let meanScaled: number;
     let meanUnscaled: number;
     let cmpMeanUnscaled: number;
     let diffMeanPct: number;
@@ -160,7 +161,8 @@
         console.log("showLegend", showLegend);
         updateChart();
         values = getValues(indicatorName, scenarioName);
-        meanUnscaled = unscale(indicatorName, getMean(values));
+        meanScaled = getMean(values);
+        meanUnscaled = unscale(indicatorName, meanScaled);
         if (compareScenarioName !== null) {
             cmpValues = getValues(indicatorName, compareScenarioName);
             cmpMeanUnscaled = unscale(indicatorName, getMean(cmpValues));
@@ -176,13 +178,13 @@
 <div class="chart-container">
     {#if compareScenarioName === null}
         <p>
-            Mean: {meanUnscaled.toFixed(2)}
+            Mean: {meanScaled.toFixed(2)}
             {#if compareScenarioName !== null}({diffMeanPct >= 0
                     ? "+"
                     : "−"}{Math.abs(diffMeanPct).toFixed(1)}%){/if}
         </p>
     {:else if noChangesAtAll}
-        <p>No changes.</p>
+        <p class="no-bottom-margin">No changes.</p>
     {:else}
         <p>
             Mean change: {meanChange >= 0 ? "+" : "−"}{Math.abs(
@@ -192,19 +194,22 @@
             ).toFixed(1)}%)
         </p>
     {/if}
-    <div id="chart-container" class={noChangesAtAll ? "hidden" : ""}>
-        <div class="chart-canvas">
-            <canvas id="chart-{indicatorName}" />
-        </div>
-        <div class="chart-pointers">
-            <div class="chart-pointers-left">
-                ← {compareScenarioName !== null ? indi.less_diff : indi.less}
+
+    {#if !noChangesAtAll}
+        <div id="chart-container">
+            <div class="chart-canvas">
+                <canvas id="chart-{indicatorName}" />
             </div>
-            <div class="chart-pointers-right">
-                {compareScenarioName !== null ? indi.more_diff : indi.more} →
+            <div class="chart-pointers">
+                <div class="chart-pointers-left">
+                    ← {compareScenarioName !== null ? indi.less_diff : indi.less}
+                </div>
+                <div class="chart-pointers-right">
+                    {compareScenarioName !== null ? indi.more_diff : indi.more} →
+                </div>
             </div>
         </div>
-    </div>
+    {/if}
 </div>
 
 <style>
@@ -225,11 +230,7 @@
     div.chart-container > :first-child {
         margin-top: 0 !important;
     }
-    div.chart-container > :last-child {
+    p.no-bottom-margin {
         margin-bottom: 0 !important;
-    }
-
-    div.hidden {
-        display: none;
     }
 </style>
