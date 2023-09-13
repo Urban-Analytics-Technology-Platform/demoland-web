@@ -25,11 +25,21 @@
     let scenarioShort: string = "";
     let scenarioDescription: string = "";
 
+    // Flag to keep track of whether the user has changed any of the inputs
+    // relative to the base scenario they chose
+    let userChangesPresent: boolean = false;
+
     function returnToScenarioSelection() {
-        if (window.confirm(
-            "Are you sure you want to go back? All changes will be lost."
-        )) {
-            clearLocalChanges();
+        if (userChangesPresent) {
+            if (window.confirm(
+                "Are you sure you want to go back? All changes will be lost."
+            )) {
+                clearLocalChanges();
+                userChangesPresent = false;
+                step = "choose";
+            }
+        }
+        else {
             step = "choose";
         }
     }
@@ -125,7 +135,7 @@ Create your own scenario by modifying an existing one.
         value="Continue to add metadata"
         on:click={() => (step = "metadata")}
     />
-    <ModifyOutputAreas bind:clickedOAName bind:scenarioName />
+    <ModifyOutputAreas bind:clickedOAName bind:scenarioName bind:userChangesPresent />
 {/if}
 
 {#if step === "metadata"}
