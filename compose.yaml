@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build: web
+    ports:
+      - "5173:80"
+  backend:
+    build: demoland_engine
+    ports:
+      - "5174:80"
