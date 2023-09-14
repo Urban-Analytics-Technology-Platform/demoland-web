@@ -1,14 +1,20 @@
 # Land Use Demonstrator Web App
 
-**https://alan-turing-institute.github.io/demoland-web**
-
-Web app for visualisation of modelling and results from the Land Use Demonstrator project.
+Web app for visualisation of modelling and results from the Land Use Demonstrator project. See:
 
 - [The Geospatial Commission's blog post](https://www.landusedialogues.gov.uk/2023/03/13/using-spatial-data-science-to-deliver-more-from-the-same-land/) about the project
-- The GitHub repositories containing the code powering this project: [LandUseDemonstrator](https://github.com/ciupava/LandUseDemonstrator), [demoland_engine](https://github.com/martinfleis/demoland_engine)
 - [A page on the Alan Turing Institute's intranet, Mathison](https://mathison.turing.ac.uk/page/2864), about the project.
 
-The frontend (in Svelte/TypeScript) is in the `web` directory; the backend (in Python) is in the [`demoland_engine` submodule](https://github.com/martinfleis/demoland_engine).
+The frontend (Svelte/TypeScript) is in the `web` directory; the backend (Python) is in the [`demoland_engine` submodule](https://github.com/martinfleis/demoland_engine).
+
+
+## View online
+
+**https://alan-turing-institute.github.io/demoland-web**
+
+The `dev` branch can be previewed at https://alan-turing-institute.github.io/demoland-web/dev.
+(This is not guaranteed to always be functional!)
+
 
 ## Running locally
 
@@ -22,6 +28,7 @@ docker-compose up
 ```
 
 Then, navigate to http://localhost:5173.
+
 
 ## Local development
 
@@ -56,3 +63,11 @@ uvicorn --app-dir api main:app --port 5174
 ```
 
 Note that the backend must be exposed on port 5174; this is where the frontend expects to find it.
+
+
+## Related repositories
+
+This web app is powered by two other repositories:
+
+- [LandUseDemonstrator](https://github.com/ciupava/LandUseDemonstrator) contains the modelling work which is responsible for the predicted indicator values.
+- [demoland_engine](https://github.com/martinfleis/demoland_engine) is a self-contained package which hosts the final trained models, as well as a REST API which is used as the backend here.
