@@ -2,8 +2,10 @@ services:
   frontend:
     build: web
     ports:
+      # 5173 can be replaced with anything
       - "5173:80"
   backend:
     build: demoland_engine
     ports:
+      # 5174 is mandatory
       - "5174:80"
