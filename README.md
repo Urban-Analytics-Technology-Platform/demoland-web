@@ -12,18 +12,42 @@ The frontend (in Svelte/TypeScript) is in the `web` directory; the backend (in P
 
 ## Running locally
 
+The easiest way is probably using Docker.
+Make sure to include the submodules when cloning.
+
 ```
 git clone --recursive git@github.com:alan-turing-institute/demoland-web.git
 cd demoland-web
-npm install
-npm run dev
+docker-compose up
 ```
 
 then navigate to http://localhost:5173.
 
-## Data sources used for visualisation
+## Local development
 
-- **Map tiles:** [MapTiler](https://cloud.maptiler.com/maps/)
-- **GeoJSON for output areas:** [ONS Open Geography Portal](https://geoportal.statistics.gov.uk/datasets/ons::output-areas-dec-2011-boundaries-ew-bgc/about)
+First, clone the repository as before:
 
-Data used in the modelling [is described elsewhere](https://ciupava.github.io/LandUseDemonstrator/data_sources.html).
+```
+git clone --recursive git@github.com:alan-turing-institute/demoland-web.git
+cd demoland-web
+```
+
+For the frontend:
+
+```
+cd web
+npm install
+npm run dev  # defaults to port 5173
+```
+
+For the backend, `cd` back into the top-level repository and:
+
+```
+cd demoland_engine
+python -m venv venv/api
+source venv/api/bin/activate
+python -m pip install .[api]
+uvicorn --app-dir api main:app --port 5174
+```
+
+Note that the backend must be exposed on port 5174; this is where the frontend expects to find it.
