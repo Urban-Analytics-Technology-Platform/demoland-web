@@ -13,7 +13,7 @@ The frontend (in Svelte/TypeScript) is in the `web` directory; the backend (in P
 ## Running locally
 
 The easiest way is probably using Docker.
-Make sure to include the submodules when cloning.
+Make sure to include the `--recursive` flag when cloning; this ensures that the backend submodule is properly initialised.
 
 ```
 git clone --recursive git@github.com:alan-turing-institute/demoland-web.git
@@ -21,7 +21,7 @@ cd demoland-web
 docker-compose up
 ```
 
-then navigate to http://localhost:5173.
+Then, navigate to http://localhost:5173.
 
 ## Local development
 
@@ -37,10 +37,15 @@ For the frontend:
 ```
 cd web
 npm install
-npm run dev  # defaults to port 5173
+npm run dev
 ```
 
-For the backend, `cd` back into the top-level repository and:
+Vite (the build tool this app uses) defaults to port 5173, so the web app is again accessible via http://localhost:5173.
+Vite's hot module replacement feature also allows you to instantly view changes in the web browser when code is modified, which is a really nice touch.
+
+In fact, most of the app works without the backend.
+However, to create your own scenarios and calculate their impacts, you will need to launch the backend as well.
+In a new terminal window, `cd` into the top-level repository and:
 
 ```
 cd demoland_engine
