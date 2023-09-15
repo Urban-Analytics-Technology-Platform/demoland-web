@@ -81,6 +81,11 @@
                     newScenario.name = `${newScenario.name}_${i}`;
                 }
                 $allScenarios.set(newScenario.name, newScenario);
+                // Get rid of changes in localStorage; this also ensures that
+                // the "are you sure" confirmation prompt doesn't show up.
+                userChangesPresent = false;
+                clearLocalChanges();
+                // Display the new scenario on the map.
                 dispatch("import", { name: newScenario.name });
             });
         } else {
