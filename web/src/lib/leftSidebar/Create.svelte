@@ -9,6 +9,8 @@
         getLocalChanges,
         changesToApiJson,
         createNewScenario,
+        createChangesMap,
+        createValuesMap,
     } from "src/lib/leftSidebar/helpers";
     import { onDestroy } from "svelte";
     import { allScenarios } from "src/scenarios";
@@ -67,8 +69,8 @@
                     scenarioShort,
                     "Custom: " + scenarioShort,
                     scenarioDescription,
-                    changed,
-                    values
+                    createChangesMap(changed),
+                    createValuesMap(values)
                 );
                 // Check for name duplication
                 if ($allScenarios.has(newScenario.name)) {

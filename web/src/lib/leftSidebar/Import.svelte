@@ -1,8 +1,15 @@
 <script lang="ts">
-    import { engineGithubUrl } from "src/constants";
-    import { createNewScenario } from "src/lib/leftSidebar/helpers";
+    import {
+        createNewScenario,
+        type Metadata,
+        type Changes,
+        type Values,
+        createChangesMap,
+        createValuesMap,
+    } from "src/lib/leftSidebar/helpers";
     import JSZip from "jszip";
     import { allScenarios } from "src/scenarios";
+    import { type Scenario } from "src/constants";
     import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
@@ -23,37 +30,104 @@
         return text.replace(/[&<>"'/`=]/g, (m) => map[m]);
     }
 
-    function createScenarioFromZip(file: File) {
-        return JSZip.loadAsync(file).then((zip) => {
-            // Deal with folders which were manually compressed, which have
-            // one extra level (inside x.zip is a folder called x)
+    /* Parse a string as JSON, but returning a promise instead. The source is
+     * passed as an argument to make for more informative error reporting. This
+     * can, for example, be a filename. */
+    function parseJsonAsPromise(source: string, json: string): Promise<object> {
+        try {
+            const obj = JSON.parse(json);
+            return Promise.resolve(obj);
+        } catch (e) {
+            return Promise.reject(
+                `${source} could not be parsed as valid JSON: ${e.message}`
+            );
+        }
+    }
+
+    /* Generate a scenario from a zip file. */
+    function createScenarioFromZip(file: File): Promise<Scenario> {
+        function getContentsFromZip(
+            zip: JSZip
+        ): Promise<[object, object, object]> {
+            // Correctly handle folders which were manually compressed. These
+            // have one extra level (for example, inside x.zip will be a folder
+            // called x).
             if (zip.file("changed.json") === null) {
                 const directories = zip.folder(/./);
                 if (directories.length === 1) {
                     zip = zip.folder(directories[0].name);
                 }
             }
-            const promises = [
-                zip.file("metadata.json").async("string"),
-                zip.file("changed.json").async("string"),
-                zip.file("values.json").async("string"),
-            ];
-            return Promise.all(promises).then(
-                ([metadataJson, changedJson, valuesJson]) => {
-                    const metadata = JSON.parse(metadataJson);
-                    const changed = JSON.parse(changedJson);
-                    const values = JSON.parse(valuesJson);
-                    return createNewScenario(
-                        escapeHtml(metadata.name),
-                        escapeHtml(metadata.short),
-                        escapeHtml(metadata.long),
-                        escapeHtml(metadata.description),
-                        changed,
-                        values
+            // Parse a file
+            function parseOneFile(fname: string): Promise<object> {
+                const file = zip.file(fname);
+                return file === null
+                    ? Promise.reject(`The ${fname} file is missing.`)
+                    : file
+                          .async("string")
+                          .then((file) => parseJsonAsPromise(fname, file));
+            }
+            return Promise.all([
+                parseOneFile("metadata.json"),
+                parseOneFile("changed.json"),
+                parseOneFile("values.json"),
+            ]);
+        }
+
+        /* Check that the actual JSON contents of the files match the expected
+         * format. */
+        function validateZipContents(
+            scenarioData: [object, object, object]
+        ): Promise<[Metadata, Changes, Values]> {
+            const metadata = scenarioData[0];
+            const changed = scenarioData[1];
+            const values = scenarioData[2];
+            // Check metadata
+            for (const field of ["name", "short", "long", "description"]) {
+                if (!Object.hasOwn(metadata, field)) {
+                    return Promise.reject(
+                        `The metadata.json file is missing the ${field} field.`
                     );
                 }
+                if (typeof metadata[field] !== "string") {
+                    return Promise.reject(
+                        `The ${field} field in metadata.json is not a string.`
+                    );
+                }
+            }
+            // TODO Validate changed and values.
+            const changedMap = createChangesMap(changed);
+            const valuesMap = createValuesMap(values);
+            return Promise.resolve([
+                metadata as Metadata,
+                changedMap,
+                valuesMap,
+            ]);
+        }
+
+        function createScenario(
+            scenarioData: [Metadata, Changes, Values]
+        ): Scenario {
+            return createNewScenario(
+                escapeHtml(scenarioData[0].name),
+                escapeHtml(scenarioData[0].short),
+                escapeHtml(scenarioData[0].long),
+                escapeHtml(scenarioData[0].description),
+                scenarioData[1],
+                scenarioData[2]
             );
-        });
+        }
+
+        function reportError(errorText: string) {
+            const errMsg = `Could not load scenario from ${file.name}. The following error was encountered:\n\n${errorText}`;
+            window.alert(errMsg);
+            return Promise.reject(errMsg);
+        }
+
+        return JSZip.loadAsync(file)
+            .then(getContentsFromZip)
+            .then(validateZipContents)
+            .then(createScenario, reportError);
     }
 
     function cancel() {
@@ -110,10 +184,6 @@
         <button on:click={() => cancel()}>Cancel</button>
         <button on:click={() => process()}>Import</button>
     </div>
-
-    <h3>Using the Python engine yourself</h3>
-
-    Blah Blah. Look at<a href={engineGithubUrl} target="_blank">GitHub</a>.
 </div>
 
 <style>
