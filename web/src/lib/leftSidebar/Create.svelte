@@ -10,6 +10,7 @@
         changesToApiJson,
         createNewScenario,
     } from "src/lib/leftSidebar/helpers";
+    import { onDestroy } from "svelte";
     import { allScenarios } from "src/scenarios";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
@@ -27,19 +28,25 @@
 
     // Flag to keep track of whether the user has changed any of the inputs
     // relative to the base scenario they chose
+    let userChangesPromptText: string =
+        "Are you sure you want to go back? All changes will be lost.";
     let userChangesPresent: boolean = false;
 
+    // Prompt user to confirm if they navigate away from this tab
+    onDestroy(() => {
+        if (userChangesPresent && window.confirm(userChangesPromptText)) {
+            clearLocalChanges();
+        }
+    });
+    // or if they return to step 1
     function returnToSelection() {
         if (userChangesPresent) {
-            if (window.confirm(
-                "Are you sure you want to go back? All changes will be lost."
-            )) {
+            if (window.confirm(userChangesPromptText)) {
                 clearLocalChanges();
                 userChangesPresent = false;
                 step = "choose";
             }
-        }
-        else {
+        } else {
             step = "choose";
         }
     }
@@ -102,7 +109,9 @@
         controller = new AbortController();
         signal = controller.signal;
 
-        const url = window.location.href.includes("alan-turing-institute.github.io")
+        const url = window.location.href.includes(
+            "alan-turing-institute.github.io"
+        )
             ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
             : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
 
@@ -125,7 +134,10 @@ Create your own scenario by modifying an existing one.
 {/if}
 
 {#if step === "modify"}
-    <ModifyOutputAreas bind:clickedOAName bind:scenarioName bind:userChangesPresent
+    <ModifyOutputAreas
+        bind:clickedOAName
+        bind:scenarioName
+        bind:userChangesPresent
         on:returnToSelection={returnToSelection}
         on:proceedToMetadata={() => (step = "metadata")}
     />
