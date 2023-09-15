@@ -102,9 +102,9 @@
         controller = new AbortController();
         signal = controller.signal;
 
-        const url = window.location.href.includes("localhost")
-            ? "api/" // Docker, or local dev: this is a proxy to the backend on localhost:5174
-            : "https://demoland-api.azurewebsites.net/"; // deployed to Azure
+        const url = window.location.href.includes("alan-turing-institute.github.io")
+            ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
+            : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
 
         fetch(url, {
             method: "POST",
