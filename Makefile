@@ -11,7 +11,7 @@ be:
 	cd demoland_engine && source venv/api/bin/activate && uvicorn --app-dir api main:app --port 5174
 
 local:
-	sh -c "make be & make fe"
+	sh -c "trap 'kill 0' SIGINT; make fe & make be"
 
 docker:
 	docker-compose up --build
