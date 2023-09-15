@@ -24,7 +24,7 @@ Make sure to include the `--recursive` flag when cloning; this ensures that the 
 ```
 git clone --recursive git@github.com:alan-turing-institute/demoland-web.git
 cd demoland-web
-docker-compose up
+make docker
 ```
 
 Then, navigate to http://localhost:5173.
@@ -42,27 +42,35 @@ cd demoland-web
 For the frontend:
 
 ```
-cd web
-npm install
-npm run dev
+make fe-deps   # First time only
+make fe
 ```
 
 Vite (the build tool this app uses) defaults to port 5173, so the web app is again accessible via http://localhost:5173.
 Vite's hot module replacement feature also allows you to instantly view changes in the web browser when code is modified, which is a really nice touch.
 
-In fact, most of the app works without the backend.
+Most of the app works without the backend.
 However, to create your own scenarios and calculate their impacts, you will need to launch the backend as well.
 In a new terminal window, `cd` into the top-level repository and:
 
 ```
-cd demoland_engine
-python -m venv venv/api
-source venv/api/bin/activate
-python -m pip install .[api]
-uvicorn --app-dir api main:app --port 5174
+make be-deps   # First time only
+make be
+```
+
+To run both frontend and backend concurrently, do:
+
+```
+make fe-deps   # First time only
+make be-deps   # First time only
+make local
 ```
 
 Note that the backend must be exposed on port 5174; this is where the frontend expects to find it.
+Specifically, the frontend looks for the `/api/` endpoint, which Vite reverse-proxies to port 5174.
+
+When running under Docker, the backend is not exposed to the host computer (it is only exposed to other containers).
+Running this locally is the only way to directly test the backend.
 
 
 ## Related repositories
