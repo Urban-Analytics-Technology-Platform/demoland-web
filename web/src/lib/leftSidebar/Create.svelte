@@ -103,7 +103,7 @@
         signal = controller.signal;
 
         const url = window.location.href.includes("localhost")
-            ? "http://localhost:5174" // launch with `npm run api`
+            ? "api/" // Docker, or local dev: this is a proxy to the backend on localhost:5174
             : "https://demoland-api.azurewebsites.net/"; // deployed to Azure
 
         fetch(url, {
