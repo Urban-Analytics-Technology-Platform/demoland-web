@@ -121,13 +121,12 @@ export function makeCombinedGeoJSON(
     compareScenarioName: string | null,
 ): GeoJSON.FeatureCollection {
     const scenario = getScenario(scenarioName);
+    const cScenario = compareScenarioName === null ? null : getScenario(compareScenarioName);
 
     // Precalculate differences between scenarios being compared, which gives us
     // the min and max values for the 'diff' colormap.
     const maxDiffExtents: Map<LayerName, number> = new Map();
-    if (compareScenarioName !== null) {
-        const scenario = getScenario(scenarioName);
-        const cScenario = getScenario(compareScenarioName);
+    if (cScenario !== null) {
         for (const layerName of allLayers.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
@@ -151,8 +150,7 @@ export function makeCombinedGeoJSON(
             feature.properties[layerName] = value;
             feature.properties[`${layerName}-color`] = getColor(layerName, value);
         }
-        if (compareScenarioName !== null) {
-            const cScenario = getScenario(compareScenarioName);
+        if (cScenario !== null) {
             const cOaValues = cScenario.values.get(oaName);
             if (cOaValues === undefined) {
                 throw new Error(`Output area ${oaName} not found in compare values; this should not happen`);
@@ -173,6 +171,7 @@ export function makeCombinedGeoJSON(
     });
 
     // TODO: Figure out how to not cast here
+    console.log(newGeography);
     return newGeography as GeoJSON.FeatureCollection;
 }
 

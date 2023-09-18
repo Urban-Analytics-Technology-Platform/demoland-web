@@ -14,8 +14,7 @@
     import { getValues } from "src/utils";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
-    export let scenarioName: string;
-    export let compareScenarioName: string | null;
+    import {scenarioName, compareScenarioName} from "src/scenarios";
 
     // Number of bars to use in the chart
     const nbars = 11;
@@ -25,7 +24,7 @@
 
     function patchedGenerateLabels(chart: Chart, datasets: ChartDataset[]) {
         let labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-        if (compareScenarioName === null) {
+        if ($compareScenarioName === null) {
             // labels[0] is the scatter plot showing the mean
             labels[0].lineDash = [6, 3];
             labels[0].strokeStyle = "#000000";
@@ -86,7 +85,7 @@
                             callback: (val) =>
                                 prettyLabel(
                                     val as number,
-                                    compareScenarioName !== null
+                                    $compareScenarioName !== null
                                 ),
                             maxRotation: 0,
                             minRotation: 0,
@@ -122,8 +121,8 @@
         if (chart === null) return;
         const chartData = makeChartData(
             indicatorName,
-            scenarioName,
-            compareScenarioName,
+            $scenarioName,
+            $compareScenarioName,
             nbars,
             compareChartStyle
         );
@@ -144,8 +143,8 @@
         drawChart(
             makeChartData(
                 indicatorName,
-                scenarioName,
-                compareScenarioName,
+                $scenarioName,
+                $compareScenarioName,
                 nbars,
                 compareChartStyle
             )
@@ -164,10 +163,10 @@
 
     $: {
         // Chart should be updated whenever these variables are changed
-        indicatorName, scenarioName, compareScenarioName, compareChartStyle;
+        indicatorName, $scenarioName, $compareScenarioName, compareChartStyle;
         // Useful variable which we can use to keep track of what kind of chart is being shown
         chartType =
-            compareScenarioName === null
+            $compareScenarioName === null
                 ? "single"
                 : compareChartStyle === "both"
                 ? "compareBoth"
@@ -176,9 +175,9 @@
         showLegend = chartType !== "compareDifference";
         chartHeight = chartType === "compareDifference" ? "128.6px" : "160px";
         updateChart();
-        values = getValues(indicatorName, scenarioName);
-        if (compareScenarioName !== null) {
-            cmpValues = getValues(indicatorName, compareScenarioName);
+        values = getValues(indicatorName, $scenarioName);
+        if ($compareScenarioName !== null) {
+            cmpValues = getValues(indicatorName, $compareScenarioName);
             changes = [...values.map((x, i) => x - cmpValues[i])];
             noChangesAtAll = changes.filter((x) => x !== 0).length === 0;
         }
@@ -186,7 +185,7 @@
 </script>
 
 <div class="chart-container">
-    {#if compareScenarioName !== null}
+    {#if $compareScenarioName !== null}
         {#if noChangesAtAll}
             No changes.
         {:else}

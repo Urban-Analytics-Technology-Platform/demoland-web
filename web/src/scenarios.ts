@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 import { type OA, type LayerName, type MacroVar, type Scenario, allLayers, GLOBALMIN, GLOBALMAX } from "src/constants";
 
 import baselineVals from "src/assets/values/baseline.json";
@@ -192,4 +192,9 @@ function setupBuiltinScenarios(): Map<string, Scenario> {
     return allBuiltinScenarios;
 }
 
-export const allScenarios = writable(setupBuiltinScenarios());
+// Set up Svelte stores
+const builtinScenarios = setupBuiltinScenarios();
+
+export const allScenarios: Writable<Map<string, Scenario>> = writable(builtinScenarios);
+export const scenarioName: Writable<string> = writable(builtinScenarios.keys().next().value);
+export const compareScenarioName: Writable<string | null> = writable(null);

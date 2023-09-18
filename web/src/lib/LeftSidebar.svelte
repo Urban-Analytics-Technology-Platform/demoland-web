@@ -12,8 +12,7 @@
     import Welcome from "src/lib/leftSidebar/Welcome.svelte";
     import Tabs from "src/lib/leftSidebar/Tabs.svelte";
 
-    export let scenarioName: string;
-    export let compareScenarioName: string | null;
+    import { scenarioName, compareScenarioName } from "src/scenarios";
     export let clickedOAName: string | null;
     let welcomeVisible: boolean = !(
         localStorage.getItem("doNotShowWelcome") === "true"
@@ -29,8 +28,8 @@
     // via Create (custom scenarios) or Import (file upload).
     function handleImportEvent(event: CustomEvent) {
         selectedTab = "choose";
-        scenarioName = event.detail.name;
-        compareScenarioName = null;
+        $scenarioName = event.detail.name;
+        $compareScenarioName = null;
         dispatch("changeScenario");
     }
 </script>
@@ -69,16 +68,13 @@
         <div class="tab-content">
             {#if selectedTab === "choose"}
                 <Choose
-                    bind:scenarioName
-                    bind:compareScenarioName
                     on:changeScenario
                 />
             {:else if selectedTab === "create"}
                 <Create
-                    bind:scenarioName
                     bind:clickedOAName
                     on:changeScenario={() => {
-                        compareScenarioName = null;
+                        $compareScenarioName = null;
                         dispatch("changeScenario");
                     }}
                     on:import={handleImportEvent}

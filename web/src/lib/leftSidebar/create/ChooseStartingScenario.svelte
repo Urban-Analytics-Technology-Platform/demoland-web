@@ -1,14 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { allScenarios } from "src/scenarios";
+    import { allScenarios, scenarioName, compareScenarioName } from "src/scenarios";
     const dispatch = createEventDispatcher();
     dispatch("changeScenario", {});
 
-    export let scenarioName: string | null;
-
     function setScenario(event: Event) {
         let button = event.target as HTMLButtonElement;
-        scenarioName = button.value;
+        $scenarioName = button.value;
+        $compareScenarioName = null;
         dispatch("changeScenario", {});
     }
 </script>

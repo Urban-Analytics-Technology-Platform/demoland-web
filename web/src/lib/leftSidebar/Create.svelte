@@ -1,6 +1,5 @@
 <script lang="ts">
     export let clickedOAName: string | null;
-    export let scenarioName: string | null;
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
@@ -144,7 +143,6 @@ Create your own scenario by modifying an existing one.
 
 {#if step === "choose"}
     <ChooseStartingScenario
-        bind:scenarioName
         on:changeScenario={changeScenarioAndProceed}
     />
 {/if}
@@ -152,7 +150,6 @@ Create your own scenario by modifying an existing one.
 {#if step === "modify"}
     <ModifyOutputAreas
         bind:clickedOAName
-        bind:scenarioName
         bind:userChangesPresent
         on:returnToSelection={returnToSelection}
         on:proceedToMetadata={() => (step = "metadata")}

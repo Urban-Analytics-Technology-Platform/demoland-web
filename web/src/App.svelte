@@ -11,6 +11,7 @@
         getGeometryBounds,
         getInputDiffBoundaries,
     } from "./utils";
+    import { scenarioName, compareScenarioName } from "src/scenarios";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
@@ -27,16 +28,12 @@
     let clickedId: number | null = null;
     // The popup shown when clicking on an OA
     let clickPopup: maplibregl.Popup | null = null;
-    // Initial scenario to show
-    let scenarioName: string = "baseline";
-    // Scenario to compare against. Null to not compare.
-    let compareScenarioName: string | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
     let mapData: GeoJSON.FeatureCollection = makeCombinedGeoJSON(
-        scenarioName,
-        compareScenarioName
+        $scenarioName,
+        $compareScenarioName
     );
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
@@ -157,7 +154,7 @@
                     hoverPopup = makePopup(
                         map,
                         feat,
-                        compareScenarioName,
+                        $compareScenarioName,
                         activeLayer,
                         false
                     );
@@ -191,7 +188,7 @@
                 clickPopup = makePopup(
                     map,
                     feat,
-                    compareScenarioName,
+                    $compareScenarioName,
                     activeLayer,
                     true
                 );
@@ -263,45 +260,45 @@
                 paint: {
                     "fill-color": [
                         "get",
-                    compareScenarioName === null
-                        ? `${layerName}-color`
-                        : `${layerName}-diff-color`,
+                        $compareScenarioName === null
+                            ? `${layerName}-color`
+                            : `${layerName}-diff-color`,
+                    ],
+                    "fill-opacity": 0.01,
+                    // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
+                    "fill-opacity-transition": { duration: 300 },
+                },
+            });
+        }
+
+        // Generate a line layer to display the borders of each OA.
+        map.addLayer({
+            id: "line-layer",
+            type: "line",
+            source: NEWCASTLE_LAYER,
+            layout: {},
+            paint: {
+                "line-color": "#ffffff",
+                "line-width": [
+                    "case",
+                    ["boolean", ["feature-state", "click"], false],
+                    3,
+                    ["boolean", ["feature-state", "hover"], false],
+                    1.5,
+                    0,
                 ],
-                "fill-opacity": 0.01,
-                // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
-                "fill-opacity-transition": { duration: 300 },
+                "line-opacity": 0.01,
+                // @ts-ignore: Suppressing a known bug
+                // https://github.com/maplibre/maplibre-gl-js/issues/1708
+                "line-opacity-transition": { duration: 300 },
             },
         });
-    }
 
-    // Generate a line layer to display the borders of each OA.
-    map.addLayer({
-        id: "line-layer",
-        type: "line",
-        source: NEWCASTLE_LAYER,
-        layout: {},
-        paint: {
-            "line-color": "#ffffff",
-            "line-width": [
-                "case",
-                ["boolean", ["feature-state", "click"], false],
-                3,
-                ["boolean", ["feature-state", "hover"], false],
-                1.5,
-                0,
-            ],
-            "line-opacity": 0.01,
-            // @ts-ignore: Suppressing a known bug
-            // https://github.com/maplibre/maplibre-gl-js/issues/1708
-            "line-opacity-transition": { duration: 300 },
-        },
-    });
-
-    // Generate the LineString layer showing the boundary of the changed
-    // areas.
-    const diffedBoundaries = getInputDiffBoundaries(
-        scenarioName,
-        compareScenarioName
+        // Generate the LineString layer showing the boundary of the changed
+        // areas.
+        const diffedBoundaries = getInputDiffBoundaries(
+            $scenarioName,
+            $compareScenarioName
         );
         map.addSource("boundary", {
             type: "geojson",
@@ -343,6 +340,7 @@
             (
                 map.getSource(NEWCASTLE_LAYER) as maplibregl.GeoJSONSource
             ).setData(mapData);
+            console.log(mapData);
             updateLayers();
         }
     }
@@ -355,7 +353,7 @@
             for (const layerName of allLayers.keys()) {
                 map.setPaintProperty(`${layerName}-layer`, "fill-color", [
                     "get",
-                    compareScenarioName === null
+                    $compareScenarioName === null
                         ? `${layerName}-color`
                         : `${layerName}-diff-color`,
                 ]);
@@ -369,8 +367,8 @@
         }
         // Update the LineString layer
         const diffedBoundaries = getInputDiffBoundaries(
-            scenarioName,
-            compareScenarioName
+            $scenarioName,
+            $compareScenarioName
         );
         const boundarySource = map.getSource(
             "boundary"
@@ -397,7 +395,7 @@
             clickPopup = makePopup(
                 map,
                 feat,
-                compareScenarioName,
+                $compareScenarioName,
                 activeLayer,
                 true
             );
@@ -409,7 +407,7 @@
 
     // Redraw layers when scenario or compareScenario is changed
     function updateScenario() {
-        mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
+        mapData = makeCombinedGeoJSON($scenarioName, $compareScenarioName);
         updateMapData(mapData);
     }
 
@@ -444,12 +442,7 @@
     <div id="map" />
 
     <div id="other-content-container">
-        <LeftSidebar
-            bind:scenarioName
-            bind:compareScenarioName
-            bind:clickedOAName
-            on:changeScenario={updateScenario}
-        />
+        <LeftSidebar bind:clickedOAName on:changeScenario={updateScenario} />
 
         <div id="recentre">
             {#if offcentre}
@@ -467,8 +460,6 @@
             on:changeLayer={updateLayers}
             bind:opacity
             on:changeOpacity={updateLayers}
-            {scenarioName}
-            {compareScenarioName}
         />
     </div>
 </main>
