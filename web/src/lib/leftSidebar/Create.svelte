@@ -4,6 +4,7 @@
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
+    import ErrorScreen from "src/lib/leftSidebar/create/ErrorScreen.svelte";
     import {
         clearLocalChanges,
         getLocalChanges,
@@ -19,6 +20,8 @@
 
     // Stage of the scenario creation process
     let step: "choose" | "modify" | "metadata" | "calc" | "error" = "choose";
+    // Only displayed if there is actually an error
+    let errorMessage: string = "An error occurred.";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
@@ -60,7 +63,6 @@
 
     function handleApiResponse(response: Response, changedJson: string) {
         if (response.ok) {
-            console.log(response);
             response.json().then((values: object) => {
                 console.log("Success!");
                 const changed = JSON.parse(changedJson);
@@ -90,18 +92,23 @@
             });
         } else {
             step = "error";
-            throw new Error("Failed to calculate scenario values from server");
+            errorMessage = `HTTP request to custom scenario server failed: received ${response.status} ${response.statusText}.`;
+            // Give a helpful hint
+            if (response.status === 500) {
+                errorMessage +=
+                    " (If you are running locally, did you start the backend up?)";
+            }
+            throw new Error(errorMessage);
         }
     }
 
     function handleError(error: Error) {
         if (error instanceof DOMException && error.name === "AbortError") {
             step = "metadata"; // just go back to the previous step
-            console.log("Calculation aborted!");
+            console.log("Calculation aborted");
         } else {
-            // TODO show the user the error and ask them to report it
             step = "error";
-            throw error;
+            errorMessage = error.message;
         }
     }
 
@@ -127,7 +134,9 @@
             headers: { "Content-Type": "application/json" },
             body: changedJson,
             signal: signal,
-        }).then((resp) => handleApiResponse(resp, changedJson), handleError);
+        })
+            .then((resp) => handleApiResponse(resp, changedJson))
+            .catch((err) => handleError(err));
     }
 </script>
 
@@ -178,5 +187,5 @@ Create your own scenario by modifying an existing one.
 {/if}
 
 {#if step === "error"}
-    An error occurred, please try again...
+    <ErrorScreen message={errorMessage} on:close={() => (step = "metadata")} />
 {/if}
