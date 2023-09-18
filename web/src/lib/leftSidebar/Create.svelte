@@ -4,7 +4,7 @@
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
-    import ErrorScreen from "src/lib/leftSidebar/create/ErrorScreen.svelte";
+    import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
     import {
         clearLocalChanges,
         getLocalChanges,
