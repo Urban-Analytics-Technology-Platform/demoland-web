@@ -200,6 +200,7 @@
         opacity: 0.7;
         z-index: 4;
         cursor: pointer;
+        pointer-events: auto;
     }
 
     div#welcome {
@@ -220,6 +221,7 @@
         display: flex;
         flex-direction: column;
         gap: 5px;
+        pointer-events: auto;
     }
 
     div#heading-and-close {

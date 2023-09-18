@@ -56,9 +56,13 @@ export function changesToApiJson(changes: Changes): string {
 }
 
 export function createChangesMap(changed: object): Changes {
+    // Get a list of all OAs
+
     const changesMap = new Map();
+    // Loop over OAs
     for (const [oa, map] of Object.entries(changed)) {
         changesMap.set(oa, new Map());
+        // Loop over macrovariables
         for (const [key, value] of Object.entries(map)) {
             changesMap
                 .get(oa)

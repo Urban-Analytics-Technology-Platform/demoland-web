@@ -4,7 +4,6 @@
     import { onMount, onDestroy } from "svelte";
     import LeftSidebar from "src/lib/LeftSidebar.svelte";
     import RightSidebar from "src/lib/RightSidebar.svelte";
-    import Welcome from "src/lib/Welcome.svelte";
     import { makePopup } from "src/hover";
     import { allLayers, type LayerName } from "src/constants";
     import {
@@ -15,10 +14,6 @@
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
-    // Whether the welcome screen should be shown
-    let welcomeVisible: boolean = !(
-        localStorage.getItem("doNotShowWelcome") === "true"
-    );
     // The layer for the OA data
     const NEWCASTLE_LAYER = "newcastle-layer";
     // The currently active map layer
@@ -448,17 +443,12 @@
 <main>
     <div id="map" />
 
-    <Welcome bind:welcomeVisible />
-
     <div id="other-content-container">
         <LeftSidebar
             bind:scenarioName
             bind:compareScenarioName
             bind:clickedOAName
             on:changeScenario={updateScenario}
-            on:showWelcome={() => {
-                welcomeVisible = true;
-            }}
         />
 
         <div id="recentre">
