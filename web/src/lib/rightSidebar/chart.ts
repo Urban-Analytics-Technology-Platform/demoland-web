@@ -3,7 +3,8 @@ import {
     GLOBALMIN,
     GLOBALMAX,
 } from "src/constants";
-import { getScenario, getValues, makeColormap } from "src/utils";
+import { getValues, makeColormap } from "src/utils";
+import { getScenario } from "src/scenarios";
 
 // Automatically calculate a suitable tick step size for a histogram. Chart.js's
 // automatic calculation is not quite as polished as matplotlib.

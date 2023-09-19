@@ -1,17 +1,8 @@
 <script lang="ts">
-    import {
-        createNewScenario,
-        type Metadata,
-        type Changes,
-        type Values,
-        createChangesMap,
-        createValuesMap,
-    } from "src/lib/leftSidebar/helpers";
-    import JSZip from "jszip";
-    import { allScenarios } from "src/scenarios";
-    import { type Scenario } from "src/constants";
+    import { createScenarioFromZip, allScenarios } from "src/scenarios";
     import { createEventDispatcher } from "svelte";
     import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
+    import JSZip from "jszip";
 
     const dispatch = createEventDispatcher();
 
@@ -25,115 +16,6 @@
         errorMessage = message;
     }
 
-    function escapeHtml(text: string): string {
-        const map = {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;",
-            "/": "&#x2F;",
-            "`": "&#x60;",
-            "=": "&#x3D;",
-        };
-        return text.replace(/[&<>"'/`=]/g, (m) => map[m]);
-    }
-
-    /* Parse a string as JSON, but returning a promise instead. The source is
-     * passed as an argument to make for more informative error reporting. This
-     * can, for example, be a filename. */
-    function parseJsonAsPromise(source: string, json: string): Promise<object> {
-        try {
-            const obj = JSON.parse(json);
-            return Promise.resolve(obj);
-        } catch (e) {
-            return Promise.reject(
-                `${source} could not be parsed as valid JSON: ${e.message}`
-            );
-        }
-    }
-
-    /* Generate a scenario from a zip file. */
-    function createScenarioFromZip(file: File): Promise<null | Scenario> {
-        function getContentsFromZip(
-            zip: JSZip
-        ): Promise<[object, object, object]> {
-            // Correctly handle folders which were manually compressed. These
-            // have one extra level (for example, inside x.zip will be a folder
-            // called x).
-            if (zip.file("changed.json") === null) {
-                const directories = zip.folder(/./);
-                if (directories.length === 1) {
-                    zip = zip.folder(directories[0].name);
-                }
-            }
-            // Parse a file
-            function parseOneFile(fname: string): Promise<object> {
-                const file = zip.file(fname);
-                return file === null
-                    ? Promise.reject(`The ${fname} file is missing.`)
-                    : file
-                          .async("string")
-                          .then((file) => parseJsonAsPromise(fname, file));
-            }
-            return Promise.all([
-                parseOneFile("metadata.json"),
-                parseOneFile("changed.json"),
-                parseOneFile("values.json"),
-            ]);
-        }
-
-        /* Check that the actual JSON contents of the files match the expected
-         * format. */
-        function validateZipContents(
-            scenarioData: [object, object, object]
-        ): Promise<[Metadata, Changes, Values]> {
-            const metadata = scenarioData[0];
-            const changed = scenarioData[1];
-            const values = scenarioData[2];
-            // Check metadata
-            for (const field of ["name", "short", "long", "description"]) {
-                if (!Object.hasOwn(metadata, field)) {
-                    return Promise.reject(
-                        `The metadata.json file is missing the ${field} field.`
-                    );
-                }
-                if (typeof metadata[field] !== "string") {
-                    return Promise.reject(
-                        `The ${field} field in metadata.json is not a string.`
-                    );
-                }
-            }
-            // TODO Validate changed and values.
-            const changedMap = createChangesMap(changed);
-            const valuesMap = createValuesMap(values);
-            return Promise.resolve([
-                metadata as Metadata,
-                changedMap,
-                valuesMap,
-            ]);
-        }
-
-        function createScenario(
-            scenarioData: [Metadata, Changes, Values]
-        ): Scenario {
-            return createNewScenario(
-                escapeHtml(scenarioData[0].name),
-                escapeHtml(scenarioData[0].short),
-                escapeHtml(scenarioData[0].long),
-                escapeHtml(scenarioData[0].description),
-                scenarioData[1],
-                scenarioData[2]
-            );
-        }
-
-        return JSZip.loadAsync(file)
-            .then(getContentsFromZip)
-            .then(validateZipContents)
-            .then(createScenario)
-            .catch((e) => {displayError(e); return null;});
-    }
-
     function cancel() {
         const target = document.getElementById(
             "select-files"
@@ -144,11 +26,18 @@
     function process() {
         if (!files || files.length === 0) {
             return;
-        } else {
-            const scenarioPromises = Promise.all(
-                Array.from(files).map(createScenarioFromZip)
-            );
-            scenarioPromises.then((scenarios) => {
+        }
+        // Load in the scenarios
+        const scenarioPromises = Promise.all(
+            [...files].map((f) => {
+                return JSZip.loadAsync(f).then((zip) =>
+                    createScenarioFromZip(zip, true)
+                );
+            })
+        );
+        // If all of them succeeded, add them to the list of scenarios
+        scenarioPromises
+            .then((scenarios) => {
                 // If nothing was imported
                 if (scenarios.length === 0) {
                     return;
@@ -176,8 +65,12 @@
                 if (lastScenarioName) {
                     dispatch("import", { name: lastScenarioName });
                 }
+            })
+            // If any of them failed, then display the error
+            .catch((e) => {
+                displayError(e.message);
+                return [];
             });
-        }
     }
 </script>
 

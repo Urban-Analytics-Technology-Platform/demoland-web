@@ -1,14 +1,5 @@
-import { type Scenario, type MacroVar, type LayerName } from "src/constants";
-import { rescale } from "src/scenarios";
-
-export type Metadata = {
-    name: string;
-    short: string;
-    long: string;
-    description: string;
-};
-export type Changes = Map<string, Map<MacroVar, number | null>>;
-export type Values = Map<string, Map<LayerName, number>>;
+import { type MacroVar, type LayerName } from "src/constants";
+import { type Metadata, type Changes, type Values } from "src/scenarios";
 
 // Helper functions to load / save changes from localStorage
 export function getLocalChanges(): Changes {
@@ -53,54 +44,4 @@ export function changesToApiJson(changes: Changes): string {
         obj[key] = Object.fromEntries(value.entries());
     }
     return JSON.stringify({ "scenario_json": obj });
-}
-
-export function createChangesMap(changed: object): Changes {
-    // Get a list of all OAs
-
-    const changesMap = new Map();
-    // Loop over OAs
-    for (const [oa, map] of Object.entries(changed)) {
-        changesMap.set(oa, new Map());
-        // Loop over macrovariables
-        for (const [key, value] of Object.entries(map)) {
-            changesMap
-                .get(oa)
-                .set(key as MacroVar, value as number);
-        }
-    }
-    return changesMap;
-}
-
-export function createValuesMap(values: object): Values {
-    const valuesMap = new Map();
-    for (const [oa, map] of Object.entries(values)) {
-        valuesMap.set(oa, new Map());
-        for (const [key, value] of Object.entries(map)) {
-            if (value === null) {
-                throw new Error("Null value in scenario");
-            }
-            const layerName = key as LayerName;
-            valuesMap
-                .get(oa)
-                .set(layerName, rescale(layerName, value as number));
-        }
-    }
-    return valuesMap;
-}
-
-// Create a new scenario and add it to allScenarios
-export function createNewScenario(
-    name: string, short: string, long: string, description: string,
-    changed: Changes, values: Values
-): Scenario {
-    const newScenario: Scenario = {
-        name: name,
-        short: short,
-        long: long,
-        description: description.replace(/\r/g, "").split(/\n+/),
-        values: values,
-        changed: changed,
-    };
-    return newScenario;
 }

@@ -1,11 +1,10 @@
-import geography from "src/assets/newcastle.json";
+import geography from "src/data/geography.json";
 import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
 import { OverlayScrollbars } from "overlayscrollbars";
 import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "src/constants";
-import { allScenarios } from "src/scenarios";
-import { get } from "svelte/store";
+import { getScenario } from "src/scenarios";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "diff") {
@@ -27,11 +26,6 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
         return indi.colormapReversed ? cmap.reverse() : cmap;
     }
 }
-
-export function getScenario(name: string) {
-    return get(allScenarios).get(name);
-}
-
 
 // Get all values for a given indicator in a given scenario.
 export function getValues(indicator: IndicatorName, scenarioName: string): number[] {
@@ -171,7 +165,6 @@ export function makeCombinedGeoJSON(
     });
 
     // TODO: Figure out how to not cast here
-    console.log(newGeography);
     return newGeography as GeoJSON.FeatureCollection;
 }
 

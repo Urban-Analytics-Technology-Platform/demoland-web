@@ -8,10 +8,12 @@
         clearLocalChanges,
         getLocalChanges,
         changesToApiJson,
-        createNewScenario,
-        createChangesMap,
-        createValuesMap,
     } from "src/lib/leftSidebar/helpers";
+    import {
+        type Scenario,
+        createChangesMap,
+        createValuesMap
+    } from "src/scenarios";
     import { onDestroy } from "svelte";
     import { allScenarios } from "src/scenarios";
     import { createEventDispatcher } from "svelte";
@@ -65,14 +67,14 @@
             response.json().then((values: object) => {
                 console.log("Success!");
                 const changed = JSON.parse(changedJson);
-                const newScenario = createNewScenario(
-                    scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
-                    scenarioShort,
-                    "Custom: " + scenarioShort,
-                    scenarioDescription,
-                    createChangesMap(changed),
-                    createValuesMap(values)
-                );
+                const newScenario: Scenario = {
+                    name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
+                    short: scenarioShort,
+                    long: "Custom: " + scenarioShort,
+                    description: scenarioDescription,
+                    changed: createChangesMap(changed),
+                    values: createValuesMap(values, true)
+                };
                 // Check for name duplication
                 if ($allScenarios.has(newScenario.name)) {
                     let i = 1;

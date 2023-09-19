@@ -12,11 +12,12 @@
         getInputDiffBoundaries,
     } from "./utils";
     import { scenarioName, compareScenarioName } from "src/scenarios";
+    import config from "src/data/config";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
-    // The layer for the OA data
-    const NEWCASTLE_LAYER = "newcastle-layer";
+    // The source id for the OA data
+    const SOURCE_ID = "geojson_source";
     // The currently active map layer
     let activeLayer: LayerName = "signature_type";
     // The numeric ID of the OA being hovered over.
@@ -38,9 +39,9 @@
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
     // Initial longitude and latitude
-    let initialCentre: maplibregl.LngLatLike = [-1.59, 54.94];
+    let initialCentre: maplibregl.LngLatLike = [config.initialLongitude, config.initialLatitude];
     // Initial zoom
-    let initialZoom: number = 10.05;
+    let initialZoom: number = config.initialZoom;
     // Initial opacity
     let opacity: number = 0.8;
 
@@ -79,7 +80,7 @@
     function clickPopupCleanup() {
         if (clickedId !== null) {
             map.setFeatureState(
-                { source: NEWCASTLE_LAYER, id: clickedId },
+                { source: SOURCE_ID, id: clickedId },
                 { click: false }
             );
             clickedId = null;
@@ -90,7 +91,7 @@
     function disableHover() {
         if (hoveredId !== null) {
             map.setFeatureState(
-                { source: NEWCASTLE_LAYER, id: hoveredId },
+                { source: SOURCE_ID, id: hoveredId },
                 { hover: false }
             );
             hoveredId = null;
@@ -104,7 +105,7 @@
     // ID. Note: this does not generate a popup.
     function enableHover(featureId: number) {
         map.setFeatureState(
-            { source: NEWCASTLE_LAYER, id: featureId },
+            { source: SOURCE_ID, id: featureId },
             { hover: true }
         );
     }
@@ -113,7 +114,7 @@
     // ID. Note: this does not generate a popup.
     function enableClick(featureId: number) {
         map.setFeatureState(
-            { source: NEWCASTLE_LAYER, id: featureId },
+            { source: SOURCE_ID, id: featureId },
             { click: true }
         );
     }
@@ -230,7 +231,7 @@
     // initialised. After it's been set up, we don't need to redraw the layers,
     // we just update the underlying data or styles.
     function drawLayers(mapData: GeoJSON.GeoJsonObject) {
-        map.addSource(NEWCASTLE_LAYER, {
+        map.addSource(SOURCE_ID, {
             type: "geojson",
             data: mapData,
             // need to give the features numeric IDs for the click/hover to work
@@ -255,7 +256,7 @@
             map.addLayer({
                 id: mapLayerId,
                 type: "fill",
-                source: NEWCASTLE_LAYER,
+                source: SOURCE_ID,
                 layout: {},
                 paint: {
                     "fill-color": [
@@ -275,7 +276,7 @@
         map.addLayer({
             id: "line-layer",
             type: "line",
-            source: NEWCASTLE_LAYER,
+            source: SOURCE_ID,
             layout: {},
             paint: {
                 "line-color": "#ffffff",
@@ -338,7 +339,7 @@
     function updateMapData(mapData: GeoJSON.FeatureCollection) {
         if (map) {
             (
-                map.getSource(NEWCASTLE_LAYER) as maplibregl.GeoJSONSource
+                map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource
             ).setData(mapData);
             console.log(mapData);
             updateLayers();
