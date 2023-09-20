@@ -9,8 +9,8 @@
         getLocalChanges,
         changesToApiJson,
     } from "src/lib/leftSidebar/helpers";
+    import { type Scenario } from "src/constants";
     import {
-        type Scenario,
         allScenarios,
         createChangesMap,
         createValuesMap,
@@ -61,34 +61,36 @@
         step = "modify"; // move on to the next step
     }
 
-    function handleApiResponse(response: Response, changedJson: string) {
+    function handleApiResponse(response: Response, changesJson: string) {
         if (response.ok) {
             response.json().then((values: object) => {
                 console.log("Success!");
-                const changed = JSON.parse(changedJson);
+                const changes = JSON.parse(changesJson);
                 const newScenario: Scenario = {
-                    name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
-                    short: scenarioShort,
-                    long: "Custom: " + scenarioShort,
-                    description: scenarioDescription,
-                    changed: createChangesMap(changed),
+                    metadata: {
+                        name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
+                        short: scenarioShort,
+                        long: "Custom: " + scenarioShort,
+                        description: scenarioDescription,
+                    },
+                    changes: createChangesMap(changes),
                     values: createValuesMap(values, true),
                 };
                 // Check for name duplication
-                if ($allScenarios.has(newScenario.name)) {
+                if ($allScenarios.has(newScenario.metadata.name)) {
                     let i = 1;
-                    while ($allScenarios.has(`${newScenario.name}_${i})`)) {
+                    while ($allScenarios.has(`${newScenario.metadata.name}_${i})`)) {
                         i++;
                     }
-                    newScenario.name = `${newScenario.name}_${i}`;
+                    newScenario.metadata.name = `${newScenario.metadata.name}_${i}`;
                 }
-                $allScenarios.set(newScenario.name, newScenario);
+                $allScenarios.set(newScenario.metadata.name, newScenario);
                 // Get rid of changes in localStorage; this also ensures that
                 // the "are you sure" confirmation prompt doesn't show up.
                 userChangesPresent = false;
                 clearLocalChanges();
                 // Display the new scenario on the map.
-                dispatch("import", { name: newScenario.name });
+                dispatch("import", { name: newScenario.metadata.name });
             });
         } else {
             step = "error";

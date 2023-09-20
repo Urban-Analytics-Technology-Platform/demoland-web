@@ -137,7 +137,7 @@ function makeChartDataOneScenario(
             },
             {
                 type: "bar",
-                label: getScenario(scenarioName).short,
+                label: getScenario(scenarioName).metadata.short,
                 data: bins.counts,
                 backgroundColor: colors,
                 borderWidth: 0,
@@ -170,7 +170,7 @@ function makeChartDataTwoScenarios(
         datasets: [
             {
                 type: "scatter",
-                label: `${getScenario(compareScenarioName).short} mean: ${cmpMean.toFixed(2)}`,
+                label: `${getScenario(compareScenarioName).metadata.short} mean: ${cmpMean.toFixed(2)}`,
                 data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
                 showLine: true,
                 pointStyle: "line",
@@ -181,7 +181,7 @@ function makeChartDataTwoScenarios(
             },
             {
                 type: "scatter",
-                label: `${getScenario(scenarioName).short} mean: ${mean.toFixed(2)}`,
+                label: `${getScenario(scenarioName).metadata.short} mean: ${mean.toFixed(2)}`,
                 data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
                 showLine: true,
                 pointStyle: "line",
@@ -192,7 +192,7 @@ function makeChartDataTwoScenarios(
             },
             {
                 type: "bar",
-                label: getScenario(compareScenarioName).short,
+                label: getScenario(compareScenarioName).metadata.short,
                 data: cmpBins.counts,
                 // @ts-ignore backgroundColor can be string or string[]
                 backgroundColor: "rgba(1, 1, 1, 0)",
@@ -206,7 +206,7 @@ function makeChartDataTwoScenarios(
             },
             {
                 type: "bar",
-                label: getScenario(scenarioName).short,
+                label: getScenario(scenarioName).metadata.short,
                 data: bins.counts,
                 backgroundColor: colors,
                 borderWidth: 0,

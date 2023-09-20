@@ -16,7 +16,7 @@
 
 <div id="starting-scenario-buttons">
     {#each [...$allScenarios.entries()] as [name, scenario]}
-        <button value={name} on:click={setScenario}>{scenario.long}</button>
+        <button value={name} on:click={setScenario}>{scenario.metadata.long}</button>
     {/each}
 </div>
 

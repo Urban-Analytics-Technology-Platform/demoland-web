@@ -148,7 +148,7 @@ const referenceScenario = await readReferenceScenario();
  * The rescaling is done by linearly interpolating between the global minimum
  * and maximum value for each indicator as found in the baseline.
  */
-function getScaleFunctions(unscaledReferenceVals: Values): ((layerName: LayerName, val: number) => number)[] {
+function getScaleFunctions(unscaledReferenceVals: ScenarioValues): ((layerName: LayerName, val: number) => number)[] {
     // Helper function to preprocess all raw values. Rounds to 6sf and clips
     // negative values to 0. Overly precise values lead to rounding errors and
     // spurious 'differences' in the map.
@@ -216,6 +216,7 @@ async function setupScenarioMap(): Promise<Map<string, Scenario>> {
     return new Map(scenarioList.map((scenario) => [scenario.metadata.name, scenario]));
 }
 const allScenariosMap = await setupScenarioMap();
+console.log("All scenarios:", allScenariosMap);
 export const allScenarios: Writable<Map<string, Scenario>> = writable(allScenariosMap);
 export const scenarioName: Writable<string> = writable(allScenariosMap.keys().next().value);
 export const compareScenarioName: Writable<string | null> = writable(null);

@@ -120,6 +120,7 @@
     let descriptionLines: string[];
     let compareScenario: Scenario | null;
     let compareDescriptionLines: string[] | null;
+
     $: {
         scenario = $allScenarios.get($scenarioName);
         compareScenario =
