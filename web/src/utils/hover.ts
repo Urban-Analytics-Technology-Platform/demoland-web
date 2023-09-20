@@ -8,6 +8,7 @@ import {
     signatures,
 } from "src/constants";
 import { unscale } from "src/utils/scenarios";
+import config from "src/data/config";
 
 // Construct raw HTML for the hover popup. This is really ugly, but MapLibre
 // doesn't seem to let us do much else (?).
@@ -79,7 +80,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
     // Put it all together
     return [
         `<div class="hover-grid">`,
-        `<span class="oa-grid-item oa-name">${feat.properties.OA11CD}</span>`,
+        `<span class="oa-grid-item oa-name">${feat.properties[config.featureIdentifier]}</span>`,
         makeSig(),
         ...[...allIndicators.entries()].map(([name, indi]) => makeIndi(name, indi)),
         `</div>`,

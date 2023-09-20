@@ -4,6 +4,7 @@ import union from "@turf/union";
 import { allLayers, type LayerName, type MacroVar } from "src/constants";
 import { getScenario } from "src/utils/scenarios";
 import { getColor, getDiffColor } from "src/utils/colors";
+import config from "src/data/config";
 
 /** The indicator values are stored as a JSON file, separate from the
  * geometry data. This allows the geometry data to be reused for different
@@ -44,7 +45,7 @@ export function makeCombinedGeoJSON(
     const newGeography = JSON.parse(JSON.stringify(geography));
     // Merge geography with indicators
     newGeography.features = newGeography.features.map(function(feature) {
-        const oaName = feature.properties.OA11CD;
+        const oaName = feature.properties[config.featureIdentifier];
         const oaValues = scenario.values.get(oaName);
         if (oaValues === undefined) {
             throw new Error(`${oaName} not found in values!`);
@@ -184,7 +185,7 @@ export function getInputDiffBoundaries(
         "type": "FeatureCollection",
         "crs": geography.crs,
         "features": geography.features.filter(
-            feature => differentOAs.has(feature.properties.OA11CD)
+            feature => differentOAs.has(feature.properties[config.featureIdentifier])
         ),
     } as GeoJSON.FeatureCollection;
 

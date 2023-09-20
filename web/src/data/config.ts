@@ -1,4 +1,5 @@
 interface Config {
+    featureIdentifier: string;
     initialLatitude: number;
     initialLongitude: number;
     initialZoom: number;
@@ -7,6 +8,9 @@ interface Config {
 }
 
 const config: Config = {
+    // GeoJSON key which gives a unique identifier for each feature. The value
+    // of the identifier must be a string.
+    featureIdentifier: "OA11CD",
     // Initial latitude of the map
     initialLatitude: 54.94,
     // Initial longitude of the map

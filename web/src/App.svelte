@@ -434,7 +434,7 @@
             return null;
         }
         const feat = mapData.features.find((feat) => feat.id === featureId);
-        return feat.properties.OA11CD;
+        return feat.properties[config.featureIdentifier];
     }
     let clickedOAName: string | null = null;
     $: {
