@@ -1,6 +1,8 @@
 import { writable, type Writable } from 'svelte/store';
 import {
-    type LayerName, type MacroVar, type Scenario as ConstantScenario,
+    type LayerName, type MacroVar,
+    type ScenarioMetadata, type ScenarioChanges, type ScenarioValues,
+    type Scenario,
     allLayers, GLOBALMIN, GLOBALMAX
 } from "src/constants";
 import config from "src/data/config";
@@ -8,18 +10,7 @@ import config from "src/data/config";
 import JSZip from "jszip";
 import { parseJsonAsPromise } from "src/utils";
 
-export type Metadata = {
-    name: string;
-    short: string;
-    long: string;
-    description: string;
-};
-export type Changes = Map<string, Map<MacroVar, number | null>>;
-export type Values = Map<string, Map<LayerName, number>>;
-export type Scenario = ConstantScenario;
-// TODO: make Scenario a product of these three types
-
-export function createChangesMap(changes: object): Changes {
+export function createChangesMap(changes: object): ScenarioChanges {
     const changesMap = new Map();
     // Loop over OAs
     for (const [oa, map] of Object.entries(changes)) {
@@ -36,7 +27,7 @@ export function createChangesMap(changes: object): Changes {
 
 /* Generate the Map of output values in a scenario, from a JSON object.
  * The `scale` parameter indicates whether the values should be scaled. */
-export function createValuesMap(values: object, scale: boolean): Values {
+export function createValuesMap(values: object, scale: boolean): ScenarioValues {
     const valuesMap = new Map();
     for (const [oa, map] of Object.entries(values)) {
         valuesMap.set(oa, new Map());
@@ -91,7 +82,7 @@ export function createScenarioFromZip(zip: JSZip, scale: boolean): Promise<Scena
      * format. */
     function validateZipContents(
         scenarioData: [object, object, object]
-    ): Promise<[Metadata, Changes, Values]> {
+    ): Promise<[ScenarioMetadata, ScenarioChanges, ScenarioValues]> {
         const metadata = scenarioData[0];
         const changes = scenarioData[1];
         const values = scenarioData[2];
@@ -112,24 +103,20 @@ export function createScenarioFromZip(zip: JSZip, scale: boolean): Promise<Scena
         const changesMap = createChangesMap(changes);
         const valuesMap = createValuesMap(values, scale);
         return Promise.resolve([
-            metadata as Metadata,
+            metadata as ScenarioMetadata,
             changesMap,
             valuesMap,
         ]);
     }
 
     function createScenario(
-        scenarioData: [Metadata, Changes, Values]
+        scenarioData: [ScenarioMetadata, ScenarioChanges, ScenarioValues]
     ): Scenario {
-        const newScenario: Scenario = {
-            name: scenarioData[0].name,
-            short: scenarioData[0].short,
-            long: scenarioData[0].long,
-            description: scenarioData[0].description,
+        return {
+            metadata: scenarioData[0],
             changes: scenarioData[1],
             values: scenarioData[2]
         };
-        return newScenario;
     }
 
     return getContentsFromZip(zip)
@@ -226,7 +213,7 @@ async function setupScenarioMap(): Promise<Map<string, Scenario>> {
                 .then((zip) => createScenarioFromZip(zip, true))
         })
     );
-    return new Map(scenarioList.map((scenario) => [scenario.name, scenario]));
+    return new Map(scenarioList.map((scenario) => [scenario.metadata.name, scenario]));
 }
 const allScenariosMap = await setupScenarioMap();
 export const allScenarios: Writable<Map<string, Scenario>> = writable(allScenariosMap);

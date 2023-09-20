@@ -27,7 +27,6 @@
                     changesObj[oa][mv] = v;
                 }
             }
-            const changesJson = JSON.stringify(changesObj);
 
             const valuesObj = {};
             for (const [oa, m] of values.entries()) {
@@ -36,21 +35,17 @@
                     valuesObj[oa][layerName] = unscale(layerName, val);
                 }
             }
-            const valuesJson = JSON.stringify(valuesObj);
 
-            const metadataJson = JSON.stringify({
-                name: scenario.name,
-                short: scenario.short,
-                long: scenario.long,
-                description: scenario.description,
-            });
+            const changesJson = JSON.stringify(changesObj);
+            const valuesJson = JSON.stringify(valuesObj);
+            const metadataJson = JSON.stringify(scenario.metadata);
 
             zip.file(`changed.json`, changesJson);
             zip.file(`values.json`, valuesJson);
             zip.file(`metadata.json`, metadataJson);
             zip.file(`geometries.geojson`, JSON.stringify(geography));
             zip.generateAsync({ type: "blob" }).then(function (content) {
-                saveAs(content, `${scenario.name}.scenario.zip`);
+                saveAs(content, `${scenario.metadata.name}.scenario.zip`);
             });
         }
         exportDialogVisible = false;

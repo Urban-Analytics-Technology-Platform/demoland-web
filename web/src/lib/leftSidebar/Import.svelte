@@ -50,16 +50,16 @@
                         continue;
                     }
                     // Check for name duplication
-                    if ($allScenarios.has(scenario.name)) {
+                    if ($allScenarios.has(scenario.metadata.name)) {
                         let i = 1;
-                        while ($allScenarios.has(`${scenario.name}_${i})`)) {
+                        while ($allScenarios.has(`${scenario.metadata.name}_${i})`)) {
                             i++;
                         }
-                        scenario.name = `${scenario.name}_${i}`;
+                        scenario.metadata.name = `${scenario.metadata.name}_${i}`;
                     }
                     console.log(scenario);
-                    $allScenarios.set(scenario.name, scenario);
-                    lastScenarioName = scenario.name;
+                    $allScenarios.set(scenario.metadata.name, scenario);
+                    lastScenarioName = scenario.metadata.name;
                 }
                 // Display the last scenario on the map
                 if (lastScenarioName) {

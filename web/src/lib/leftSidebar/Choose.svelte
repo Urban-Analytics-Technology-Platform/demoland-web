@@ -127,11 +127,11 @@
                 ? null
                 : $allScenarios.get($compareScenarioName);
 
-        descriptionLines = scenario.description.replace(/\r/g, "").split(/\n+/),
+        descriptionLines = scenario.metadata.description.replace(/\r/g, "").split(/\n+/),
         compareDescriptionLines =
             $compareScenarioName === null
                 ? null
-                : compareScenario.description
+                : compareScenario.metadata.description
                       .replace(/\r/g, "")
                       .split(/\n+/);
 
@@ -179,7 +179,7 @@ modelled development strategies on any of the four indicators.
     </button>
     <select id="scenario" bind:value={$scenarioName} on:change={changeScenario}>
         {#each [...$allScenarios.entries()] as [name, scenario]}
-            <option value={name}>{scenario.long}</option>
+            <option value={name}>{scenario.metadata.long}</option>
         {/each}
     </select>
     <button
@@ -242,7 +242,7 @@ modelled development strategies on any of the four indicators.
         <option value={null}>None</option>
         {#each [...$allScenarios.entries()] as [name, compareScenario]}
             {#if name !== $scenarioName}
-                <option value={name}>{compareScenario.long}</option>
+                <option value={name}>{compareScenario.metadata.long}</option>
             {/if}
         {/each}
     </select>

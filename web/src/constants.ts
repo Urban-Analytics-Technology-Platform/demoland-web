@@ -79,13 +79,22 @@ export const GLOBALMAX = 100;
 // new type.
 export type MacroVar = "signature_type" | "use" | "greenspace" | "job_types";
 
+
+// Scenarios
+
+export type ScenarioMetadata = {
+    name: string,           // unique identifier
+    short: string,          // short description (for dropdown box)
+    long: string,           // long description (title in UI)
+    description: string,    // full text description
+};
+export type ScenarioChanges = Map<string, Map<MacroVar, number | null>>;
+export type ScenarioValues = Map<string, Map<LayerName, number>>;
+
 export type Scenario = {
-    name: string,                                    // unique identifier
-    short: string,                                   // short description (for dropdown box)
-    long: string,                                    // long description (title in UI)
-    description: string,                             // full text description
-    changes: Map<OA, Map<MacroVar, number | null>>,  // inputs changed relative to baseline
-    values: Map<OA, Map<LayerName, number>>,         // values of all indicators and inputs
+    metadata: ScenarioMetadata,   // as described above
+    changes: ScenarioChanges,     // inputs changed relative to baseline
+    values: ScenarioValues        // values of all indicators and inputs
 };
 
 export const signatures = [
