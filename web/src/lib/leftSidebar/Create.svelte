@@ -2,6 +2,7 @@
     export let clickedOAName: string | null;
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
+    import InputMetadata from "src/lib/leftSidebar/create/InputMetadata.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
     import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
     import {
@@ -158,25 +159,11 @@ Create your own scenario by modifying an existing one.
 {/if}
 
 {#if step === "metadata"}
-    <input
-        type="button"
-        value="Back to OA modification"
-        on:click={() => (step = "modify")}
-    />
-    <input
-        type="button"
-        value="Accept changes and calculate"
-        on:click={acceptChangesAndCalculate}
-    />
-    <input
-        type="text"
-        bind:value={scenarioShort}
-        placeholder="Scenario title..."
-    />
-    <textarea
-        bind:value={scenarioDescription}
-        placeholder="A longer textual description..."
-        spellcheck="false"
+    <InputMetadata
+        bind:scenarioShort
+        bind:scenarioDescription
+        on:returnToModify={() => (step = "modify")}
+        on:acceptChangesAndCalculate={acceptChangesAndCalculate}
     />
 {/if}
 
