@@ -153,19 +153,19 @@ export function getInputDiffBoundaries(
     compareScenarioName: string | null
 ): GeoJSON.FeatureCollection {
     type MVMap = Map<string, Map<MacroVar, number | null>>;
-    const changed: MVMap = getScenario(scenarioName).changed;
-    const cChanged: MVMap = compareScenarioName === null
+    const changes: MVMap = getScenario(scenarioName).changes;
+    const cChanges: MVMap = compareScenarioName === null
         ? new Map()
-        : getScenario(compareScenarioName).changed;
+        : getScenario(compareScenarioName).changes;
 
     // Determine OAs which are different
     const allPossibleOAs: Set<string> = new Set([
-        ...changed.keys(), ...cChanged.keys()
+        ...changes.keys(), ...cChanges.keys()
     ]);
     const differentOAs: Set<string> = new Set();
     for (const oa of allPossibleOAs) {
-        const m1 = changed.get(oa);
-        const m2 = cChanged.get(oa);
+        const m1 = changes.get(oa);
+        const m2 = cChanges.get(oa);
         if (m1 === undefined && m2 === undefined) {
             // Both undefined - no changes occurred wrt baseline
             continue;

@@ -117,13 +117,23 @@
     }
 
     let scenario: Scenario;
+    let descriptionLines: string[];
     let compareScenario: Scenario | null;
+    let compareDescriptionLines: string[] | null;
     $: {
         scenario = $allScenarios.get($scenarioName);
         compareScenario =
-            compareScenarioName === null
+            $compareScenarioName === null
                 ? null
                 : $allScenarios.get($compareScenarioName);
+
+        descriptionLines = scenario.description.replace(/\r/g, "").split(/\n+/),
+        compareDescriptionLines =
+            $compareScenarioName === null
+                ? null
+                : compareScenario.description
+                      .replace(/\r/g, "")
+                      .split(/\n+/);
 
         allScenariosExceptCompare = allScenarioNames.filter(
             (s) => s !== $compareScenarioName
@@ -202,13 +212,9 @@ modelled development strategies on any of the four indicators.
                 out:customFlyOut|local
                 on:outrostart={setMaxHeightToZero}
             >
-                <p>
-                    <!-- eslint-disable-next-line -->
-                    {@html scenario.description[0]}
-                </p>
-                {#each scenario.description.slice(1) as para}
-                    <!-- eslint-disable-next-line -->
-                    <p>{@html para}</p>
+                <p>{descriptionLines[0]}</p>
+                {#each descriptionLines.slice(1) as para}
+                    <p>{para}</p>
                 {/each}
             </div>
         {/key}
@@ -278,13 +284,9 @@ modelled development strategies on any of the four indicators.
                 out:customFlyOutCmp|local
                 on:outrostart={setMaxHeightToZero}
             >
-                <p>
-                    <!-- eslint-disable-next-line -->
-                    {@html compareScenario.description[0]}
-                </p>
-                {#each compareScenario.description.slice(1) as para}
-                    <!-- eslint-disable-next-line -->
-                    <p>{@html para}</p>
+                <p>{compareDescriptionLines[0]}</p>
+                {#each compareDescriptionLines.slice(1) as para}
+                    <p>{para}</p>
                 {/each}
             </div>
         {/key}

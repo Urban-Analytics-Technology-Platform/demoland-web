@@ -6,7 +6,7 @@ import {
 import config from "src/data/config";
 
 import JSZip from "jszip";
-import { parseJsonAsPromise, escapeHtml } from "src/utils";
+import { parseJsonAsPromise } from "src/utils";
 
 export type Metadata = {
     name: string;
@@ -19,10 +19,10 @@ export type Values = Map<string, Map<LayerName, number>>;
 export type Scenario = ConstantScenario;
 // TODO: make Scenario a product of these three types
 
-export function createChangesMap(changed: object): Changes {
+export function createChangesMap(changes: object): Changes {
     const changesMap = new Map();
     // Loop over OAs
-    for (const [oa, map] of Object.entries(changed)) {
+    for (const [oa, map] of Object.entries(changes)) {
         changesMap.set(oa, new Map());
         // Loop over macrovariables
         for (const [key, value] of Object.entries(map)) {
@@ -93,7 +93,7 @@ export function createScenarioFromZip(zip: JSZip, scale: boolean): Promise<Scena
         scenarioData: [object, object, object]
     ): Promise<[Metadata, Changes, Values]> {
         const metadata = scenarioData[0];
-        const changed = scenarioData[1];
+        const changes = scenarioData[1];
         const values = scenarioData[2];
         // Check metadata
         for (const field of ["name", "short", "long", "description"]) {
@@ -108,12 +108,12 @@ export function createScenarioFromZip(zip: JSZip, scale: boolean): Promise<Scena
                 );
             }
         }
-        // TODO Validate changed and values.
-        const changedMap = createChangesMap(changed);
+        // TODO Validate changes and values.
+        const changesMap = createChangesMap(changes);
         const valuesMap = createValuesMap(values, scale);
         return Promise.resolve([
             metadata as Metadata,
-            changedMap,
+            changesMap,
             valuesMap,
         ]);
     }
@@ -122,11 +122,11 @@ export function createScenarioFromZip(zip: JSZip, scale: boolean): Promise<Scena
         scenarioData: [Metadata, Changes, Values]
     ): Scenario {
         const newScenario: Scenario = {
-            name: escapeHtml(scenarioData[0].name),
-            short: escapeHtml(scenarioData[0].short),
-            long: escapeHtml(scenarioData[0].long),
-            description: escapeHtml(scenarioData[0].description).replace(/\r/g, "").split(/\n+/),
-            changed: scenarioData[1],
+            name: scenarioData[0].name,
+            short: scenarioData[0].short,
+            long: scenarioData[0].long,
+            description: scenarioData[0].description,
+            changes: scenarioData[1],
             values: scenarioData[2]
         };
         return newScenario;

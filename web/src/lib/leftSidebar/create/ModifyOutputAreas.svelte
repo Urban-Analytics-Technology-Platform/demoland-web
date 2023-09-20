@@ -67,7 +67,7 @@
     }
 
     // Load current scenario into local storage
-    storeLocalChanges($allScenarios.get($scenarioName).changed);
+    storeLocalChanges($allScenarios.get($scenarioName).changes);
 
     // Variables for OA modifiers
     let sig: number | null = null;

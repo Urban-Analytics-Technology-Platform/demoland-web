@@ -83,9 +83,9 @@ export type Scenario = {
     name: string,                                    // unique identifier
     short: string,                                   // short description (for dropdown box)
     long: string,                                    // long description (title in UI)
+    description: string,                             // full text description
+    changes: Map<OA, Map<MacroVar, number | null>>,  // inputs changed relative to baseline
     values: Map<OA, Map<LayerName, number>>,         // values of all indicators and inputs
-    description: string[],                           // full text description (uses raw HTML)
-    changed: Map<OA, Map<MacroVar, number | null>>,  // inputs changed relative to baseline
 };
 
 export const signatures = [

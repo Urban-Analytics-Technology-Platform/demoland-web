@@ -17,17 +17,17 @@
         for (const scenarioName of exportScenarioNames) {
             const zip = new JSZip();
             const scenario = $allScenarios.get(scenarioName);
-            const changed = scenario.changed;
+            const changes = scenario.changes;
             const values = scenario.values;
 
-            const changedObj = {};
-            for (const [oa, m] of changed.entries()) {
-                changedObj[oa] = {};
+            const changesObj = {};
+            for (const [oa, m] of changes.entries()) {
+                changesObj[oa] = {};
                 for (const [mv, v] of m.entries()) {
-                    changedObj[oa][mv] = v;
+                    changesObj[oa][mv] = v;
                 }
             }
-            const changedJson = JSON.stringify(changedObj);
+            const changesJson = JSON.stringify(changesObj);
 
             const valuesObj = {};
             for (const [oa, m] of values.entries()) {
@@ -42,10 +42,10 @@
                 name: scenario.name,
                 short: scenario.short,
                 long: scenario.long,
-                description: scenario.description.join("\n"),
+                description: scenario.description,
             });
 
-            zip.file(`changed.json`, changedJson);
+            zip.file(`changed.json`, changesJson);
             zip.file(`values.json`, valuesJson);
             zip.file(`metadata.json`, metadataJson);
             zip.file(`geometries.geojson`, JSON.stringify(geography));
