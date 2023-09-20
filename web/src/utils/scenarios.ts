@@ -6,7 +6,7 @@ import {
 import config from "src/data/config";
 
 import JSZip from "jszip";
-import { parseJsonAsPromise, escapeHtml } from "src/scenarios_utils";
+import { parseJsonAsPromise, escapeHtml } from "src/utils";
 
 export type Metadata = {
     name: string;

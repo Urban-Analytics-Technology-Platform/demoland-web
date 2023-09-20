@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createScenarioFromZip, allScenarios } from "src/scenarios";
+    import { createScenarioFromZip, allScenarios } from "src/utils/scenarios";
     import { createEventDispatcher } from "svelte";
     import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
     import JSZip from "jszip";

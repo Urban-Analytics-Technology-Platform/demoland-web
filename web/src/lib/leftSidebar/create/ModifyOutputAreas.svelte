@@ -4,7 +4,7 @@
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    import { allScenarios, scenarioName } from "src/scenarios";
+    import { allScenarios, scenarioName } from "src/utils/scenarios";
     import { signatures, type MacroVar } from "src/constants";
     import {
         getLocalChanges,

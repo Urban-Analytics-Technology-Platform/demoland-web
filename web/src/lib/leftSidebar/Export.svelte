@@ -2,7 +2,7 @@
     import geography from "src/data/geography.json";
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
-    import { allScenarios, unscale } from "src/scenarios";
+    import { allScenarios, unscale } from "src/utils/scenarios";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;

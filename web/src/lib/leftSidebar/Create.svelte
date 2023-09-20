@@ -11,12 +11,11 @@
     } from "src/lib/leftSidebar/helpers";
     import {
         type Scenario,
+        allScenarios,
         createChangesMap,
-        createValuesMap
-    } from "src/scenarios";
-    import { onDestroy } from "svelte";
-    import { allScenarios } from "src/scenarios";
-    import { createEventDispatcher } from "svelte";
+        createValuesMap,
+    } from "src/utils/scenarios";
+    import { onDestroy, createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
     // Stage of the scenario creation process
@@ -73,7 +72,7 @@
                     long: "Custom: " + scenarioShort,
                     description: scenarioDescription,
                     changed: createChangesMap(changed),
-                    values: createValuesMap(values, true)
+                    values: createValuesMap(values, true),
                 };
                 // Check for name duplication
                 if ($allScenarios.has(newScenario.name)) {
@@ -144,9 +143,7 @@
 Create your own scenario by modifying an existing one.
 
 {#if step === "choose"}
-    <ChooseStartingScenario
-        on:changeScenario={changeScenarioAndProceed}
-    />
+    <ChooseStartingScenario on:changeScenario={changeScenarioAndProceed} />
 {/if}
 
 {#if step === "modify"}

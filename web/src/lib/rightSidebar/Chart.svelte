@@ -10,11 +10,11 @@
         type ChartData,
         makeChartData,
         prettyLabel,
+        getValues,
     } from "src/lib/rightSidebar/chart";
-    import { getValues } from "src/utils";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
-    import {scenarioName, compareScenarioName} from "src/scenarios";
+    import {scenarioName, compareScenarioName} from "src/utils/scenarios";
 
     // Number of bars to use in the chart
     const nbars = 11;

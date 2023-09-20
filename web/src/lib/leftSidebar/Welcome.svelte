@@ -2,12 +2,13 @@
     import leftSidebarScreenshot from "src/assets/left-sidebar.png";
     import rightSidebarScreenshot from "src/assets/right-sidebar.png";
     import mapScreenshot from "src/assets/map.png";
-    import { bookUrl } from "src/constants";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =
         localStorage.getItem("doNotShowWelcome") === "true";
+
+    const bookUrl: string = "https://ciupava.github.io/LandUseDemonstrator"
 
     // Whether the welcome screen is visible (initialised based on page load
     // setting, but can be toggled if the user wants to re-display it)

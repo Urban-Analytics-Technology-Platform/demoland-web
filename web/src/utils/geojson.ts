@@ -1,99 +1,9 @@
 import geography from "src/data/geography.json";
-import colormap from "colormap";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { OverlayScrollbars } from "overlayscrollbars";
-import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "src/constants";
-import { getScenario } from "src/scenarios";
-
-export function makeColormap(indicator: IndicatorName | "diff", n: number) {
-    if (indicator === "diff") {
-        return colormap({
-            colormap: "RdBu",
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        });
-    }
-    else {
-        const indi = allIndicators.get(indicator);
-        const cmap = colormap({
-            colormap: indi.colormap,
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        });
-        return indi.colormapReversed ? cmap.reverse() : cmap;
-    }
-}
-
-// Get all values for a given indicator in a given scenario.
-export function getValues(indicator: IndicatorName, scenarioName: string): number[] {
-    const scenario = getScenario(scenarioName);
-    return [...scenario.values.values()].map(m => m.get(indicator));
-}
-
-const colormaps: { [key: string]: string[] } = {
-    "air_quality": makeColormap("air_quality", 100),
-    "house_price": makeColormap("house_price", 100),
-    "job_accessibility": makeColormap("job_accessibility", 100),
-    "greenspace_accessibility": makeColormap("greenspace_accessibility", 100),
-    "diff": makeColormap("diff", 100),
-}
-
-function getColorFromMap(map: string[], value: number, min: number, max: number) {
-    const n = map.length;
-    let i = Math.round(((value - min) / (max - min)) * (n - 1));
-    // Clamp to [0, n-1]
-    i = Math.min(Math.max(i, 0), n - 1);
-    return map[i];
-}
-
-/**
- * Calculate the colour which should be shown on the map for a given scenario.
- *
- * @param layerName The name of the layer being displayed
- * @param value The value of the layer in the scenario
- */
-function getColor(layerName: LayerName, value: number) {
-
-    if (layerName === "signature_type") {
-        // Categorical variable
-        return signatures[value].color;
-    }
-    else {
-        // Continuous variables, use the respective colormaps
-        return getColorFromMap(colormaps[layerName], value, GLOBALMIN, GLOBALMAX);
-    }
-}
-
-/**
- * Calculate the colour which should be shown on the map in 'difference' mode
- * (when a scenario is being compared against).
- *
- * @param layerName The name of the layer being displayed
- * @param value The value of the layer in the main scenario
- * @param cmpValue The value of the layer in the scenario being compared
- * against
- * @param maxDiffExtents A map of the maximum difference between the main
- * scenario and the scenario being compared against for each layer. This is
- * pre-calculated for efficiency inside the `makeCombinedGeoJSON` function.
- * @returns The colour which should be shown on the map.
- */
-function getDiffColor(layerName: LayerName, value: number, cmpValue: number,
-    maxDiffExtents: Map<LayerName, number>) {
-    if (layerName === "signature_type") {
-        // Categorical variable. If it's the same, we don't show anything. If
-        // it's different, we show the color of the main scenario.
-        return value === cmpValue ? "rgba(0, 0, 0, 0.1)" : signatures[value].color;
-    }
-    else {
-        // Continuous variables, use 'diff' colormap
-        return value === cmpValue
-            ? "rgba(0, 0, 0, 0.1)"
-            : getColorFromMap(colormaps["diff"], value - cmpValue, -maxDiffExtents.get(layerName), maxDiffExtents.get(layerName));
-    }
-}
+import { allLayers, type LayerName, type MacroVar } from "src/constants";
+import { getScenario } from "src/utils/scenarios";
+import { getColor, getDiffColor } from "src/utils/colors";
 
 /** The indicator values are stored as a JSON file, separate from the
  * geometry data. This allows the geometry data to be reused for different
@@ -290,18 +200,4 @@ export function getInputDiffBoundaries(
         boundary.features = [unioned];
     }
     return boundary;
-}
-
-export function overlayScrollbars(id: string) {
-    OverlayScrollbars(document.getElementById(id), {
-        overflow: {
-            x: 'hidden',
-        },
-        scrollbars: {
-            autoHide: "leave",
-            autoHideDelay: 100,
-            clickScroll: true,
-            dragScroll: true,
-        },
-    });
 }

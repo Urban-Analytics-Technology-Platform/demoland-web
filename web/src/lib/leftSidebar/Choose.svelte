@@ -3,12 +3,17 @@
     import leftIconDisabled from "src/assets/left-disabled.svg";
     import rightIcon from "src/assets/right.svg";
     import rightIconDisabled from "src/assets/right-disabled.svg";
-    import { type Scenario } from "src/constants";
-    import { allScenarios } from "src/scenarios";
+
     import { createEventDispatcher } from "svelte";
     import { fly, slide } from "svelte/transition";
+
+    import { type Scenario } from "src/constants";
     import Export from "./Export.svelte";
-    import { scenarioName, compareScenarioName } from "src/scenarios";
+    import {
+        allScenarios,
+        scenarioName,
+        compareScenarioName,
+    } from "src/utils/scenarios";
 
     const dispatch = createEventDispatcher();
 

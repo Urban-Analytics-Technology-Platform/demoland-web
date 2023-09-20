@@ -1,4 +1,5 @@
-/* Generate the Map of changed OAs in a scenario, from a JSON object. */
+import { OverlayScrollbars } from "overlayscrollbars";
+
 /* Sanitise HTML input. TODO: Check if this is safe, and/or replace with a
  * proper library */
 export function escapeHtml(text: string): string {
@@ -27,5 +28,20 @@ export function parseJsonAsPromise(source: string, json: string): Promise<object
             `${source} could not be parsed as valid JSON: ${e.message}`
         );
     }
+}
+
+
+export function overlayScrollbars(id: string) {
+    OverlayScrollbars(document.getElementById(id), {
+        overflow: {
+            x: 'hidden',
+        },
+        scrollbars: {
+            autoHide: "leave",
+            autoHideDelay: 100,
+            clickScroll: true,
+            dragScroll: true,
+        },
+    });
 }
 

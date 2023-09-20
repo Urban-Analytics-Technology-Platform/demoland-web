@@ -106,9 +106,3 @@ export const signatures = [
     { name: "Concentrated urbanity", color: "#333432" },
     { name: "Hyper concentrated urbanity", color: "#a7b799" },
 ];
-
-export const signaturesUrl: string = "https://urbangrammarai.xyz/story/#ss"
-
-export const bookUrl: string = "https://ciupava.github.io/LandUseDemonstrator"
-
-export const engineGithubUrl: string = "https://github.com/martinfleis/demoland_engine"

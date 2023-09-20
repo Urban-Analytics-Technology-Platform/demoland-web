@@ -4,14 +4,14 @@
     import { onMount, onDestroy } from "svelte";
     import LeftSidebar from "src/lib/LeftSidebar.svelte";
     import RightSidebar from "src/lib/RightSidebar.svelte";
-    import { makePopup } from "src/hover";
     import { allLayers, type LayerName } from "src/constants";
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
         getInputDiffBoundaries,
-    } from "./utils";
-    import { scenarioName, compareScenarioName } from "src/scenarios";
+    } from "src/utils/geojson";
+    import { makePopup } from "src/utils/hover";
+    import { scenarioName, compareScenarioName } from "src/utils/scenarios";
     import config from "src/data/config";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
@@ -39,7 +39,10 @@
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
     // Initial longitude and latitude
-    let initialCentre: maplibregl.LngLatLike = [config.initialLongitude, config.initialLatitude];
+    let initialCentre: maplibregl.LngLatLike = [
+        config.initialLongitude,
+        config.initialLatitude,
+    ];
     // Initial zoom
     let initialZoom: number = config.initialZoom;
     // Initial opacity
@@ -338,9 +341,9 @@
     // scenario or comparison scenario are changed).
     function updateMapData(mapData: GeoJSON.FeatureCollection) {
         if (map) {
-            (
-                map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource
-            ).setData(mapData);
+            (map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource).setData(
+                mapData
+            );
             console.log(mapData);
             updateLayers();
         }

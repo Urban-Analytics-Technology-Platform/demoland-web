@@ -1,9 +1,8 @@
 <script lang="ts">
     import {
-        allInputs,
         type LayerName,
+        allInputs,
         allIndicators,
-        signaturesUrl,
     } from "src/constants";
     import Tooltip from "src/lib/reusable/Tooltip.svelte";
     import showWelcomeIcon from "src/assets/show-welcome.svg";
@@ -11,6 +10,8 @@
     export let activeLayer: LayerName;
     export let opacity: number;
     const dispatch = createEventDispatcher();
+
+    const signaturesUrl: string = "https://urbangrammarai.xyz/story/#ss"
 
     function changeLayer() {
         dispatch("changeLayer", {});

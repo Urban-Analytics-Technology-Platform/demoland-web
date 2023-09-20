@@ -3,8 +3,14 @@ import {
     GLOBALMIN,
     GLOBALMAX,
 } from "src/constants";
-import { getValues, makeColormap } from "src/utils";
-import { getScenario } from "src/scenarios";
+import { makeColormap } from "src/utils/colors";
+import { getScenario } from "src/utils/scenarios";
+
+// Get all values for a given indicator in a given scenario.
+export function getValues(indicator: IndicatorName, scenarioName: string): number[] {
+    const scenario = getScenario(scenarioName);
+    return [...scenario.values.values()].map(m => m.get(indicator));
+}
 
 // Automatically calculate a suitable tick step size for a histogram. Chart.js's
 // automatic calculation is not quite as polished as matplotlib.
