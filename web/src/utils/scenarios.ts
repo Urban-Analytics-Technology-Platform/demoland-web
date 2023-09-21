@@ -10,7 +10,9 @@ import config from "src/data/config";
 import JSZip from "jszip";
 import { parseJsonAsPromise } from "src/utils";
 
-export function createChangesMap(changes: object): ScenarioChanges {
+
+/* Generate the Map of input changes for a scenario, from a regular object. */
+export function fromChangesObject(changes: object): ScenarioChanges {
     const changesMap = new Map();
     // Loop over OAs
     for (const [oa, map] of Object.entries(changes)) {
@@ -25,9 +27,9 @@ export function createChangesMap(changes: object): ScenarioChanges {
     return changesMap;
 }
 
-/* Generate the Map of output values in a scenario, from a JSON object.
+/* Generate the Map of output values in a scenario, from a regular object.
  * The `scale` parameter indicates whether the values should be scaled. */
-export function createValuesMap(values: object, scale: boolean): ScenarioValues {
+export function fromValuesObject(values: object, scale: boolean): ScenarioValues {
     const valuesMap = new Map();
     for (const [oa, map] of Object.entries(values)) {
         valuesMap.set(oa, new Map());
@@ -48,96 +50,103 @@ export function createValuesMap(values: object, scale: boolean): ScenarioValues 
     return valuesMap;
 }
 
-/* Generate a scenario from a zip file. */
-export function createScenarioFromZip(zip: JSZip, scale: boolean): Promise<Scenario> {
-    function getContentsFromZip(
-        zip: JSZip
-    ): Promise<[object, object, object]> {
-        // Correctly handle folders which were manually compressed. These
-        // have one extra level (for example, inside x.zip will be a folder
-        // called x).
-        if (zip.file("changed.json") === null) {
-            const directories = zip.folder(/./);
-            if (directories.length === 1) {
-                zip = zip.folder(directories[0].name);
-            }
+/* Convert a ScenarioChanges map into a regular object.
+ * TODO: precise object typing */
+export function toChangesObject(changes: ScenarioChanges): object {
+    const changesObj = {};
+    for (const [oa, m] of changes.entries()) {
+        changesObj[oa] = {};
+        for (const [mv, v] of m.entries()) {
+            changesObj[oa][mv] = v;
         }
-        // Parse a file
-        function parseOneFile(fname: string): Promise<object> {
-            const file = zip.file(fname);
-            return file === null
-                ? Promise.reject(`The ${fname} file is missing.`)
-                : file
-                    .async("string")
-                    .then((file) => parseJsonAsPromise(fname, file));
+    }
+    return changesObj;
+}
+
+/* Convert a ScenarioValues map into a regular object.
+ * TODO: precise object typing */
+export function toValuesObject(values: ScenarioValues): object {
+    const valuesObj = {};
+    for (const [oa, m] of values.entries()) {
+        valuesObj[oa] = {};
+        for (const [layerName, val] of m.entries()) {
+            valuesObj[oa][layerName] = unscale(layerName, val);
         }
-        return Promise.all([
-            parseOneFile("metadata.json"),
-            parseOneFile("changed.json"),
-            parseOneFile("values.json"),
-        ]);
+    }
+    return valuesObj;
+}
+
+/* Read in a scenario from a JSON file.
+ * The JSON file must be an object with three keys:
+ *    - metadata: an object with the keys name, short, long, description
+ *    - changes: an object which can be parsed by createChangesMap
+ *    - values: an object which can be parsed by createValuesMap
+ * The `scale` parameter indicates whether the values should be scaled.
+ * The function throws an error if the JSON is invalid in any way.
+ * TODO: More precise types for the JSON object */
+export function fromScenarioObject(json: object, scale: boolean): Scenario {
+    // Validation: check top-level keys
+    for (const field of ["metadata", "changes", "values"]) {
+        if (!Object.hasOwn(json, field)) {
+            throw new Error(`The scenario JSON file does not have a '${field}' field.`);
+        }
+        if (typeof json[field] !== "object") {
+            throw new Error(`The ${field} field in the scenario JSON file is not an object.`);
+        }
+    }
+    // Validation: check metadata keys
+    for (const field of ["name", "short", "long", "description"]) {
+        if (!Object.hasOwn(json.metadata, field)) {
+            throw new Error(
+                `The scenario JSON file does not have a 'metadata.${field}' key.`
+            );
+        }
+        if (typeof json.metadata[field] !== "string") {
+            throw new Error(
+                `The 'metadata.${field}' key in the scenario JSON file is not a string.`
+            );
+        }
     }
 
-    /* Check that the actual JSON contents of the files match the expected
-     * format. */
-    function validateZipContents(
-        scenarioData: [object, object, object]
-    ): Promise<[ScenarioMetadata, ScenarioChanges, ScenarioValues]> {
-        const metadata = scenarioData[0];
-        const changes = scenarioData[1];
-        const values = scenarioData[2];
-        // Check metadata
-        for (const field of ["name", "short", "long", "description"]) {
-            if (!Object.hasOwn(metadata, field)) {
-                return Promise.reject(
-                    `The metadata.json file is missing the ${field} field.`
-                );
-            }
-            if (typeof metadata[field] !== "string") {
-                return Promise.reject(
-                    `The ${field} field in metadata.json is not a string.`
-                );
-            }
-        }
-        // TODO Validate changes and values.
-        const changesMap = createChangesMap(changes);
-        const valuesMap = createValuesMap(values, scale);
-        return Promise.resolve([
-            metadata as ScenarioMetadata,
-            changesMap,
-            valuesMap,
-        ]);
-    }
+    // TODO: Validation: check changes and values
 
-    function createScenario(
-        scenarioData: [ScenarioMetadata, ScenarioChanges, ScenarioValues]
-    ): Scenario {
-        return {
-            metadata: scenarioData[0],
-            changes: scenarioData[1],
-            values: scenarioData[2]
-        };
-    }
+    // Parsing
+    const metadata = json.metadata;
+    const changes = fromChangesObject(json.changes);
+    const values = fromValuesObject(json.values, scale);
+    return {
+        metadata: metadata as ScenarioMetadata,
+        changes: changes,
+        values: values
+    };
+}
 
-    return getContentsFromZip(zip)
-        .then(validateZipContents)
-        .then(createScenario)
-        .catch((e) => {
-            console.error(e);
-            return Promise.reject("An error occurred while parsing the scenario.");
-        })
+/* Convert a scenario to a regular object.
+ * TODO: More precise types
+ * TODO: Ensure that fromScenarioObject(toScenarioObject(scenario)) === scenario */
+export function toScenarioObject(scenario: Scenario): object {
+    return {
+        metadata: scenario.metadata,
+        changes: toChangesObject(scenario.changes),
+        values: toValuesObject(scenario.values)
+    };
 }
 
 /* Read in the reference scenario (without scaling) */
-function readReferenceScenario(): Promise<Scenario> {
+async function readReferenceScenario(): Promise<Scenario> {
     return fetch(config.referenceScenarioFile)
         .then((response) => response.blob())
+        .then((blob) => blob.text())
         .catch((e) => {
             console.error(e);
-            return Promise.reject(`Could not read reference scenario from ${config.referenceScenarioFile}.`);
+            throw new Error(`Could not read reference scenario from the file '${config.referenceScenarioFile}'. Does the file exist?`);
         })
-        .then(JSZip.loadAsync)
-        .then((blob) => createScenarioFromZip(blob, false))
+        .then((text) => JSON.parse(text))
+        .catch((e) => {
+            console.error(e);
+            throw new Error(`Could not parse '${config.referenceScenarioFile}' as a valid JSON file.`);
+        })
+        .then((blob) => fromScenarioObject(blob, false))
 }
 
 const referenceScenario = await readReferenceScenario();
@@ -205,18 +214,23 @@ async function setupScenarioMap(): Promise<Map<string, Scenario>> {
         allScenarioFiles.map((scenarioFile) => {
             return fetch(scenarioFile)
                 .then((response) => response.blob())
+                .then((blob) => blob.text())
                 .catch((e) => {
                     console.error(e);
-                    return Promise.reject(`Could not read scenario from ${scenarioFile}.`);
+                    throw new Error(`Could not read scenario from the file '${scenarioFile}'. Does the file exist?`);
                 })
-                .then(JSZip.loadAsync)
-                .then((zip) => createScenarioFromZip(zip, true))
+                .then((text) => JSON.parse(text))
+                .catch((e) => {
+                    console.error(e);
+                    throw new Error(`Could not parse '${scenarioFile}' as a valid JSON file.`);
+                })
+                .then((obj) => fromScenarioObject(obj, true))
         })
     );
     return new Map(scenarioList.map((scenario) => [scenario.metadata.name, scenario]));
 }
 const allScenariosMap = await setupScenarioMap();
-console.log("All scenarios:", allScenariosMap);
+console.log(`Loaded ${allScenariosMap.size} scenarios with names: ${Array.from(allScenariosMap.keys()).join(", ")}`);
 export const allScenarios: Writable<Map<string, Scenario>> = writable(allScenariosMap);
 export const scenarioName: Writable<string> = writable(allScenariosMap.keys().next().value);
 export const compareScenarioName: Writable<string | null> = writable(null);

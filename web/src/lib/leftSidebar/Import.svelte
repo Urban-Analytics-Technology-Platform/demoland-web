@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { createScenarioFromZip, allScenarios } from "src/utils/scenarios";
+    import { fromScenarioObject, allScenarios } from "src/utils/scenarios";
     import { createEventDispatcher } from "svelte";
     import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
-    import JSZip from "jszip";
 
     const dispatch = createEventDispatcher();
 
@@ -30,9 +29,20 @@
         // Load in the scenarios
         const scenarioPromises = Promise.all(
             [...files].map((f) => {
-                return JSZip.loadAsync(f).then((zip) =>
-                    createScenarioFromZip(zip, true)
-                );
+                return f
+                    .text()
+                    .catch((e) => {
+                        throw new Error(
+                            `Failed to read text from file '${f.name}': ${e.message}`
+                        );
+                    })
+                    .then((text) => JSON.parse(text))
+                    .catch((e) => {
+                        throw new Error(
+                            `The file '${f.name}' could not be parsed as valid JSON: ${e.message}`
+                        );
+                    })
+                    .then((obj) => fromScenarioObject(obj, true));
             })
         );
         // If all of them succeeded, add them to the list of scenarios
@@ -52,7 +62,9 @@
                     // Check for name duplication
                     if ($allScenarios.has(scenario.metadata.name)) {
                         let i = 1;
-                        while ($allScenarios.has(`${scenario.metadata.name}_${i})`)) {
+                        while (
+                            $allScenarios.has(`${scenario.metadata.name}_${i})`)
+                        ) {
                             i++;
                         }
                         scenario.metadata.name = `${scenario.metadata.name}_${i}`;
@@ -78,12 +90,12 @@
     If you have already modelled a custom scenario and saved the results, you
     can import it here to visualise the results.
 
-    <h3>Choose one or more .zip files...</h3>
+    <h3>Choose one or more JSON files...</h3>
     <div id="getfile-container">
         <input
             id="select-files"
             type="file"
-            accept="*.zip"
+            accept=".json"
             multiple
             bind:files
         />

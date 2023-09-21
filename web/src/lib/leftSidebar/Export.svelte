@@ -2,7 +2,7 @@
     import geography from "src/data/geography.json";
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
-    import { allScenarios, unscale } from "src/utils/scenarios";
+    import { allScenarios, toScenarioObject } from "src/utils/scenarios";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;
@@ -14,40 +14,16 @@
             return;
         }
 
+        const zip = new JSZip();
         for (const scenarioName of exportScenarioNames) {
-            const zip = new JSZip();
             const scenario = $allScenarios.get(scenarioName);
-            const changes = scenario.changes;
-            const values = scenario.values;
-
-            const changesObj = {};
-            for (const [oa, m] of changes.entries()) {
-                changesObj[oa] = {};
-                for (const [mv, v] of m.entries()) {
-                    changesObj[oa][mv] = v;
-                }
-            }
-
-            const valuesObj = {};
-            for (const [oa, m] of values.entries()) {
-                valuesObj[oa] = {};
-                for (const [layerName, val] of m.entries()) {
-                    valuesObj[oa][layerName] = unscale(layerName, val);
-                }
-            }
-
-            const changesJson = JSON.stringify(changesObj);
-            const valuesJson = JSON.stringify(valuesObj);
-            const metadataJson = JSON.stringify(scenario.metadata);
-
-            zip.file(`changed.json`, changesJson);
-            zip.file(`values.json`, valuesJson);
-            zip.file(`metadata.json`, metadataJson);
-            zip.file(`geometries.geojson`, JSON.stringify(geography));
-            zip.generateAsync({ type: "blob" }).then(function (content) {
-                saveAs(content, `${scenario.metadata.name}.scenario.zip`);
-            });
+            const scenarioJson = JSON.stringify(toScenarioObject(scenario));
+            zip.file(`${scenario.metadata.name}.json`, scenarioJson);
         }
+        zip.file(`geometries.geojson`, JSON.stringify(geography));
+        zip.generateAsync({ type: "blob" }).then(function (content) {
+            saveAs(content, `demoland_scenarios.zip`);
+        });
         exportDialogVisible = false;
     }
 
@@ -92,7 +68,7 @@
                         value={name}
                         id={name}
                     />
-                    <label for={name}>{scenario.short}</label>
+                    <label for={name}>{scenario.metadata.short}</label>
                 </span>
             {/each}
         </div>

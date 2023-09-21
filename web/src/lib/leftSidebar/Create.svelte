@@ -13,8 +13,8 @@
     import { type Scenario } from "src/constants";
     import {
         allScenarios,
-        createChangesMap,
-        createValuesMap,
+        fromChangesObject,
+        fromValuesObject,
     } from "src/utils/scenarios";
     import { onDestroy, createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
@@ -74,8 +74,8 @@
                         long: "Custom: " + scenarioShort,
                         description: scenarioDescription,
                     },
-                    changes: createChangesMap(changes),
-                    values: createValuesMap(values, true),
+                    changes: fromChangesObject(changes),
+                    values: fromValuesObject(values, true),
                 };
                 // Check for name duplication
                 if ($allScenarios.has(newScenario.metadata.name)) {

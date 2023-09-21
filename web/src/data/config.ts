@@ -18,16 +18,16 @@ const config: Config = {
     // Initial zoom level of the map
     initialZoom: 10.05,
     // File name of reference scenario to scale values against
-    referenceScenarioFile: "src/data/scenarios/baseline.scenario.zip",
+    referenceScenarioFile: "src/data/scenarios/baseline.json",
     // File names of other scenarios
     otherScenarioFiles: [
-        "src/data/scenarios/scenario1.scenario.zip",
-        "src/data/scenarios/scenario2.scenario.zip",
-        "src/data/scenarios/scenario3.scenario.zip",
-        "src/data/scenarios/scenario4.scenario.zip",
-        "src/data/scenarios/scenario5.scenario.zip",
-        "src/data/scenarios/scenario6.scenario.zip",
-        "src/data/scenarios/scenario7.scenario.zip",
+        "src/data/scenarios/scenario1.json",
+        "src/data/scenarios/scenario2.json",
+        "src/data/scenarios/scenario3.json",
+        "src/data/scenarios/scenario4.json",
+        "src/data/scenarios/scenario5.json",
+        "src/data/scenarios/scenario6.json",
+        "src/data/scenarios/scenario7.json",
     ]
 };
 
