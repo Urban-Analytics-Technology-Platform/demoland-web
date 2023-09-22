@@ -13,7 +13,7 @@
         allScenarios,
         scenarioName,
         compareScenarioName,
-    } from "src/utils/scenarios";
+    } from "src/stores";
 
     const dispatch = createEventDispatcher();
 

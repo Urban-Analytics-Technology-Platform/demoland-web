@@ -3,7 +3,7 @@
 - FeatureCollection GeoJSON of your desired area should go into src/data/geography.json.
   - Each feature's properties dict must contain a key-value pair which provides
     a string identifier.
-- Prepare scenarios as zip files, place them in src/data/scenarios folder
+- Prepare scenarios as json files, place them in src/data/scenarios folder
   - TODO: Document the scenario schema.
 - Edit config.ts as appropriate. Each config field is documented there.
 - Implement the backend however you like. However, it must conform to a schema, and it must listen on port 5174.

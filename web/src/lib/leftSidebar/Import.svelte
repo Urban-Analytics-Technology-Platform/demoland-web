@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { fromScenarioObject, allScenarios } from "src/utils/scenarios";
+    import { fromScenarioObject } from "src/utils/scenarios";
+    import { allScenarios, scaleFactors } from "src/stores";
     import { createEventDispatcher } from "svelte";
     import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
 
@@ -42,7 +43,7 @@
                             `The file '${f.name}' could not be parsed as valid JSON: ${e.message}`
                         );
                     })
-                    .then((obj) => fromScenarioObject(obj, true));
+                    .then((obj) => fromScenarioObject(obj, $scaleFactors));
             })
         );
         // If all of them succeeded, add them to the list of scenarios

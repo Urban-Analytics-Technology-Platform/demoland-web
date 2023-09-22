@@ -12,7 +12,7 @@
     import Welcome from "src/lib/leftSidebar/Welcome.svelte";
     import Tabs from "src/lib/leftSidebar/Tabs.svelte";
 
-    import { scenarioName, compareScenarioName } from "src/utils/scenarios";
+    import { scenarioName, compareScenarioName } from "src/stores";
     export let clickedOAName: string | null;
     let welcomeVisible: boolean = !(
         localStorage.getItem("doNotShowWelcome") === "true"

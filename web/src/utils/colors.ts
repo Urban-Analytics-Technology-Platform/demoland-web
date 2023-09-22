@@ -1,5 +1,4 @@
 import colormap from "colormap";
-import { getScenario } from "src/utils/scenarios";
 import { allIndicators, type IndicatorName, signatures, type LayerName, GLOBALMIN, GLOBALMAX } from "src/constants";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
@@ -21,12 +20,6 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
         });
         return indi.colormapReversed ? cmap.reverse() : cmap;
     }
-}
-
-// Get all values for a given indicator in a given scenario.
-export function getValues(indicator: IndicatorName, scenarioName: string): number[] {
-    const scenario = getScenario(scenarioName);
-    return [...scenario.values.values()].map(m => m.get(indicator));
 }
 
 const colormaps: { [key: string]: string[] } = {

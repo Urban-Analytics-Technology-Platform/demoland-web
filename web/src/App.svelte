@@ -1,7 +1,7 @@
 <script lang="ts">
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
     import LeftSidebar from "src/lib/LeftSidebar.svelte";
     import RightSidebar from "src/lib/RightSidebar.svelte";
     import { allLayers, type LayerName } from "src/constants";
@@ -11,7 +11,12 @@
         getInputDiffBoundaries,
     } from "src/utils/geojson";
     import { makePopup } from "src/utils/hover";
-    import { scenarioName, compareScenarioName } from "src/utils/scenarios";
+    import {
+        allScenarios,
+        scenarioName,
+        compareScenarioName,
+        scaleFactors,
+    } from "src/stores";
     import config from "src/data/config";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
@@ -32,10 +37,8 @@
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
-    let mapData: GeoJSON.FeatureCollection = makeCombinedGeoJSON(
-        $scenarioName,
-        $compareScenarioName
-    );
+    // Initialised in the next section
+    let mapData: GeoJSON.FeatureCollection = undefined;
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
     // Initial longitude and latitude
@@ -48,86 +51,43 @@
     // Initial opacity
     let opacity: number = 0.8;
 
-    /* --------- HELPERS ------------------------------------------------ */
-
-    // Set div#map to have 100vw and 100vh height
-    function resizeContainer() {
-        if (document.getElementById("map")) {
-            document.getElementById(
-                "map"
-            ).style.height = `${window.innerHeight}px`;
-            document.getElementById(
-                "map"
-            ).style.width = `${window.innerWidth}px`;
-        }
-        if (map) map.resize();
-    }
-
-    // Returns true if the centre of the given OA overlaps with either the left or right sidebars
-    function oaInWindowEdge(
-        oaBounds: maplibregl.LngLatBounds,
-        mapBounds: maplibregl.LngLatBounds
-    ) {
-        const lng = oaBounds.getCenter().lng;
-        const w = mapBounds.getWest();
-        const e = mapBounds.getEast();
-        const x = (window.innerWidth * (lng - w)) / (e - w);
-        // 340 = padding of other-content-container + width of sidebar
-        // 295 = padding of other-content-container + width of right-container
-        return x < 340 || x > window.innerWidth - 295;
-    }
-
-    // Callback to be run when a click popup is closed (either via the close
-    // button, or when the user clicks somewhere else on the map). Note: this
-    // does not remove a popup. It is to be called when the popup is removed.
-    function clickPopupCleanup() {
-        if (clickedId !== null) {
-            map.setFeatureState(
-                { source: SOURCE_ID, id: clickedId },
-                { click: false }
+    /* --------- APP INITIALISATION ------------------------------------- */
+    import { setupScenarioMap, setupScaleFactors } from "src/initialise";
+    let appInitialised = false;
+    onMount(async () => {
+        try {
+            $scaleFactors = await setupScaleFactors();
+            $allScenarios = await setupScenarioMap($scaleFactors);
+            $scenarioName = $allScenarios.keys().next().value;
+            $compareScenarioName = null;
+            console.log(
+                `App initialised with ${$allScenarios.size} scenarios.`
             );
-            clickedId = null;
+            console.log(`Scenario names: ${Array.from($allScenarios.keys())}`);
+            console.log(`Initial scenario: ${$scenarioName}`);
+
+            // Show the app
+            appInitialised = true;
+        } catch (e) {
+            // TODO: Replace with error screen
+            console.error(e);
         }
-    }
+    });
 
-    // Disable the currently active hover state, and remove the popup.
-    function disableHover() {
-        if (hoveredId !== null) {
-            map.setFeatureState(
-                { source: SOURCE_ID, id: hoveredId },
-                { hover: false }
-            );
-            hoveredId = null;
-        }
-        if (hoverPopup !== null) {
-            hoverPopup.remove();
-        }
-    }
+    function initialiseMap(_: HTMLElement) {
+        console.log("initialiseMap: starting");
 
-    // Activate hover state on the map for the feature with the given numeric
-    // ID. Note: this does not generate a popup.
-    function enableHover(featureId: number) {
-        map.setFeatureState(
-            { source: SOURCE_ID, id: featureId },
-            { hover: true }
-        );
-    }
-
-    // Activate click state on the map for the feature with the given numeric
-    // ID. Note: this does not generate a popup.
-    function enableClick(featureId: number) {
-        map.setFeatureState(
-            { source: SOURCE_ID, id: featureId },
-            { click: true }
-        );
-    }
-
-    /* --------- SETUP FUNCTIONS - MAP CREATION ------------------------- */
-
-    // We have to use Svelte's 'onMount' so that the code here is only executed
-    // after the DOM is generated.
-    onMount(() => {
+        // For unknown reasons, the map doesn't show until the window is resized.
         resizeContainer();
+
+        // Generate data for map
+        mapData = makeCombinedGeoJSON(
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
+        );
+
         // Create map
         map = new maplibregl.Map({
             container: "map",
@@ -224,11 +184,88 @@
         });
 
         map.resize();
-    });
 
-    onDestroy(() => {
-        map.remove();
-    });
+        console.log("initialiseMap: finished");
+        return {
+            destroy() {
+                map.remove();
+            },
+        };
+    }
+
+    /* --------- HELPERS ------------------------------------------------ */
+
+    // Set div#map to have 100vw and 100vh height
+    function resizeContainer() {
+        if (document.getElementById("map")) {
+            document.getElementById(
+                "map"
+            ).style.height = `${window.innerHeight}px`;
+            document.getElementById(
+                "map"
+            ).style.width = `${window.innerWidth}px`;
+        }
+        if (map) map.resize();
+    }
+
+    // Returns true if the centre of the given OA overlaps with either the left or right sidebars
+    function oaInWindowEdge(
+        oaBounds: maplibregl.LngLatBounds,
+        mapBounds: maplibregl.LngLatBounds
+    ) {
+        const lng = oaBounds.getCenter().lng;
+        const w = mapBounds.getWest();
+        const e = mapBounds.getEast();
+        const x = (window.innerWidth * (lng - w)) / (e - w);
+        // 340 = padding of other-content-container + width of sidebar
+        // 295 = padding of other-content-container + width of right-container
+        return x < 340 || x > window.innerWidth - 295;
+    }
+
+    // Callback to be run when a click popup is closed (either via the close
+    // button, or when the user clicks somewhere else on the map). Note: this
+    // does not remove a popup. It is to be called when the popup is removed.
+    function clickPopupCleanup() {
+        if (clickedId !== null) {
+            map.setFeatureState(
+                { source: SOURCE_ID, id: clickedId },
+                { click: false }
+            );
+            clickedId = null;
+        }
+    }
+
+    // Disable the currently active hover state, and remove the popup.
+    function disableHover() {
+        if (hoveredId !== null) {
+            map.setFeatureState(
+                { source: SOURCE_ID, id: hoveredId },
+                { hover: false }
+            );
+            hoveredId = null;
+        }
+        if (hoverPopup !== null) {
+            hoverPopup.remove();
+        }
+    }
+
+    // Activate hover state on the map for the feature with the given numeric
+    // ID. Note: this does not generate a popup.
+    function enableHover(featureId: number) {
+        map.setFeatureState(
+            { source: SOURCE_ID, id: featureId },
+            { hover: true }
+        );
+    }
+
+    // Activate click state on the map for the feature with the given numeric
+    // ID. Note: this does not generate a popup.
+    function enableClick(featureId: number) {
+        map.setFeatureState(
+            { source: SOURCE_ID, id: featureId },
+            { click: true }
+        );
+    }
 
     // Draw the map layers. This should only be called when the map is
     // initialised. After it's been set up, we don't need to redraw the layers,
@@ -301,8 +338,10 @@
         // Generate the LineString layer showing the boundary of the changed
         // areas.
         const diffedBoundaries = getInputDiffBoundaries(
-            $scenarioName,
-            $compareScenarioName
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
         );
         map.addSource("boundary", {
             type: "geojson",
@@ -371,8 +410,10 @@
         }
         // Update the LineString layer
         const diffedBoundaries = getInputDiffBoundaries(
-            $scenarioName,
-            $compareScenarioName
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
         );
         const boundarySource = map.getSource(
             "boundary"
@@ -411,7 +452,12 @@
 
     // Redraw layers when scenario or compareScenario is changed
     function updateScenario() {
-        mapData = makeCombinedGeoJSON($scenarioName, $compareScenarioName);
+        mapData = makeCombinedGeoJSON(
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
+        );
         updateMapData(mapData);
     }
 
@@ -442,31 +488,40 @@
     }
 </script>
 
-<main>
-    <div id="map" />
+{#if appInitialised}
+    <main>
+        <div id="map" use:initialiseMap />
 
-    <div id="other-content-container">
-        <LeftSidebar bind:clickedOAName on:changeScenario={updateScenario} />
+        <div id="other-content-container">
+            <LeftSidebar
+                bind:clickedOAName
+                on:changeScenario={updateScenario}
+            />
 
-        <div id="recentre">
-            {#if offcentre}
-                <input
-                    type="button"
-                    value="Reset view"
-                    id="recentre"
-                    on:click={recentreMap}
-                />
-            {/if}
+            <div id="recentre">
+                {#if offcentre}
+                    <input
+                        type="button"
+                        value="Reset view"
+                        id="recentre"
+                        on:click={recentreMap}
+                    />
+                {/if}
+            </div>
+
+            <RightSidebar
+                bind:activeLayer
+                on:changeLayer={updateLayers}
+                bind:opacity
+                on:changeOpacity={updateLayers}
+            />
         </div>
-
-        <RightSidebar
-            bind:activeLayer
-            on:changeLayer={updateLayers}
-            bind:opacity
-            on:changeOpacity={updateLayers}
-        />
+    </main>
+{:else}
+    <div id="loading">
+        <p>DemoLand is loading...</p>
     </div>
-</main>
+{/if}
 <svelte:window on:resize={resizeContainer} />
 
 <style>

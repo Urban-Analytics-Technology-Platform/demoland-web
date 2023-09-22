@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { allScenarios, scenarioName, compareScenarioName } from "src/utils/scenarios";
+    import { allScenarios, scenarioName, compareScenarioName } from "src/stores";
     const dispatch = createEventDispatcher();
     dispatch("changeScenario", {});
 

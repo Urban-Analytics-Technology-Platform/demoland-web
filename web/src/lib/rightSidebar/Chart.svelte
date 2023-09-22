@@ -4,17 +4,17 @@
         type IndicatorName,
         type Indicator,
         allIndicators,
+        type Scenario,
     } from "src/constants";
     import {
         type ChartDataset,
         type ChartData,
         makeChartData,
         prettyLabel,
-        getValues,
     } from "src/lib/rightSidebar/chart";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
-    import {scenarioName, compareScenarioName} from "src/utils/scenarios";
+    import { allScenarios, scenarioName, compareScenarioName} from "src/stores";
 
     // Number of bars to use in the chart
     const nbars = 11;
@@ -121,8 +121,10 @@
         if (chart === null) return;
         const chartData = makeChartData(
             indicatorName,
-            $scenarioName,
-            $compareScenarioName,
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName),
             nbars,
             compareChartStyle
         );
@@ -140,11 +142,14 @@
     }
 
     onMount(() => {
+        console.log(`Chart.svelte:onMount indicatorName=${indicatorName}`);
         drawChart(
             makeChartData(
                 indicatorName,
-                $scenarioName,
-                $compareScenarioName,
+                $allScenarios.get($scenarioName),
+                $compareScenarioName === null
+                    ? null
+                    : $allScenarios.get($compareScenarioName),
                 nbars,
                 compareChartStyle
             )
@@ -161,6 +166,11 @@
     let chartType: "single" | "compareBoth" | "compareDifference";
     let chartHeight: string;
 
+    // Get all values for a given indicator in a given scenario.
+    function getValues(indicator: IndicatorName, scenario: Scenario): number[] {
+        return [...scenario.values.values()].map(m => m.get(indicator));
+    }
+
     $: {
         // Chart should be updated whenever these variables are changed
         indicatorName, $scenarioName, $compareScenarioName, compareChartStyle;
@@ -171,13 +181,14 @@
                 : compareChartStyle === "both"
                 ? "compareBoth"
                 : "compareDifference";
-
+        // Update chart data
         showLegend = chartType !== "compareDifference";
         chartHeight = chartType === "compareDifference" ? "128.6px" : "160px";
         updateChart();
-        values = getValues(indicatorName, $scenarioName);
+        // Check if there are any changes at all
+        values = getValues(indicatorName, $allScenarios.get($scenarioName));
         if ($compareScenarioName !== null) {
-            cmpValues = getValues(indicatorName, $compareScenarioName);
+            cmpValues = getValues(indicatorName, $allScenarios.get($compareScenarioName));
             changes = [...values.map((x, i) => x - cmpValues[i])];
             noChangesAtAll = changes.filter((x) => x !== 0).length === 0;
         }

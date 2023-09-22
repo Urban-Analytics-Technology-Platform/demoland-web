@@ -1,8 +1,7 @@
 import geography from "src/data/geography.json";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { allLayers, type LayerName, type MacroVar } from "src/constants";
-import { getScenario } from "src/utils/scenarios";
+import { allLayers, type LayerName, type MacroVar, type Scenario } from "src/constants";
 import { getColor, getDiffColor } from "src/utils/colors";
 import config from "src/data/config";
 
@@ -22,20 +21,17 @@ import config from "src/data/config";
  * colours added to the properties of each feature.
  */
 export function makeCombinedGeoJSON(
-    scenarioName: string,
-    compareScenarioName: string | null,
+    scenario: Scenario,
+    compareScenario: Scenario | null,
 ): GeoJSON.FeatureCollection {
-    const scenario = getScenario(scenarioName);
-    const cScenario = compareScenarioName === null ? null : getScenario(compareScenarioName);
-
     // Precalculate differences between scenarios being compared, which gives us
     // the min and max values for the 'diff' colormap.
     const maxDiffExtents: Map<LayerName, number> = new Map();
-    if (cScenario !== null) {
+    if (compareScenario !== null) {
         for (const layerName of allLayers.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
-                diffs.push(scenario.values.get(oa).get(layerName) - cScenario.values.get(oa).get(layerName));
+                diffs.push(scenario.values.get(oa).get(layerName) - compareScenario.values.get(oa).get(layerName));
             }
             const maxDiff = Math.max(...diffs.map(d => Math.abs(d)));
             maxDiffExtents.set(layerName, maxDiff === 0 ? 1 : maxDiff);
@@ -55,8 +51,8 @@ export function makeCombinedGeoJSON(
             feature.properties[layerName] = value;
             feature.properties[`${layerName}-color`] = getColor(layerName, value);
         }
-        if (cScenario !== null) {
-            const cOaValues = cScenario.values.get(oaName);
+        if (compareScenario !== null) {
+            const cOaValues = compareScenario.values.get(oaName);
             if (cOaValues === undefined) {
                 throw new Error(`Output area ${oaName} not found in compare values; this should not happen`);
             }
@@ -149,14 +145,14 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
  * as a MultiPolygon.
  */
 export function getInputDiffBoundaries(
-    scenarioName: string,
-    compareScenarioName: string | null
+    scenario: Scenario,
+    compareScenario: Scenario | null
 ): GeoJSON.FeatureCollection {
     type MVMap = Map<string, Map<MacroVar, number | null>>;
-    const changes: MVMap = getScenario(scenarioName).changes;
-    const cChanges: MVMap = compareScenarioName === null
+    const changes: MVMap = scenario.changes;
+    const cChanges: MVMap = compareScenario === null
         ? new Map()
-        : getScenario(compareScenarioName).changes;
+        : compareScenario.changes;
 
     // Determine OAs which are different
     const allPossibleOAs: Set<string> = new Set([

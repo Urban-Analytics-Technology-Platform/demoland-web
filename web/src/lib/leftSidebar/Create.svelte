@@ -12,10 +12,10 @@
     } from "src/lib/leftSidebar/helpers";
     import { type Scenario } from "src/constants";
     import {
-        allScenarios,
         fromChangesObject,
         fromValuesObject,
     } from "src/utils/scenarios";
+    import { allScenarios, scaleFactors } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -75,7 +75,7 @@
                         description: scenarioDescription,
                     },
                     changes: fromChangesObject(changes),
-                    values: fromValuesObject(values, true),
+                    values: fromValuesObject(values, $scaleFactors),
                 };
                 // Check for name duplication
                 if ($allScenarios.has(newScenario.metadata.name)) {

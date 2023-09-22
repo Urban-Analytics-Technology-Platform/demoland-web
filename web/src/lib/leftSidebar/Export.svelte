@@ -2,7 +2,8 @@
     import geography from "src/data/geography.json";
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
-    import { allScenarios, toScenarioObject } from "src/utils/scenarios";
+    import { toScenarioObject } from "src/utils/scenarios";
+    import { allScenarios, scaleFactors } from "src/stores";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;
@@ -17,7 +18,7 @@
         const zip = new JSZip();
         for (const scenarioName of exportScenarioNames) {
             const scenario = $allScenarios.get(scenarioName);
-            const scenarioJson = JSON.stringify(toScenarioObject(scenario));
+            const scenarioJson = JSON.stringify(toScenarioObject(scenario, $scaleFactors));
             zip.file(`${scenario.metadata.name}.json`, scenarioJson);
         }
         zip.file(`geometries.geojson`, JSON.stringify(geography));

@@ -1,15 +1,48 @@
-import { writable, type Writable } from 'svelte/store';
 import {
     type LayerName, type MacroVar,
     type ScenarioMetadata, type ScenarioChanges, type ScenarioValues,
     type Scenario,
-    allLayers, GLOBALMIN, GLOBALMAX
+    GLOBALMIN, GLOBALMAX
 } from "src/constants";
-import config from "src/data/config";
 
-import JSZip from "jszip";
-import { parseJsonAsPromise } from "src/utils";
+export function rescale(layerName: LayerName, unscaledVal: number, scaleFactors: Map<LayerName, { min: number, max: number }> | null) {
+    // TODO: define layer type and specify whether categorical or not
+    if (layerName === "signature_type") {
+        return unscaledVal;
+    }
+    else {
+        if (scaleFactors === null) {
+            return unscaledVal;
+        } else {
+            const min = scaleFactors.get(layerName).min;
+            const max = scaleFactors.get(layerName).max;
+            return GLOBALMIN + (GLOBALMAX - GLOBALMIN) * (unscaledVal - min) / (max - min);
+        }
+    }
+}
 
+export function unscale(layerName: LayerName, scaledVal: number, scaleFactors: Map<LayerName, { min: number, max: number }> | null) {
+    // TODO: define layer type and specify whether categorical or not
+    if (layerName === "signature_type") {
+        return scaledVal;
+    }
+    else {
+        if (scaleFactors === null) {
+            return scaledVal;
+        } else {
+            const min = scaleFactors.get(layerName).min;
+            const max = scaleFactors.get(layerName).max;
+            return min + (max - min) * (scaledVal - GLOBALMIN) / (GLOBALMAX - GLOBALMIN);
+        }
+    }
+}
+
+/* Helper function to preprocess all raw values. Rounds to 6sf and clips
+ * negative values to 0. Overly precise values lead to rounding errors and
+ * spurious 'differences' in the map. */
+function preprocess(num: number): number {
+    return Math.max(+num.toPrecision(6), 0);
+}
 
 /* Generate the Map of input changes for a scenario, from a regular object. */
 export function fromChangesObject(changes: object): ScenarioChanges {
@@ -29,7 +62,7 @@ export function fromChangesObject(changes: object): ScenarioChanges {
 
 /* Generate the Map of output values in a scenario, from a regular object.
  * The `scale` parameter indicates whether the values should be scaled. */
-export function fromValuesObject(values: object, scale: boolean): ScenarioValues {
+export function fromValuesObject(values: object, scaleFactors: Map<LayerName, { min: number, max: number }> | null): ScenarioValues {
     const valuesMap = new Map();
     for (const [oa, map] of Object.entries(values)) {
         valuesMap.set(oa, new Map());
@@ -38,13 +71,8 @@ export function fromValuesObject(values: object, scale: boolean): ScenarioValues
                 throw new Error("Null value in scenario");
             }
             const layerName = key as LayerName;
-            if (scale) {
-                valuesMap.get(oa)
-                    .set(layerName, rescale(layerName, value as number));
-            } else {
-                valuesMap.get(oa)
-                    .set(layerName, value);
-            }
+            valuesMap.get(oa)
+                .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
         }
     }
     return valuesMap;
@@ -65,12 +93,12 @@ export function toChangesObject(changes: ScenarioChanges): object {
 
 /* Convert a ScenarioValues map into a regular object.
  * TODO: precise object typing */
-export function toValuesObject(values: ScenarioValues): object {
+export function toValuesObject(values: ScenarioValues, scaleFactors: Map<LayerName, { min: number, max: number }> | null): object {
     const valuesObj = {};
     for (const [oa, m] of values.entries()) {
         valuesObj[oa] = {};
         for (const [layerName, val] of m.entries()) {
-            valuesObj[oa][layerName] = unscale(layerName, val);
+            valuesObj[oa][layerName] = unscale(layerName, val, scaleFactors);
         }
     }
     return valuesObj;
@@ -84,7 +112,7 @@ export function toValuesObject(values: ScenarioValues): object {
  * The `scale` parameter indicates whether the values should be scaled.
  * The function throws an error if the JSON is invalid in any way.
  * TODO: More precise types for the JSON object */
-export function fromScenarioObject(json: object, scale: boolean): Scenario {
+export function fromScenarioObject(json: object, scaleFactors: Map<LayerName, { min: number, max: number }> | null): Scenario {
     // Validation: check top-level keys
     for (const field of ["metadata", "changes", "values"]) {
         if (!Object.hasOwn(json, field)) {
@@ -113,7 +141,7 @@ export function fromScenarioObject(json: object, scale: boolean): Scenario {
     // Parsing
     const metadata = json.metadata;
     const changes = fromChangesObject(json.changes);
-    const values = fromValuesObject(json.values, scale);
+    const values = fromValuesObject(json.values, scaleFactors);
     return {
         metadata: metadata as ScenarioMetadata,
         changes: changes,
@@ -124,116 +152,10 @@ export function fromScenarioObject(json: object, scale: boolean): Scenario {
 /* Convert a scenario to a regular object.
  * TODO: More precise types
  * TODO: Ensure that fromScenarioObject(toScenarioObject(scenario)) === scenario */
-export function toScenarioObject(scenario: Scenario): object {
+export function toScenarioObject(scenario: Scenario, scaleFactors: Map<LayerName, { min: number, max: number }>): object {
     return {
         metadata: scenario.metadata,
         changes: toChangesObject(scenario.changes),
-        values: toValuesObject(scenario.values)
+        values: toValuesObject(scenario.values, scaleFactors)
     };
-}
-
-/* Read in the reference scenario (without scaling) */
-async function readReferenceScenario(): Promise<Scenario> {
-    return fetch(config.referenceScenarioFile)
-        .then((response) => response.blob())
-        .then((blob) => blob.text())
-        .catch((e) => {
-            console.error(e);
-            throw new Error(`Could not read reference scenario from the file '${config.referenceScenarioFile}'. Does the file exist?`);
-        })
-        .then((text) => JSON.parse(text))
-        .catch((e) => {
-            console.error(e);
-            throw new Error(`Could not parse '${config.referenceScenarioFile}' as a valid JSON file.`);
-        })
-        .then((blob) => fromScenarioObject(blob, false))
-}
-
-const referenceScenario = await readReferenceScenario();
-
-/* This function reads the values from an unscaled Values map and returns a pair
- * of functions, one for scaling and one for unscaling.
- *
- * The rescaling is done by linearly interpolating between the global minimum
- * and maximum value for each indicator as found in the baseline.
- */
-function getScaleFunctions(unscaledReferenceVals: ScenarioValues): ((layerName: LayerName, val: number) => number)[] {
-    // Helper function to preprocess all raw values. Rounds to 6sf and clips
-    // negative values to 0. Overly precise values lead to rounding errors and
-    // spurious 'differences' in the map.
-    function preprocess(num: number): number {
-        return Math.max(+num.toPrecision(6), 0);
-    }
-    // Calculate current minimum and maximum values
-    const minValues: Map<LayerName, number> = new Map();
-    const maxValues: Map<LayerName, number> = new Map();
-    for (const layerName of allLayers.keys()) {
-        const allValues = [];
-        for (const oaValues of unscaledReferenceVals.values()) {
-            allValues.push(preprocess(oaValues.get(layerName)));
-        }
-        minValues.set(layerName, Math.min(...allValues));
-        maxValues.set(layerName, Math.max(...allValues));
-    }
-    function rescale(layerName: LayerName, unscaledVal: number) {
-        // Do NOT scale signature types - categorical variable
-        if (layerName === "signature_type") {
-            return unscaledVal;
-        }
-        else {
-            const val = preprocess(unscaledVal);
-            const min = minValues.get(layerName);
-            const max = maxValues.get(layerName);
-            return GLOBALMIN + (GLOBALMAX - GLOBALMIN) * (val - min) / (max - min);
-        }
-    }
-    function unscale(layerName: LayerName, scaledVal: number) {
-        if (layerName === "signature_type") {
-            return scaledVal;
-        }
-        else {
-            const min = minValues.get(layerName);
-            const max = maxValues.get(layerName);
-            return min + (max - min) * (scaledVal - GLOBALMIN) / (GLOBALMAX - GLOBALMIN);
-        }
-    }
-    return [rescale, unscale];
-}
-
-const scaleFunctions = getScaleFunctions(referenceScenario.values);
-export const rescale = scaleFunctions[0];
-export const unscale = scaleFunctions[1];
-
-/* Add in all the scenarios */
-const allScenarioFiles = [
-    config.referenceScenarioFile,
-    ...config.otherScenarioFiles
-];
-async function setupScenarioMap(): Promise<Map<string, Scenario>> {
-    const scenarioList = await Promise.all(
-        allScenarioFiles.map((scenarioFile) => {
-            return fetch(scenarioFile)
-                .then((response) => response.blob())
-                .then((blob) => blob.text())
-                .catch((e) => {
-                    console.error(e);
-                    throw new Error(`Could not read scenario from the file '${scenarioFile}'. Does the file exist?`);
-                })
-                .then((text) => JSON.parse(text))
-                .catch((e) => {
-                    console.error(e);
-                    throw new Error(`Could not parse '${scenarioFile}' as a valid JSON file.`);
-                })
-                .then((obj) => fromScenarioObject(obj, true))
-        })
-    );
-    return new Map(scenarioList.map((scenario) => [scenario.metadata.name, scenario]));
-}
-const allScenariosMap = await setupScenarioMap();
-console.log(`Loaded ${allScenariosMap.size} scenarios with names: ${Array.from(allScenariosMap.keys()).join(", ")}`);
-export const allScenarios: Writable<Map<string, Scenario>> = writable(allScenariosMap);
-export const scenarioName: Writable<string> = writable(allScenariosMap.keys().next().value);
-export const compareScenarioName: Writable<string | null> = writable(null);
-export function getScenario(name: string): Scenario {
-    return allScenariosMap.get(name);
 }
