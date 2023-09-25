@@ -120,7 +120,8 @@
                         feat,
                         $compareScenarioName,
                         activeLayer,
-                        false
+                        false,
+                        $scaleFactors
                     );
                 }
             }
@@ -154,7 +155,8 @@
                     feat,
                     $compareScenarioName,
                     activeLayer,
-                    true
+                    true,
+                    $scaleFactors
                 );
                 clickPopup.on("close", clickPopupCleanup);
             }
@@ -442,7 +444,8 @@
                 feat,
                 $compareScenarioName,
                 activeLayer,
-                true
+                true,
+                $scaleFactors
             );
             clickPopup.on("close", clickPopupCleanup);
         }

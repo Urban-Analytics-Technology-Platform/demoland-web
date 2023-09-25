@@ -15,6 +15,7 @@ import config from "src/data/config";
 function makeHoverHtml(feat: GeoJSON.Feature,
     compareScenarioName: string | null,
     activeFactor: LayerName,
+    scaleFactors: Map<LayerName, { min: number, max: number }>,
 ) {
     // Generate a rectangle of a given colour
     function makeColoredBlock(color: string): string {
@@ -55,8 +56,8 @@ function makeHoverHtml(feat: GeoJSON.Feature,
             color = feat.properties[`${name}-color`];
         } else {
             const cmpVal = feat.properties[`${name}-cmp`];
-            const cmpValUnscaled = unscale(name, cmpVal);
-            const valUnscaled = unscale(name, val);
+            const cmpValUnscaled = unscale(name, cmpVal, scaleFactors);
+            const valUnscaled = unscale(name, val, scaleFactors);
             const chg = cmpValUnscaled === 0
                 ? 0
                 : ((valUnscaled - cmpValUnscaled) / cmpValUnscaled) * 100;
@@ -93,6 +94,7 @@ export function makePopup(
     compareScenarioName: string | null,
     activeFactor: LayerName,
     closeButton: boolean,
+    scaleFactors: Map<LayerName, { min: number, max: number }>,
 ) {
     const bounds = getGeometryBounds(feat.geometry);
     const popup = new maplibregl.Popup({
@@ -102,7 +104,7 @@ export function makePopup(
         maxWidth: "none",
     })
         .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-        .setHTML(makeHoverHtml(feat, compareScenarioName, activeFactor))
+        .setHTML(makeHoverHtml(feat, compareScenarioName, activeFactor, scaleFactors))
         .addTo(map);
     return popup;
 }
