@@ -389,7 +389,6 @@
             (map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource).setData(
                 mapData
             );
-            console.log(mapData);
             updateLayers();
         }
     }

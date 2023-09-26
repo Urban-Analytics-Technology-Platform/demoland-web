@@ -66,7 +66,7 @@
         if (response.ok) {
             response.json().then((values: object) => {
                 console.log("Success!");
-                const changes = JSON.parse(changesJson);
+                const changes = JSON.parse(changesJson)["scenario_json"];
                 const newScenario: Scenario = {
                     metadata: {
                         name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name

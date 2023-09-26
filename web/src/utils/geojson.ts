@@ -1,7 +1,7 @@
 import geography from "src/data/geography.json";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { allLayers, type LayerName, type MacroVar, type Scenario } from "src/constants";
+import { allLayers, type LayerName, type ScenarioChanges, type Scenario } from "src/constants";
 import { getColor, getDiffColor } from "src/utils/colors";
 import config from "src/data/config";
 
@@ -148,9 +148,8 @@ export function getInputDiffBoundaries(
     scenario: Scenario,
     compareScenario: Scenario | null
 ): GeoJSON.FeatureCollection {
-    type MVMap = Map<string, Map<MacroVar, number | null>>;
-    const changes: MVMap = scenario.changes;
-    const cChanges: MVMap = compareScenario === null
+    const changes: ScenarioChanges = scenario.changes;
+    const cChanges: ScenarioChanges = compareScenario === null
         ? new Map()
         : compareScenario.changes;
 
