@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import LeftSidebar from "src/lib/LeftSidebar.svelte";
     import RightSidebar from "src/lib/RightSidebar.svelte";
+    import InitialErrorScreen from "src/lib/InitialErrorScreen.svelte";
     import { allLayers, type LayerName } from "src/constants";
     import {
         makeCombinedGeoJSON,
@@ -53,7 +54,8 @@
 
     /* --------- APP INITIALISATION ------------------------------------- */
     import { setupScenarioMap, setupScaleFactors } from "src/initialise";
-    let appInitialised = false;
+    let appState: "loading" | "error" | "ready" = "loading";
+    let appErrorMessage: string = "";
     onMount(async () => {
         try {
             $scaleFactors = await setupScaleFactors();
@@ -67,14 +69,16 @@
             console.log(`Initial scenario: ${$scenarioName}`);
 
             // Show the app
-            appInitialised = true;
+            appState = "ready";
             // For debugging purposes
             // setTimeout(() => {
-            //     appInitialised = true;
+            //     appState = "loaded";
             // }, 5000);
         } catch (e) {
             // TODO: Replace with error screen
             console.error(e);
+            appErrorMessage = e.toString();
+            appState = "error";
         }
     });
 
@@ -494,7 +498,7 @@
     }
 </script>
 
-{#if appInitialised}
+{#if appState === "ready"}
     <main>
         <div id="map" use:initialiseMap />
 
@@ -523,10 +527,12 @@
             />
         </div>
     </main>
-{:else}
+{:else if appState === "error"}
+    <InitialErrorScreen bind:appErrorMessage />
+{:else if appState === "loading"}
     <div id="loading">
-    Loading...
-    <div id="spinner" />
+        Loading...
+        <div id="spinner" />
     </div>
 {/if}
 <svelte:window on:resize={resizeContainer} />
@@ -581,7 +587,11 @@
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 </style>

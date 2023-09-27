@@ -56,14 +56,10 @@ export async function setupScenarioMap(scaleFactors: Map<LayerName, { min: numbe
             return fetch(scenarioFile)
                 .then((response) => response.blob())
                 .then((blob) => blob.text())
-                .catch((e) => {
-                    console.error(e);
-                    throw new Error(`Could not read scenario from the file '${scenarioFile}'. Does the file exist?`);
-                })
                 .then((text) => JSON.parse(text))
                 .catch((e) => {
                     console.error(e);
-                    throw new Error(`Could not parse '${scenarioFile}' as a valid JSON file.`);
+                    throw new Error(`The file '${scenarioFile}' either does not exist, or could not be parsed as valid JSON.`);
                 })
                 .then((obj) => fromScenarioObject(obj, scaleFactors))
         })

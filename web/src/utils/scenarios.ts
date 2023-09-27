@@ -111,7 +111,8 @@ export function toValuesObject(values: ScenarioValues, scaleFactors: Map<LayerNa
  *    - values: an object which can be parsed by createValuesMap
  * The `scale` parameter indicates whether the values should be scaled.
  * The function throws an error if the JSON is invalid in any way.
- * TODO: More precise types for the JSON object */
+ * TODO: More precise types for the JSON object
+ * TODO: expose a `source` argument for more informative error messages */
 export function fromScenarioObject(json: object, scaleFactors: Map<LayerName, { min: number, max: number }> | null): Scenario {
     // Validation: check top-level keys
     for (const field of ["metadata", "changes", "values"]) {
