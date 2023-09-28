@@ -1,59 +1,19 @@
 <script lang="ts">
-    import { engineGithubUrl } from "src/constants";
-    import { createNewScenario } from "src/lib/leftSidebar/helpers";
-    import JSZip from "jszip";
-    import { allScenarios } from "src/scenarios";
+    import { fromScenarioObject } from "src/utils/scenarios";
+    import { allScenarios, scaleFactors } from "src/stores";
     import { createEventDispatcher } from "svelte";
+    import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
 
     const dispatch = createEventDispatcher();
 
     let files: FileList | null = null;
 
-    function escapeHtml(text: string): string {
-        const map = {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;",
-            "/": "&#x2F;",
-            "`": "&#x60;",
-            "=": "&#x3D;",
-        };
-        return text.replace(/[&<>"'/`=]/g, (m) => map[m]);
-    }
-
-    function createScenarioFromZip(file: File) {
-        return JSZip.loadAsync(file).then((zip) => {
-            // Deal with folders which were manually compressed, which have
-            // one extra level (inside x.zip is a folder called x)
-            if (zip.file("changed.json") === null) {
-                const directories = zip.folder(/./);
-                if (directories.length === 1) {
-                    zip = zip.folder(directories[0].name);
-                }
-            }
-            const promises = [
-                zip.file("metadata.json").async("string"),
-                zip.file("changed.json").async("string"),
-                zip.file("values.json").async("string"),
-            ];
-            return Promise.all(promises).then(
-                ([metadataJson, changedJson, valuesJson]) => {
-                    const metadata = JSON.parse(metadataJson);
-                    const changed = JSON.parse(changedJson);
-                    const values = JSON.parse(valuesJson);
-                    return createNewScenario(
-                        escapeHtml(metadata.name),
-                        escapeHtml(metadata.short),
-                        escapeHtml(metadata.long),
-                        escapeHtml(metadata.description),
-                        changed,
-                        values
-                    );
-                }
-            );
-        });
+    // Error handling
+    let error: boolean = false; // Whether an error occurred
+    let errorMessage: string = ""; // Error message to display
+    function displayError(message: string) {
+        error = true;
+        errorMessage = message;
     }
 
     function cancel() {
@@ -66,30 +26,64 @@
     function process() {
         if (!files || files.length === 0) {
             return;
-        } else {
-            Promise.all(Array.from(files).map(createScenarioFromZip)).then(
-                (scenarios) => {
-                    if (scenarios.length === 0) {
-                        return;
-                    }
-                    for (const scenario of scenarios) {
-                        // Check for name duplication
-                        if ($allScenarios.has(scenario.name)) {
-                            let i = 1;
-                            while (
-                                $allScenarios.has(`${scenario.name}_${i})`)
-                            ) {
-                                i++;
-                            }
-                            scenario.name = `${scenario.name}_${i}`;
-                        }
-                        console.log(scenario);
-                        $allScenarios.set(scenario.name, scenario);
-                    }
-                    dispatch("import", { name: scenarios[0].name });
-                }
-            );
         }
+        // Load in the scenarios
+        const scenarioPromises = Promise.all(
+            [...files].map((f) => {
+                return f
+                    .text()
+                    .catch((e) => {
+                        throw new Error(
+                            `Failed to read text from file '${f.name}': ${e.message}`
+                        );
+                    })
+                    .then((text) => JSON.parse(text))
+                    .catch((e) => {
+                        throw new Error(
+                            `The file '${f.name}' could not be parsed as valid JSON: ${e.message}`
+                        );
+                    })
+                    .then((obj) => fromScenarioObject(obj, $scaleFactors));
+            })
+        );
+        // If all of them succeeded, add them to the list of scenarios
+        scenarioPromises
+            .then((scenarios) => {
+                // If nothing was imported
+                if (scenarios.length === 0) {
+                    return;
+                }
+                let lastScenarioName: string | null = null;
+                // Loop over the ones that did get imported
+                for (const scenario of scenarios) {
+                    // Skip if there was an error
+                    if (scenario === null) {
+                        continue;
+                    }
+                    // Check for name duplication
+                    if ($allScenarios.has(scenario.metadata.name)) {
+                        let i = 1;
+                        while (
+                            $allScenarios.has(`${scenario.metadata.name}_${i})`)
+                        ) {
+                            i++;
+                        }
+                        scenario.metadata.name = `${scenario.metadata.name}_${i}`;
+                    }
+                    console.log(scenario);
+                    $allScenarios.set(scenario.metadata.name, scenario);
+                    lastScenarioName = scenario.metadata.name;
+                }
+                // Display the last scenario on the map
+                if (lastScenarioName) {
+                    dispatch("import", { name: lastScenarioName });
+                }
+            })
+            // If any of them failed, then display the error
+            .catch((e) => {
+                displayError(e.message);
+                return [];
+            });
     }
 </script>
 
@@ -97,12 +91,12 @@
     If you have already modelled a custom scenario and saved the results, you
     can import it here to visualise the results.
 
-    <h3>Choose one or more .zip files...</h3>
+    <h3>Choose one or more JSON files...</h3>
     <div id="getfile-container">
         <input
             id="select-files"
             type="file"
-            accept="*.zip"
+            accept=".json"
             multiple
             bind:files
         />
@@ -110,11 +104,11 @@
         <button on:click={() => cancel()}>Cancel</button>
         <button on:click={() => process()}>Import</button>
     </div>
-
-    <h3>Using the Python engine yourself</h3>
-
-    Blah Blah. Look at<a href={engineGithubUrl} target="_blank">GitHub</a>.
 </div>
+
+{#if error}
+    <ErrorScreen message={errorMessage} on:close={() => (error = false)} />
+{/if}
 
 <style>
     h3 {

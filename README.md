@@ -73,6 +73,11 @@ When running under Docker, the backend is not exposed to the host computer (it i
 Running this locally is the only way to directly test the backend.
 
 
+## Spinning up a new, customised copy of DemoLand
+
+See `web/src/data/README.md`.
+
+
 ## Related repositories
 
 This web app is powered by two other repositories:

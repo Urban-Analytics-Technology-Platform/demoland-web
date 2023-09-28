@@ -1,17 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
-
-    dispatch("changeScenario", {});
 </script>
 
 <div id="calculating-cover">
 <div id="calculating">
-    Calculation in progress...
+    <p>Calculation in progress...</p>
 
-    <br />
-
-    <input type="button" value="Cancel"
+    <input type="button" value="Cancel" id="cancel-calculation"
         on:click={() => dispatch("abort", {})}
     />
 </div>
@@ -36,5 +32,17 @@
         background-color: #fff;
         border-radius: 10px;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    div#calculating :first-child {
+        margin-top: 0 !important;
+    }
+
+    div#calculating :last-child {
+        margin-bottom: 0 !important;
+    }
+
+    input#cancel-calculation {
+        width: 100%;
     }
 </style>

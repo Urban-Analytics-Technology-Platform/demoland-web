@@ -3,14 +3,17 @@
     import leftIconDisabled from "src/assets/left-disabled.svg";
     import rightIcon from "src/assets/right.svg";
     import rightIconDisabled from "src/assets/right-disabled.svg";
-    import { type Scenario } from "src/constants";
-    import { allScenarios } from "src/scenarios";
+
     import { createEventDispatcher } from "svelte";
     import { fly, slide } from "svelte/transition";
-    import Export from "./Export.svelte";
 
-    export let scenarioName: string;
-    export let compareScenarioName: string | null = null;
+    import { type Scenario } from "src/constants";
+    import Export from "./Export.svelte";
+    import {
+        allScenarios,
+        scenarioName,
+        compareScenarioName,
+    } from "src/stores";
 
     const dispatch = createEventDispatcher();
 
@@ -19,13 +22,14 @@
 
     // Keeps track of the previous scenario name to determine the direction of the transition.
     // This variable is updated when the transition occurs.
-    let previousScenarioName: string = scenarioName;
-    let previousCompareScenarioName: string | null = compareScenarioName;
+    let previousScenarioName: string = $scenarioName;
+    let previousCompareScenarioName: string | null = $compareScenarioName;
 
-    function changeScenario() {
-        if (compareScenarioName === scenarioName) {
+    function changeScenario(event) {
+        console.log(event);
+        if ($compareScenarioName === $scenarioName) {
             // To deal with a slightly annoying bug, see #38
-            compareScenarioName = null;
+            $compareScenarioName = null;
         }
         dispatch("changeScenario", {});
     }
@@ -48,27 +52,27 @@
     function customFlyIn(node: HTMLElement) {
         const increased =
             allScenarioNames.indexOf(previousScenarioName) <
-            allScenarioNames.indexOf(scenarioName);
-        previousScenarioName = scenarioName;
+            allScenarioNames.indexOf($scenarioName);
+        previousScenarioName = $scenarioName;
         return fly(node, { x: increased ? 500 : -500 });
     }
     function customFlyOut(node: HTMLElement) {
         const increased =
             allScenarioNames.indexOf(previousScenarioName) <
-            allScenarioNames.indexOf(scenarioName);
+            allScenarioNames.indexOf($scenarioName);
         return fly(node, { x: increased ? -500 : 500 });
     }
     function customFlyInCmp(node: HTMLElement) {
         const increased =
             allCompareScenarioNames.indexOf(previousCompareScenarioName) <
-            allCompareScenarioNames.indexOf(compareScenarioName);
-        previousCompareScenarioName = compareScenarioName;
+            allCompareScenarioNames.indexOf($compareScenarioName);
+        previousCompareScenarioName = $compareScenarioName;
         return fly(node, { x: increased ? 500 : -500 });
     }
     function customFlyOutCmp(node: HTMLElement) {
         const increased =
             allCompareScenarioNames.indexOf(previousCompareScenarioName) <
-            allCompareScenarioNames.indexOf(compareScenarioName);
+            allCompareScenarioNames.indexOf($compareScenarioName);
         return fly(node, { x: increased ? -500 : 500 });
     }
 
@@ -82,61 +86,72 @@
     let increaseCompareScenarioOk: boolean;
 
     function decreaseScenario() {
-        const index = allScenariosExceptCompare.indexOf(scenarioName);
+        const index = allScenariosExceptCompare.indexOf($scenarioName);
         if (index > 0) {
-            scenarioName = allScenariosExceptCompare[index - 1];
+            $scenarioName = allScenariosExceptCompare[index - 1];
         }
         changeScenario();
     }
     function increaseScenario() {
-        const index = allScenariosExceptCompare.indexOf(scenarioName);
+        const index = allScenariosExceptCompare.indexOf($scenarioName);
         if (index < allScenariosExceptCompare.length - 1) {
-            scenarioName = allScenariosExceptCompare[index + 1];
+            $scenarioName = allScenariosExceptCompare[index + 1];
         }
         changeScenario();
     }
     function decreaseCompareScenario() {
         const index =
-            allCompareScenariosExceptMain.indexOf(compareScenarioName);
+            allCompareScenariosExceptMain.indexOf($compareScenarioName);
         if (index > 0) {
-            compareScenarioName = allCompareScenariosExceptMain[index - 1];
+            $compareScenarioName = allCompareScenariosExceptMain[index - 1];
         }
         changeScenario();
     }
     function increaseCompareScenario() {
         const index =
-            allCompareScenariosExceptMain.indexOf(compareScenarioName);
+            allCompareScenariosExceptMain.indexOf($compareScenarioName);
         if (index < allCompareScenariosExceptMain.length - 1) {
-            compareScenarioName = allCompareScenariosExceptMain[index + 1];
+            $compareScenarioName = allCompareScenariosExceptMain[index + 1];
         }
         changeScenario();
     }
 
     let scenario: Scenario;
+    let descriptionLines: string[];
     let compareScenario: Scenario | null;
+    let compareDescriptionLines: string[] | null;
+
     $: {
-        scenario = $allScenarios.get(scenarioName);
+        scenario = $allScenarios.get($scenarioName);
         compareScenario =
-            compareScenarioName === null
+            $compareScenarioName === null
                 ? null
-                : $allScenarios.get(compareScenarioName);
+                : $allScenarios.get($compareScenarioName);
+
+        descriptionLines = scenario.metadata.description.replace(/\r/g, "").split(/\n+/),
+        compareDescriptionLines =
+            $compareScenarioName === null
+                ? null
+                : compareScenario.metadata.description
+                      .replace(/\r/g, "")
+                      .split(/\n+/);
 
         allScenariosExceptCompare = allScenarioNames.filter(
-            (s) => s !== compareScenarioName
+            (s) => s !== $compareScenarioName
         );
-        decreaseScenarioOk = scenarioName !== allScenariosExceptCompare[0];
+        decreaseScenarioOk = $scenarioName !== allScenariosExceptCompare[0];
         increaseScenarioOk =
-            scenarioName !==
+            $scenarioName !==
             allScenariosExceptCompare[allScenariosExceptCompare.length - 1];
 
         allCompareScenariosExceptMain = [
             null,
-            ...allScenarioNames.filter((s) => s !== scenarioName),
+            ...allScenarioNames.filter((s) => s !== $scenarioName),
         ];
         decreaseCompareScenarioOk =
-            compareScenarioName !== allCompareScenariosExceptMain[0];
+            $compareScenarioName !== allCompareScenariosExceptMain[0];
         increaseCompareScenarioOk =
-            compareScenarioName !==
+            $compareScenarioName !==
             allCompareScenariosExceptMain[
                 allCompareScenariosExceptMain.length - 1
             ];
@@ -163,9 +178,9 @@ modelled development strategies on any of the four indicators.
             alt="Decrease scenario"
         />
     </button>
-    <select id="scenario" bind:value={scenarioName} on:change={changeScenario}>
+    <select id="scenario" bind:value={$scenarioName} on:change={changeScenario}>
         {#each [...$allScenarios.entries()] as [name, scenario]}
-            <option value={name}>{scenario.long}</option>
+            <option value={name}>{scenario.metadata.long}</option>
         {/each}
     </select>
     <button
@@ -198,13 +213,9 @@ modelled development strategies on any of the four indicators.
                 out:customFlyOut|local
                 on:outrostart={setMaxHeightToZero}
             >
-                <p>
-                    <!-- eslint-disable-next-line -->
-                    {@html scenario.description[0]}
-                </p>
-                {#each scenario.description.slice(1) as para}
-                    <!-- eslint-disable-next-line -->
-                    <p>{@html para}</p>
+                <p>{descriptionLines[0]}</p>
+                {#each descriptionLines.slice(1) as para}
+                    <p>{para}</p>
                 {/each}
             </div>
         {/key}
@@ -226,13 +237,13 @@ modelled development strategies on any of the four indicators.
     </button>
     <select
         id="compare"
-        bind:value={compareScenarioName}
+        bind:value={$compareScenarioName}
         on:change={changeScenario}
     >
         <option value={null}>None</option>
         {#each [...$allScenarios.entries()] as [name, compareScenario]}
-            {#if name !== scenarioName}
-                <option value={name}>{compareScenario.long}</option>
+            {#if name !== $scenarioName}
+                <option value={name}>{compareScenario.metadata.long}</option>
             {/if}
         {/each}
     </select>
@@ -274,13 +285,9 @@ modelled development strategies on any of the four indicators.
                 out:customFlyOutCmp|local
                 on:outrostart={setMaxHeightToZero}
             >
-                <p>
-                    <!-- eslint-disable-next-line -->
-                    {@html compareScenario.description[0]}
-                </p>
-                {#each compareScenario.description.slice(1) as para}
-                    <!-- eslint-disable-next-line -->
-                    <p>{@html para}</p>
+                <p>{compareDescriptionLines[0]}</p>
+                {#each compareDescriptionLines.slice(1) as para}
+                    <p>{para}</p>
                 {/each}
             </div>
         {/key}

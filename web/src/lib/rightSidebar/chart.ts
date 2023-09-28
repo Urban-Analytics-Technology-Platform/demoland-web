@@ -3,7 +3,13 @@ import {
     GLOBALMIN,
     GLOBALMAX,
 } from "src/constants";
-import { getScenario, getValues, makeColormap } from "src/utils";
+import { makeColormap } from "src/utils/colors";
+import { type Scenario } from "src/constants";
+
+// Get all values for a given indicator in a given scenario.
+export function getValues(indicator: IndicatorName, scenario: Scenario): number[] {
+    return [...scenario.values.values()].map(m => m.get(indicator));
+}
 
 // Automatically calculate a suitable tick step size for a histogram. Chart.js's
 // automatic calculation is not quite as polished as matplotlib.
@@ -78,7 +84,7 @@ export function bin(
 export type ChartDataset = {
     type: string,
     label: string,
-    data: number[] | {x: number, y: number}[],
+    data: number[] | { x: number, y: number }[],
     backgroundColor?: string[] | string,
     borderWidth?: number,
     showLine?: boolean,
@@ -106,12 +112,12 @@ export function getMean(xs: number[]) {
 /* Generate chart data for a single scenario. */
 function makeChartDataOneScenario(
     indicator: IndicatorName,
-    scenarioName: string,
+    scenario: Scenario,
     nbars: number
 ): ChartData {
     // Plot one dataset only (current indicator, current scenario)
     const colors: string[] = makeColormap(indicator, nbars);
-    const rawValues: number[] = getValues(indicator, scenarioName);
+    const rawValues: number[] = getValues(indicator, scenario);
     const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
     const mean = getMean(rawValues);
 
@@ -120,7 +126,7 @@ function makeChartDataOneScenario(
             {
                 type: "scatter",
                 label: `Mean: ${mean.toFixed(2)}`,
-                data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
+                data: [{ "x": mean, "y": 5 }, { "x": mean, "y": Math.max(...bins.counts) * 1.1 }],
                 showLine: true,
                 pointStyle: "line",
                 pointRadius: 0,
@@ -130,7 +136,7 @@ function makeChartDataOneScenario(
             },
             {
                 type: "bar",
-                label: getScenario(scenarioName).short,
+                label: scenario.metadata.short,
                 data: bins.counts,
                 backgroundColor: colors,
                 borderWidth: 0,
@@ -147,13 +153,13 @@ function makeChartDataOneScenario(
 /* Generate chart data for two scenarios. */
 function makeChartDataTwoScenarios(
     indicator: IndicatorName,
-    scenarioName: string,
-    compareScenarioName: string | null,
+    scenario: Scenario,
+    compareScenario: Scenario,
     nbars: number
 ): ChartData {
     const colors: string[] = makeColormap(indicator, nbars);
-    const rawValues: number[] = getValues(indicator, scenarioName);
-    const cmpRawValues: number[] = getValues(indicator, compareScenarioName);
+    const rawValues: number[] = getValues(indicator, scenario);
+    const cmpRawValues: number[] = getValues(indicator, compareScenario);
     const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
     const cmpBins = bin(cmpRawValues, GLOBALMIN, GLOBALMAX, nbars);
     const mean = getMean(rawValues);
@@ -163,8 +169,8 @@ function makeChartDataTwoScenarios(
         datasets: [
             {
                 type: "scatter",
-                label: `${getScenario(compareScenarioName).short} mean: ${cmpMean.toFixed(2)}`,
-                data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
+                label: `${compareScenario.metadata.short} mean: ${cmpMean.toFixed(2)}`,
+                data: [{ "x": mean, "y": 5 }, { "x": mean, "y": Math.max(...bins.counts) * 1.1 }],
                 showLine: true,
                 pointStyle: "line",
                 pointRadius: 0,
@@ -174,8 +180,8 @@ function makeChartDataTwoScenarios(
             },
             {
                 type: "scatter",
-                label: `${getScenario(scenarioName).short} mean: ${mean.toFixed(2)}`,
-                data: [{"x": mean, "y": 5}, {"x": mean, "y": Math.max(...bins.counts) * 1.1}],
+                label: `${scenario.metadata.short} mean: ${mean.toFixed(2)}`,
+                data: [{ "x": mean, "y": 5 }, { "x": mean, "y": Math.max(...bins.counts) * 1.1 }],
                 showLine: true,
                 pointStyle: "line",
                 pointRadius: 0,
@@ -185,7 +191,7 @@ function makeChartDataTwoScenarios(
             },
             {
                 type: "bar",
-                label: getScenario(compareScenarioName).short,
+                label: compareScenario.metadata.short,
                 data: cmpBins.counts,
                 // @ts-ignore backgroundColor can be string or string[]
                 backgroundColor: "rgba(1, 1, 1, 0)",
@@ -199,7 +205,7 @@ function makeChartDataTwoScenarios(
             },
             {
                 type: "bar",
-                label: getScenario(scenarioName).short,
+                label: scenario.metadata.short,
                 data: bins.counts,
                 backgroundColor: colors,
                 borderWidth: 0,
@@ -218,13 +224,13 @@ function makeChartDataTwoScenarios(
 /* Generate chart data showing the difference between two scenarios. */
 function makeChartDataDifference(
     indicator: IndicatorName,
-    scenarioName: string,
-    compareScenarioName: string | null,
+    scenario: Scenario,
+    compareScenario: Scenario,
     nbars: number
 ): ChartData {
     const colors: string[] = makeColormap("diff", nbars);
-    const scenValues: number[] = getValues(indicator, scenarioName);
-    const cmpScenValues: number[] = getValues(indicator, compareScenarioName);
+    const scenValues: number[] = getValues(indicator, scenario);
+    const cmpScenValues: number[] = getValues(indicator, compareScenario);
     const rawValues: number[] = scenValues.map((value, i) => value - cmpScenValues[i]).filter((value) => value !== 0);
     const max: number = Math.max(
         Math.abs(Math.min(...rawValues)),
@@ -256,21 +262,20 @@ function makeChartDataDifference(
 /* Generate chart data. To be refactored */
 export function makeChartData(
     indicator: IndicatorName,
-    scenarioName: string,
-    compareScenarioName: string | null,
+    scenario: Scenario,
+    compareScenario: Scenario | null,
     nbars: number,
     chartStyle: "both" | "difference"
 ): ChartData {
-
-    if (compareScenarioName === null) {
-        return makeChartDataOneScenario(indicator, scenarioName, nbars);
+    if (compareScenario === null) {
+        return makeChartDataOneScenario(indicator, scenario, nbars);
     }
     else {
         if (chartStyle == "both") {
-            return makeChartDataTwoScenarios(indicator, scenarioName, compareScenarioName, nbars);
+            return makeChartDataTwoScenarios(indicator, scenario, compareScenario, nbars);
         }
         else if (chartStyle == "difference") {
-            return makeChartDataDifference(indicator, scenarioName, compareScenarioName, nbars);
+            return makeChartDataDifference(indicator, scenario, compareScenario, nbars);
         }
     }
 }

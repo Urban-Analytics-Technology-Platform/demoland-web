@@ -1,8 +1,9 @@
 <script lang="ts">
-    import geography from "src/assets/newcastle.json";
+    import geography from "src/data/geography.json";
     import JSZip from "jszip";
     import { saveAs } from "file-saver";
-    import { allScenarios, unscale } from "src/scenarios";
+    import { toScenarioObject } from "src/utils/scenarios";
+    import { allScenarios, scaleFactors } from "src/stores";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     let exportDialogVisible: boolean = false;
@@ -14,45 +15,16 @@
             return;
         }
 
+        const zip = new JSZip();
         for (const scenarioName of exportScenarioNames) {
-            const zip = new JSZip();
             const scenario = $allScenarios.get(scenarioName);
-            const changed = scenario.changed;
-            const values = scenario.values;
-
-            const changedObj = {};
-            for (const [oa, m] of changed.entries()) {
-                changedObj[oa] = {};
-                for (const [mv, v] of m.entries()) {
-                    changedObj[oa][mv] = v;
-                }
-            }
-            const changedJson = JSON.stringify(changedObj);
-
-            const valuesObj = {};
-            for (const [oa, m] of values.entries()) {
-                valuesObj[oa] = {};
-                for (const [layerName, val] of m.entries()) {
-                    valuesObj[oa][layerName] = unscale(layerName, val);
-                }
-            }
-            const valuesJson = JSON.stringify(valuesObj);
-
-            const metadataJson = JSON.stringify({
-                name: scenario.name,
-                short: scenario.short,
-                long: scenario.long,
-                description: scenario.description.join("\n"),
-            });
-
-            zip.file(`changed.json`, changedJson);
-            zip.file(`values.json`, valuesJson);
-            zip.file(`metadata.json`, metadataJson);
-            zip.file(`geometries.geojson`, JSON.stringify(geography));
-            zip.generateAsync({ type: "blob" }).then(function (content) {
-                saveAs(content, `${scenario.name}.scenario.zip`);
-            });
+            const scenarioJson = JSON.stringify(toScenarioObject(scenario, $scaleFactors));
+            zip.file(`${scenario.metadata.name}.json`, scenarioJson);
         }
+        zip.file(`geometries.geojson`, JSON.stringify(geography));
+        zip.generateAsync({ type: "blob" }).then(function (content) {
+            saveAs(content, `demoland_scenarios.zip`);
+        });
         exportDialogVisible = false;
     }
 
@@ -97,7 +69,7 @@
                         value={name}
                         id={name}
                     />
-                    <label for={name}>{scenario.short}</label>
+                    <label for={name}>{scenario.metadata.short}</label>
                 </span>
             {/each}
         </div>

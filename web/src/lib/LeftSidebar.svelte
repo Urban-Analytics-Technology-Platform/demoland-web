@@ -9,21 +9,32 @@
     import Choose from "src/lib/leftSidebar/Choose.svelte";
     import Create from "src/lib/leftSidebar/Create.svelte";
     import Import from "src/lib/leftSidebar/Import.svelte";
+    import Welcome from "src/lib/leftSidebar/Welcome.svelte";
+    import Tabs from "src/lib/leftSidebar/Tabs.svelte";
 
-    export let scenarioName: string;
-    export let compareScenarioName: string | null;
+    import { scenarioName, compareScenarioName } from "src/stores";
     export let clickedOAName: string | null;
-
-    function showWelcome() {
-        dispatch("showWelcome", {});
-    }
+    let welcomeVisible: boolean = !(
+        localStorage.getItem("doNotShowWelcome") === "true"
+    );
 
     let selectedTab: "choose" | "create" | "import" = "choose";
 
     onMount(() => {
         overlayScrollbars("sidebar");
     });
+
+    // This function fires when a new scenario is successfully added, either
+    // via Create (custom scenarios) or Import (file upload).
+    function handleImportEvent(event: CustomEvent) {
+        selectedTab = "choose";
+        $scenarioName = event.detail.name;
+        $compareScenarioName = null;
+        dispatch("changeScenario");
+    }
 </script>
+
+<Welcome bind:welcomeVisible />
 
 <div id="sidebar" class="data-overlayscrollbars-initialize">
     <h1 class="title">Tyne and Wear development scenario modelling</h1>
@@ -33,7 +44,10 @@
         Wear on four indicators of quality of life.
 
         <Tooltip --width="max-content" --transformy="35px">
-            <button slot="content" id="show-welcome" on:click={showWelcome}
+            <button
+                slot="content"
+                id="show-welcome"
+                on:click={() => (welcomeVisible = true)}
                 ><img
                     src={showWelcomeIcon}
                     alt="Show welcome screen again"
@@ -43,71 +57,30 @@
         </Tooltip>
     </p>
 
-    <p>All indicator values range from 0 to 100.</p>
+    <p>
+        All indicator values are linearly scaled such that the baseline ranges
+        from 0 to 100.
+    </p>
 
-    <div id="scenario-selector">
-        <div class="tabs">
-            <input
-                type="radio"
-                class="tab-input"
-                id="choose"
-                bind:group={selectedTab}
-                value="choose"
-                checked
-            />
-            <label for="choose" class="tab-label">View scenarios</label>
-
-            <input
-                type="radio"
-                class="tab-input"
-                id="create"
-                bind:group={selectedTab}
-                value="create"
-                on:click={() => {
-                    compareScenarioName = null;
-                    dispatch("changeScenario");
-                }}
-            />
-            <label for="create" class="tab-label">Create your own</label>
-
-            <input
-                type="radio"
-                class="tab-input"
-                id="import"
-                bind:group={selectedTab}
-                value="import"
-            />
-            <label for="import" class="tab-label">Import from file</label>
-        </div>
+    <div id="tabs-and-content">
+        <Tabs bind:selectedTab />
 
         <div class="tab-content">
             {#if selectedTab === "choose"}
                 <Choose
-                    bind:scenarioName
-                    bind:compareScenarioName
                     on:changeScenario
                 />
             {:else if selectedTab === "create"}
                 <Create
-                    bind:scenarioName
                     bind:clickedOAName
-                    on:changeScenario
-                    on:import={(e) => {
-                        selectedTab = "choose";
-                        scenarioName = e.detail.name;
-                        compareScenarioName = null;
+                    on:changeScenario={() => {
+                        $compareScenarioName = null;
                         dispatch("changeScenario");
                     }}
+                    on:import={handleImportEvent}
                 />
             {:else if selectedTab === "import"}
-                <Import
-                    on:import={(e) => {
-                        selectedTab = "choose";
-                        scenarioName = e.detail.name;
-                        compareScenarioName = null;
-                        dispatch("changeScenario");
-                    }}
-                />
+                <Import on:import={handleImportEvent} />
             {/if}
         </div>
     </div>
@@ -151,39 +124,9 @@
         width: 100%;
     }
 
-    div#scenario-selector {
-        margin-top: 15px;
+    div#tabs-and-content {
+        margin-top: 20px;
     }
-    div.tabs {
-        display: grid;
-        gap: 10px;
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    input.tab-input {
-        display: none;
-    }
-
-    label.tab-label {
-        display: block;
-        padding: 5px 10px;
-        border: 1px solid #e6e6e6;
-        border-bottom: none;
-        border-radius: 6px 6px 0px 0px;
-        background-color: #f0f0f0;
-        color: #333333;
-        cursor: pointer;
-        font-family: inherit;
-        text-align: center;
-        font-size: 90%;
-    }
-
-    input.tab-input:checked + label.tab-label {
-        background-color: #ffffff;
-        color: #000000;
-        font-weight: bold;
-    }
-
     div.tab-content {
         padding: 10px 10px 12px 10px;
         border: 1px solid #e6e6e6;

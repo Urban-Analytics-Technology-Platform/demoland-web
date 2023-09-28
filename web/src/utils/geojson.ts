@@ -1,105 +1,9 @@
-import geography from "src/assets/newcastle.json";
-import colormap from "colormap";
+import geography from "src/data/geography.json";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { OverlayScrollbars } from "overlayscrollbars";
-import { allIndicators, type IndicatorName, signatures, allLayers, type LayerName, type MacroVar, GLOBALMIN, GLOBALMAX } from "src/constants";
-import { allScenarios } from "src/scenarios";
-import { get } from "svelte/store";
-
-export function makeColormap(indicator: IndicatorName | "diff", n: number) {
-    if (indicator === "diff") {
-        return colormap({
-            colormap: "RdBu",
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        });
-    }
-    else {
-        const indi = allIndicators.get(indicator);
-        const cmap = colormap({
-            colormap: indi.colormap,
-            nshades: n,
-            format: "hex",
-            alpha: 1,
-        });
-        return indi.colormapReversed ? cmap.reverse() : cmap;
-    }
-}
-
-export function getScenario(name: string) {
-    return get(allScenarios).get(name);
-}
-
-
-// Get all values for a given indicator in a given scenario.
-export function getValues(indicator: IndicatorName, scenarioName: string): number[] {
-    const scenario = getScenario(scenarioName);
-    return [...scenario.values.values()].map(m => m.get(indicator));
-}
-
-const colormaps: { [key: string]: string[] } = {
-    "air_quality": makeColormap("air_quality", 100),
-    "house_price": makeColormap("house_price", 100),
-    "job_accessibility": makeColormap("job_accessibility", 100),
-    "greenspace_accessibility": makeColormap("greenspace_accessibility", 100),
-    "diff": makeColormap("diff", 100),
-}
-
-function getColorFromMap(map: string[], value: number, min: number, max: number) {
-    const n = map.length;
-    let i = Math.round(((value - min) / (max - min)) * (n - 1));
-    // Clamp to [0, n-1]
-    i = Math.min(Math.max(i, 0), n - 1);
-    return map[i];
-}
-
-/**
- * Calculate the colour which should be shown on the map for a given scenario.
- *
- * @param layerName The name of the layer being displayed
- * @param value The value of the layer in the scenario
- */
-function getColor(layerName: LayerName, value: number) {
-
-    if (layerName === "signature_type") {
-        // Categorical variable
-        return signatures[value].color;
-    }
-    else {
-        // Continuous variables, use the respective colormaps
-        return getColorFromMap(colormaps[layerName], value, GLOBALMIN, GLOBALMAX);
-    }
-}
-
-/**
- * Calculate the colour which should be shown on the map in 'difference' mode
- * (when a scenario is being compared against).
- *
- * @param layerName The name of the layer being displayed
- * @param value The value of the layer in the main scenario
- * @param cmpValue The value of the layer in the scenario being compared
- * against
- * @param maxDiffExtents A map of the maximum difference between the main
- * scenario and the scenario being compared against for each layer. This is
- * pre-calculated for efficiency inside the `makeCombinedGeoJSON` function.
- * @returns The colour which should be shown on the map.
- */
-function getDiffColor(layerName: LayerName, value: number, cmpValue: number,
-    maxDiffExtents: Map<LayerName, number>) {
-    if (layerName === "signature_type") {
-        // Categorical variable. If it's the same, we don't show anything. If
-        // it's different, we show the color of the main scenario.
-        return value === cmpValue ? "rgba(0, 0, 0, 0.1)" : signatures[value].color;
-    }
-    else {
-        // Continuous variables, use 'diff' colormap
-        return value === cmpValue
-            ? "rgba(0, 0, 0, 0.1)"
-            : getColorFromMap(colormaps["diff"], value - cmpValue, -maxDiffExtents.get(layerName), maxDiffExtents.get(layerName));
-    }
-}
+import { allLayers, type LayerName, type ScenarioChanges, type Scenario } from "src/constants";
+import { getColor, getDiffColor } from "src/utils/colors";
+import config from "src/data/config";
 
 /** The indicator values are stored as a JSON file, separate from the
  * geometry data. This allows the geometry data to be reused for different
@@ -117,21 +21,17 @@ function getDiffColor(layerName: LayerName, value: number, cmpValue: number,
  * colours added to the properties of each feature.
  */
 export function makeCombinedGeoJSON(
-    scenarioName: string,
-    compareScenarioName: string | null,
+    scenario: Scenario,
+    compareScenario: Scenario | null,
 ): GeoJSON.FeatureCollection {
-    const scenario = getScenario(scenarioName);
-
     // Precalculate differences between scenarios being compared, which gives us
     // the min and max values for the 'diff' colormap.
     const maxDiffExtents: Map<LayerName, number> = new Map();
-    if (compareScenarioName !== null) {
-        const scenario = getScenario(scenarioName);
-        const cScenario = getScenario(compareScenarioName);
+    if (compareScenario !== null) {
         for (const layerName of allLayers.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
-                diffs.push(scenario.values.get(oa).get(layerName) - cScenario.values.get(oa).get(layerName));
+                diffs.push(scenario.values.get(oa).get(layerName) - compareScenario.values.get(oa).get(layerName));
             }
             const maxDiff = Math.max(...diffs.map(d => Math.abs(d)));
             maxDiffExtents.set(layerName, maxDiff === 0 ? 1 : maxDiff);
@@ -141,7 +41,7 @@ export function makeCombinedGeoJSON(
     const newGeography = JSON.parse(JSON.stringify(geography));
     // Merge geography with indicators
     newGeography.features = newGeography.features.map(function(feature) {
-        const oaName = feature.properties.OA11CD;
+        const oaName = feature.properties[config.featureIdentifier];
         const oaValues = scenario.values.get(oaName);
         if (oaValues === undefined) {
             throw new Error(`${oaName} not found in values!`);
@@ -151,9 +51,8 @@ export function makeCombinedGeoJSON(
             feature.properties[layerName] = value;
             feature.properties[`${layerName}-color`] = getColor(layerName, value);
         }
-        if (compareScenarioName !== null) {
-            const cScenario = getScenario(compareScenarioName);
-            const cOaValues = cScenario.values.get(oaName);
+        if (compareScenario !== null) {
+            const cOaValues = compareScenario.values.get(oaName);
             if (cOaValues === undefined) {
                 throw new Error(`Output area ${oaName} not found in compare values; this should not happen`);
             }
@@ -246,23 +145,22 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
  * as a MultiPolygon.
  */
 export function getInputDiffBoundaries(
-    scenarioName: string,
-    compareScenarioName: string | null
+    scenario: Scenario,
+    compareScenario: Scenario | null
 ): GeoJSON.FeatureCollection {
-    type MVMap = Map<string, Map<MacroVar, number | null>>;
-    const changed: MVMap = getScenario(scenarioName).changed;
-    const cChanged: MVMap = compareScenarioName === null
+    const changes: ScenarioChanges = scenario.changes;
+    const cChanges: ScenarioChanges = compareScenario === null
         ? new Map()
-        : getScenario(compareScenarioName).changed;
+        : compareScenario.changes;
 
     // Determine OAs which are different
     const allPossibleOAs: Set<string> = new Set([
-        ...changed.keys(), ...cChanged.keys()
+        ...changes.keys(), ...cChanges.keys()
     ]);
     const differentOAs: Set<string> = new Set();
     for (const oa of allPossibleOAs) {
-        const m1 = changed.get(oa);
-        const m2 = cChanged.get(oa);
+        const m1 = changes.get(oa);
+        const m2 = cChanges.get(oa);
         if (m1 === undefined && m2 === undefined) {
             // Both undefined - no changes occurred wrt baseline
             continue;
@@ -282,7 +180,7 @@ export function getInputDiffBoundaries(
         "type": "FeatureCollection",
         "crs": geography.crs,
         "features": geography.features.filter(
-            feature => differentOAs.has(feature.properties.OA11CD)
+            feature => differentOAs.has(feature.properties[config.featureIdentifier])
         ),
     } as GeoJSON.FeatureCollection;
 
@@ -298,18 +196,4 @@ export function getInputDiffBoundaries(
         boundary.features = [unioned];
     }
     return boundary;
-}
-
-export function overlayScrollbars(id: string) {
-    OverlayScrollbars(document.getElementById(id), {
-        overflow: {
-            x: 'hidden',
-        },
-        scrollbars: {
-            autoHide: "leave",
-            autoHideDelay: 100,
-            clickScroll: true,
-            dragScroll: true,
-        },
-    });
 }

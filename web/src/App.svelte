@@ -1,26 +1,29 @@
 <script lang="ts">
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
     import LeftSidebar from "src/lib/LeftSidebar.svelte";
     import RightSidebar from "src/lib/RightSidebar.svelte";
-    import Welcome from "src/lib/Welcome.svelte";
-    import { makePopup } from "src/hover";
+    import InitialErrorScreen from "src/lib/InitialErrorScreen.svelte";
     import { allLayers, type LayerName } from "src/constants";
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
         getInputDiffBoundaries,
-    } from "./utils";
+    } from "src/utils/geojson";
+    import { makePopup } from "src/utils/hover";
+    import {
+        allScenarios,
+        scenarioName,
+        compareScenarioName,
+        scaleFactors,
+    } from "src/stores";
+    import config from "src/data/config";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
 
-    // Whether the welcome screen should be shown
-    let welcomeVisible: boolean = !(
-        localStorage.getItem("doNotShowWelcome") === "true"
-    );
-    // The layer for the OA data
-    const NEWCASTLE_LAYER = "newcastle-layer";
+    // The source id for the OA data
+    const SOURCE_ID = "geojson_source";
     // The currently active map layer
     let activeLayer: LayerName = "signature_type";
     // The numeric ID of the OA being hovered over.
@@ -32,25 +35,173 @@
     let clickedId: number | null = null;
     // The popup shown when clicking on an OA
     let clickPopup: maplibregl.Popup | null = null;
-    // Initial scenario to show
-    let scenarioName: string = "baseline";
-    // Scenario to compare against. Null to not compare.
-    let compareScenarioName: string | null = null;
     // The map object
     let map: maplibregl.Map;
     // The data to be plotted on the map
-    let mapData: GeoJSON.FeatureCollection = makeCombinedGeoJSON(
-        scenarioName,
-        compareScenarioName
-    );
+    // Initialised in the next section
+    let mapData: GeoJSON.FeatureCollection = undefined;
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
     // Initial longitude and latitude
-    let initialCentre: maplibregl.LngLatLike = [-1.59, 54.94];
+    let initialCentre: maplibregl.LngLatLike = [
+        config.initialLongitude,
+        config.initialLatitude,
+    ];
     // Initial zoom
-    let initialZoom: number = 10.05;
+    let initialZoom: number = config.initialZoom;
     // Initial opacity
     let opacity: number = 0.8;
+
+    /* --------- APP INITIALISATION ------------------------------------- */
+    import { setupScenarioMap, setupScaleFactors } from "src/initialise";
+    let appState: "loading" | "error" | "ready" = "loading";
+    let appErrorMessage: string = "";
+    onMount(async () => {
+        try {
+            $scaleFactors = await setupScaleFactors();
+            $allScenarios = await setupScenarioMap($scaleFactors);
+            $scenarioName = $allScenarios.keys().next().value;
+            $compareScenarioName = null;
+            console.log(
+                `App initialised with ${$allScenarios.size} scenarios.`
+            );
+            console.log(`Scenario names: ${Array.from($allScenarios.keys())}`);
+            console.log(`Initial scenario: ${$scenarioName}`);
+
+            // Show the app
+            appState = "ready";
+            // For debugging purposes
+            // setTimeout(() => {
+            //     appState = "loaded";
+            // }, 5000);
+        } catch (e) {
+            // TODO: Replace with error screen
+            console.error(e);
+            appErrorMessage = e.toString();
+            appState = "error";
+        }
+    });
+
+    function initialiseMap(_: HTMLElement) {
+        console.log("initialiseMap: starting");
+
+        // For unknown reasons, the map doesn't show until the window is resized.
+        resizeContainer();
+
+        // Generate data for map
+        mapData = makeCombinedGeoJSON(
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
+        );
+
+        // Create map
+        map = new maplibregl.Map({
+            container: "map",
+            style: "https://api.maptiler.com/maps/uk-openzoomstack-light/style.json?key=g6kCkRKHQMJqJMcThytt",
+            center: initialCentre,
+            zoom: initialZoom,
+            hash: true,
+        });
+
+        // Add in sources and create layers
+        map.on("load", function () {
+            drawLayers(mapData);
+        });
+
+        // Add hover functionality.
+        // It doesn't matter which of the five polygon layers we add it to;
+        // however, we have to choose one of them and *not* the line layer,
+        // because the hover effect for the line layer only triggers when the
+        // mouse is placed directly on a border.
+        // Refer to https://maplibre.org/maplibre-gl-js-docs/example/hover-styles/
+        map.on("mousemove", "air_quality-layer", function (e) {
+            if (e.features.length > 0) {
+                disableHover();
+                const feat = e.features[0];
+                hoveredId = feat.id as number;
+                if (hoveredId !== clickedId) {
+                    enableHover(hoveredId);
+                    hoverPopup = makePopup(
+                        map,
+                        feat,
+                        $compareScenarioName,
+                        activeLayer,
+                        false,
+                        $scaleFactors
+                    );
+                }
+            }
+        });
+        map.on("mouseleave", "air_quality-layer", disableHover);
+
+        // Add click functionality
+        map.on("click", "air_quality-layer", function (e) {
+            // preventDefault usage: see https://stackoverflow.com/a/54413030
+            // This prevents the 'normal' onclick behaviour (above) when the
+            // user clicks on an OA
+            e.preventDefault();
+            if (e.features.length > 0) {
+                // Clicked on an OA
+                const feat = e.features[0];
+                if (clickPopup !== null) {
+                    clickPopup.remove();
+                }
+                clickedId = feat.id as number;
+                enableClick(clickedId);
+                // Centre map on that OA if the new div would obscure it.
+                const oaBounds = getGeometryBounds(feat.geometry);
+                if (oaInWindowEdge(oaBounds, map.getBounds())) {
+                    map.flyTo({
+                        center: oaBounds.getCenter(),
+                        speed: 0.5,
+                    });
+                }
+                clickPopup = makePopup(
+                    map,
+                    feat,
+                    $compareScenarioName,
+                    activeLayer,
+                    true,
+                    $scaleFactors
+                );
+                clickPopup.on("close", clickPopupCleanup);
+            }
+        });
+
+        map.on("click", function (e) {
+            if (!e.defaultPrevented) {
+                // Clicked outside an OA
+                if (clickPopup !== null) {
+                    clickPopup.remove();
+                }
+            }
+        });
+
+        // Detect whether the map is off-centre. This determines whether the
+        // 're-centre' button is shown or not.
+        map.on("move", function () {
+            const bounds = map.getBounds();
+            offcentre =
+                map.getPitch() !== 0 ||
+                map.getBearing() !== 0 ||
+                map.getZoom() < 6 ||
+                bounds.getWest() > -1.35 ||
+                bounds.getEast() < -1.855 ||
+                bounds.getNorth() < 54.8 ||
+                bounds.getSouth() > 55.08;
+        });
+
+        map.resize();
+
+        console.log("initialiseMap: finished");
+        return {
+            destroy() {
+                map.remove();
+            },
+        };
+    }
 
     /* --------- HELPERS ------------------------------------------------ */
 
@@ -87,7 +238,7 @@
     function clickPopupCleanup() {
         if (clickedId !== null) {
             map.setFeatureState(
-                { source: NEWCASTLE_LAYER, id: clickedId },
+                { source: SOURCE_ID, id: clickedId },
                 { click: false }
             );
             clickedId = null;
@@ -98,7 +249,7 @@
     function disableHover() {
         if (hoveredId !== null) {
             map.setFeatureState(
-                { source: NEWCASTLE_LAYER, id: hoveredId },
+                { source: SOURCE_ID, id: hoveredId },
                 { hover: false }
             );
             hoveredId = null;
@@ -112,7 +263,7 @@
     // ID. Note: this does not generate a popup.
     function enableHover(featureId: number) {
         map.setFeatureState(
-            { source: NEWCASTLE_LAYER, id: featureId },
+            { source: SOURCE_ID, id: featureId },
             { hover: true }
         );
     }
@@ -121,124 +272,16 @@
     // ID. Note: this does not generate a popup.
     function enableClick(featureId: number) {
         map.setFeatureState(
-            { source: NEWCASTLE_LAYER, id: featureId },
+            { source: SOURCE_ID, id: featureId },
             { click: true }
         );
     }
-
-    /* --------- SETUP FUNCTIONS - MAP CREATION ------------------------- */
-
-    // We have to use Svelte's 'onMount' so that the code here is only executed
-    // after the DOM is generated.
-    onMount(() => {
-        resizeContainer();
-        // Create map
-        map = new maplibregl.Map({
-            container: "map",
-            style: "https://api.maptiler.com/maps/uk-openzoomstack-light/style.json?key=g6kCkRKHQMJqJMcThytt",
-            center: initialCentre,
-            zoom: initialZoom,
-            hash: true,
-        });
-
-        // Add in sources and create layers
-        map.on("load", function () {
-            drawLayers(mapData);
-        });
-
-        // Add hover functionality.
-        // It doesn't matter which of the five polygon layers we add it to;
-        // however, we have to choose one of them and *not* the line layer,
-        // because the hover effect for the line layer only triggers when the
-        // mouse is placed directly on a border.
-        // Refer to https://maplibre.org/maplibre-gl-js-docs/example/hover-styles/
-        map.on("mousemove", "air_quality-layer", function (e) {
-            if (e.features.length > 0) {
-                disableHover();
-                const feat = e.features[0];
-                hoveredId = feat.id as number;
-                if (hoveredId !== clickedId) {
-                    enableHover(hoveredId);
-                    hoverPopup = makePopup(
-                        map,
-                        feat,
-                        compareScenarioName,
-                        activeLayer,
-                        false
-                    );
-                }
-            }
-        });
-        map.on("mouseleave", "air_quality-layer", disableHover);
-
-        // Add click functionality
-        map.on("click", "air_quality-layer", function (e) {
-            // preventDefault usage: see https://stackoverflow.com/a/54413030
-            // This prevents the 'normal' onclick behaviour (above) when the
-            // user clicks on an OA
-            e.preventDefault();
-            if (e.features.length > 0) {
-                // Clicked on an OA
-                const feat = e.features[0];
-                if (clickPopup !== null) {
-                    clickPopup.remove();
-                }
-                clickedId = feat.id as number;
-                enableClick(clickedId);
-                // Centre map on that OA if the new div would obscure it.
-                const oaBounds = getGeometryBounds(feat.geometry);
-                if (oaInWindowEdge(oaBounds, map.getBounds())) {
-                    map.flyTo({
-                        center: oaBounds.getCenter(),
-                        speed: 0.5,
-                    });
-                }
-                clickPopup = makePopup(
-                    map,
-                    feat,
-                    compareScenarioName,
-                    activeLayer,
-                    true
-                );
-                clickPopup.on("close", clickPopupCleanup);
-            }
-        });
-
-        map.on("click", function (e) {
-            if (!e.defaultPrevented) {
-                // Clicked outside an OA
-                if (clickPopup !== null) {
-                    clickPopup.remove();
-                }
-            }
-        });
-
-        // Detect whether the map is off-centre. This determines whether the
-        // 're-centre' button is shown or not.
-        map.on("move", function () {
-            const bounds = map.getBounds();
-            offcentre =
-                map.getPitch() !== 0 ||
-                map.getBearing() !== 0 ||
-                map.getZoom() < 6 ||
-                bounds.getWest() > -1.35 ||
-                bounds.getEast() < -1.855 ||
-                bounds.getNorth() < 54.8 ||
-                bounds.getSouth() > 55.08;
-        });
-
-        map.resize();
-    });
-
-    onDestroy(() => {
-        map.remove();
-    });
 
     // Draw the map layers. This should only be called when the map is
     // initialised. After it's been set up, we don't need to redraw the layers,
     // we just update the underlying data or styles.
     function drawLayers(mapData: GeoJSON.GeoJsonObject) {
-        map.addSource(NEWCASTLE_LAYER, {
+        map.addSource(SOURCE_ID, {
             type: "geojson",
             data: mapData,
             // need to give the features numeric IDs for the click/hover to work
@@ -263,50 +306,52 @@
             map.addLayer({
                 id: mapLayerId,
                 type: "fill",
-                source: NEWCASTLE_LAYER,
+                source: SOURCE_ID,
                 layout: {},
                 paint: {
                     "fill-color": [
                         "get",
-                    compareScenarioName === null
-                        ? `${layerName}-color`
-                        : `${layerName}-diff-color`,
+                        $compareScenarioName === null
+                            ? `${layerName}-color`
+                            : `${layerName}-diff-color`,
+                    ],
+                    "fill-opacity": 0.01,
+                    // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
+                    "fill-opacity-transition": { duration: 300 },
+                },
+            });
+        }
+
+        // Generate a line layer to display the borders of each OA.
+        map.addLayer({
+            id: "line-layer",
+            type: "line",
+            source: SOURCE_ID,
+            layout: {},
+            paint: {
+                "line-color": "#ffffff",
+                "line-width": [
+                    "case",
+                    ["boolean", ["feature-state", "click"], false],
+                    3,
+                    ["boolean", ["feature-state", "hover"], false],
+                    1.5,
+                    0,
                 ],
-                "fill-opacity": 0.01,
-                // @ts-ignore: Suppressing a known bug https://github.com/maplibre/maplibre-gl-js/issues/1708
-                "fill-opacity-transition": { duration: 300 },
+                "line-opacity": 0.01,
+                // @ts-ignore: Suppressing a known bug
+                // https://github.com/maplibre/maplibre-gl-js/issues/1708
+                "line-opacity-transition": { duration: 300 },
             },
         });
-    }
 
-    // Generate a line layer to display the borders of each OA.
-    map.addLayer({
-        id: "line-layer",
-        type: "line",
-        source: NEWCASTLE_LAYER,
-        layout: {},
-        paint: {
-            "line-color": "#ffffff",
-            "line-width": [
-                "case",
-                ["boolean", ["feature-state", "click"], false],
-                3,
-                ["boolean", ["feature-state", "hover"], false],
-                1.5,
-                0,
-            ],
-            "line-opacity": 0.01,
-            // @ts-ignore: Suppressing a known bug
-            // https://github.com/maplibre/maplibre-gl-js/issues/1708
-            "line-opacity-transition": { duration: 300 },
-        },
-    });
-
-    // Generate the LineString layer showing the boundary of the changed
-    // areas.
-    const diffedBoundaries = getInputDiffBoundaries(
-        scenarioName,
-        compareScenarioName
+        // Generate the LineString layer showing the boundary of the changed
+        // areas.
+        const diffedBoundaries = getInputDiffBoundaries(
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
         );
         map.addSource("boundary", {
             type: "geojson",
@@ -345,9 +390,9 @@
     // scenario or comparison scenario are changed).
     function updateMapData(mapData: GeoJSON.FeatureCollection) {
         if (map) {
-            (
-                map.getSource(NEWCASTLE_LAYER) as maplibregl.GeoJSONSource
-            ).setData(mapData);
+            (map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource).setData(
+                mapData
+            );
             updateLayers();
         }
     }
@@ -360,7 +405,7 @@
             for (const layerName of allLayers.keys()) {
                 map.setPaintProperty(`${layerName}-layer`, "fill-color", [
                     "get",
-                    compareScenarioName === null
+                    $compareScenarioName === null
                         ? `${layerName}-color`
                         : `${layerName}-diff-color`,
                 ]);
@@ -374,8 +419,10 @@
         }
         // Update the LineString layer
         const diffedBoundaries = getInputDiffBoundaries(
-            scenarioName,
-            compareScenarioName
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
         );
         const boundarySource = map.getSource(
             "boundary"
@@ -402,9 +449,10 @@
             clickPopup = makePopup(
                 map,
                 feat,
-                compareScenarioName,
+                $compareScenarioName,
                 activeLayer,
-                true
+                true,
+                $scaleFactors
             );
             clickPopup.on("close", clickPopupCleanup);
         }
@@ -414,7 +462,12 @@
 
     // Redraw layers when scenario or compareScenario is changed
     function updateScenario() {
-        mapData = makeCombinedGeoJSON(scenarioName, compareScenarioName);
+        mapData = makeCombinedGeoJSON(
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName)
+        );
         updateMapData(mapData);
     }
 
@@ -437,7 +490,7 @@
             return null;
         }
         const feat = mapData.features.find((feat) => feat.id === featureId);
-        return feat.properties.OA11CD;
+        return feat.properties[config.featureIdentifier];
     }
     let clickedOAName: string | null = null;
     $: {
@@ -445,43 +498,43 @@
     }
 </script>
 
-<main>
-    <div id="map" />
+{#if appState === "ready"}
+    <main>
+        <div id="map" use:initialiseMap />
 
-    <Welcome bind:welcomeVisible />
+        <div id="other-content-container">
+            <LeftSidebar
+                bind:clickedOAName
+                on:changeScenario={updateScenario}
+            />
 
-    <div id="other-content-container">
-        <LeftSidebar
-            bind:scenarioName
-            bind:compareScenarioName
-            bind:clickedOAName
-            on:changeScenario={updateScenario}
-            on:showWelcome={() => {
-                welcomeVisible = true;
-            }}
-        />
+            <div id="recentre">
+                {#if offcentre}
+                    <input
+                        type="button"
+                        value="Reset view"
+                        id="recentre"
+                        on:click={recentreMap}
+                    />
+                {/if}
+            </div>
 
-        <div id="recentre">
-            {#if offcentre}
-                <input
-                    type="button"
-                    value="Reset view"
-                    id="recentre"
-                    on:click={recentreMap}
-                />
-            {/if}
+            <RightSidebar
+                bind:activeLayer
+                on:changeLayer={updateLayers}
+                bind:opacity
+                on:changeOpacity={updateLayers}
+            />
         </div>
-
-        <RightSidebar
-            bind:activeLayer
-            on:changeLayer={updateLayers}
-            bind:opacity
-            on:changeOpacity={updateLayers}
-            {scenarioName}
-            {compareScenarioName}
-        />
+    </main>
+{:else if appState === "error"}
+    <InitialErrorScreen bind:appErrorMessage />
+{:else if appState === "loading"}
+    <div id="loading">
+        Loading...
+        <div id="spinner" />
     </div>
-</main>
+{/if}
 <svelte:window on:resize={resizeContainer} />
 
 <style>
@@ -514,5 +567,31 @@
         box-sizing: border-box;
         padding: 5px;
         background-color: #e8e8e8; /* grey */
+    }
+
+    div#loading {
+        font-family: sans-serif;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    div#spinner {
+        border: 8px solid #eeeeee;
+        border-top: 8px solid #32a852;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 </style>

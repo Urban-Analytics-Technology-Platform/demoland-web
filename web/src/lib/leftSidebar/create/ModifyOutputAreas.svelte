@@ -1,11 +1,10 @@
 <script lang="ts">
     export let clickedOAName: string | null;
-    export let scenarioName: string;
     export let userChangesPresent: boolean;
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    import { allScenarios } from "src/scenarios";
+    import { allScenarios, scenarioName } from "src/stores";
     import { signatures, type MacroVar } from "src/constants";
     import {
         getLocalChanges,
@@ -68,7 +67,7 @@
     }
 
     // Load current scenario into local storage
-    storeLocalChanges($allScenarios.get(scenarioName).changed);
+    storeLocalChanges($allScenarios.get($scenarioName).changes);
 
     // Variables for OA modifiers
     let sig: number | null = null;

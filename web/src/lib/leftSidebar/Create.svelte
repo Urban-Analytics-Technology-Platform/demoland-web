@@ -1,21 +1,28 @@
 <script lang="ts">
     export let clickedOAName: string | null;
-    export let scenarioName: string | null;
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
+    import InputMetadata from "src/lib/leftSidebar/create/InputMetadata.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
+    import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
     import {
         clearLocalChanges,
         getLocalChanges,
         changesToApiJson,
-        createNewScenario,
     } from "src/lib/leftSidebar/helpers";
-    import { allScenarios } from "src/scenarios";
-    import { createEventDispatcher } from "svelte";
+    import { type Scenario } from "src/constants";
+    import {
+        fromChangesObject,
+        fromValuesObject,
+    } from "src/utils/scenarios";
+    import { allScenarios, scaleFactors } from "src/stores";
+    import { onDestroy, createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
     // Stage of the scenario creation process
     let step: "choose" | "modify" | "metadata" | "calc" | "error" = "choose";
+    // Only displayed if there is actually an error
+    let errorMessage: string = "An error occurred.";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
@@ -27,19 +34,25 @@
 
     // Flag to keep track of whether the user has changed any of the inputs
     // relative to the base scenario they chose
+    let userChangesPromptText: string =
+        "Are you sure you want to go back? All changes will be lost.";
     let userChangesPresent: boolean = false;
 
+    // Prompt user to confirm if they navigate away from this tab
+    onDestroy(() => {
+        if (userChangesPresent && window.confirm(userChangesPromptText)) {
+            clearLocalChanges();
+        }
+    });
+    // or if they return to step 1
     function returnToSelection() {
         if (userChangesPresent) {
-            if (window.confirm(
-                "Are you sure you want to go back? All changes will be lost."
-            )) {
+            if (window.confirm(userChangesPromptText)) {
                 clearLocalChanges();
                 userChangesPresent = false;
                 step = "choose";
             }
-        }
-        else {
+        } else {
             step = "choose";
         }
     }
@@ -49,45 +62,56 @@
         step = "modify"; // move on to the next step
     }
 
-    function handleApiResponse(response: Response, changedJson: string) {
+    function handleApiResponse(response: Response, changesJson: string) {
         if (response.ok) {
-            console.log(response);
             response.json().then((values: object) => {
                 console.log("Success!");
-                const changed = JSON.parse(changedJson);
-                const newScenario = createNewScenario(
-                    scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
-                    scenarioShort,
-                    "Custom: " + scenarioShort,
-                    scenarioDescription,
-                    changed,
-                    values
-                );
+                const changes = JSON.parse(changesJson)["scenario_json"];
+                const newScenario: Scenario = {
+                    metadata: {
+                        name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
+                        short: scenarioShort,
+                        long: "Custom: " + scenarioShort,
+                        description: scenarioDescription,
+                    },
+                    changes: fromChangesObject(changes),
+                    values: fromValuesObject(values, $scaleFactors),
+                };
                 // Check for name duplication
-                if ($allScenarios.has(newScenario.name)) {
+                if ($allScenarios.has(newScenario.metadata.name)) {
                     let i = 1;
-                    while ($allScenarios.has(`${newScenario.name}_${i})`)) {
+                    while ($allScenarios.has(`${newScenario.metadata.name}_${i})`)) {
                         i++;
                     }
-                    newScenario.name = `${newScenario.name}_${i}`;
+                    newScenario.metadata.name = `${newScenario.metadata.name}_${i}`;
                 }
-                $allScenarios.set(newScenario.name, newScenario);
-                dispatch("import", { name: newScenario.name });
+                $allScenarios.set(newScenario.metadata.name, newScenario);
+                // Get rid of changes in localStorage; this also ensures that
+                // the "are you sure" confirmation prompt doesn't show up.
+                userChangesPresent = false;
+                clearLocalChanges();
+                // Display the new scenario on the map.
+                dispatch("import", { name: newScenario.metadata.name });
             });
         } else {
             step = "error";
-            throw new Error("Failed to calculate scenario values from server");
+            errorMessage = `HTTP request to custom scenario server failed: received ${response.status} ${response.statusText}.`;
+            // Give a helpful hint
+            if (response.status === 500) {
+                errorMessage +=
+                    " (If you are running locally, did you start the backend up?)";
+            }
+            throw new Error(errorMessage);
         }
     }
 
     function handleError(error: Error) {
         if (error instanceof DOMException && error.name === "AbortError") {
             step = "metadata"; // just go back to the previous step
-            console.log("Calculation aborted!");
+            console.log("Calculation aborted");
         } else {
-            // TODO show the user the error and ask them to report it
             step = "error";
-            throw error;
+            errorMessage = error.message;
         }
     }
 
@@ -102,7 +126,9 @@
         controller = new AbortController();
         signal = controller.signal;
 
-        const url = window.location.href.includes("alan-turing-institute.github.io")
+        const url = window.location.href.includes(
+            "alan-turing-institute.github.io"
+        )
             ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
             : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
 
@@ -111,46 +137,33 @@
             headers: { "Content-Type": "application/json" },
             body: changedJson,
             signal: signal,
-        }).then((resp) => handleApiResponse(resp, changedJson), handleError);
+        })
+            .then((resp) => handleApiResponse(resp, changedJson))
+            .catch((err) => handleError(err));
     }
 </script>
 
 Create your own scenario by modifying an existing one.
 
 {#if step === "choose"}
-    <ChooseStartingScenario
-        bind:scenarioName
-        on:changeScenario={changeScenarioAndProceed}
-    />
+    <ChooseStartingScenario on:changeScenario={changeScenarioAndProceed} />
 {/if}
 
 {#if step === "modify"}
-    <ModifyOutputAreas bind:clickedOAName bind:scenarioName bind:userChangesPresent
+    <ModifyOutputAreas
+        bind:clickedOAName
+        bind:userChangesPresent
         on:returnToSelection={returnToSelection}
         on:proceedToMetadata={() => (step = "metadata")}
     />
 {/if}
 
 {#if step === "metadata"}
-    <input
-        type="button"
-        value="Back to OA modification"
-        on:click={() => (step = "modify")}
-    />
-    <input
-        type="button"
-        value="Accept changes and calculate"
-        on:click={acceptChangesAndCalculate}
-    />
-    <input
-        type="text"
-        bind:value={scenarioShort}
-        placeholder="Scenario title..."
-    />
-    <textarea
-        bind:value={scenarioDescription}
-        placeholder="A longer textual description..."
-        spellcheck="false"
+    <InputMetadata
+        bind:scenarioShort
+        bind:scenarioDescription
+        on:returnToModify={() => (step = "modify")}
+        on:acceptChangesAndCalculate={acceptChangesAndCalculate}
     />
 {/if}
 
@@ -159,5 +172,5 @@ Create your own scenario by modifying an existing one.
 {/if}
 
 {#if step === "error"}
-    An error occurred, please try again...
+    <ErrorScreen message={errorMessage} on:close={() => (step = "metadata")} />
 {/if}

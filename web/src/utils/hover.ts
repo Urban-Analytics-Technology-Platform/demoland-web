@@ -1,4 +1,4 @@
-import { getGeometryBounds } from "src/utils";
+import { getGeometryBounds } from "src/utils/geojson";
 import maplibregl from "maplibre-gl";
 import {
     allIndicators,
@@ -7,13 +7,15 @@ import {
     type LayerName,
     signatures,
 } from "src/constants";
-import { unscale } from "src/scenarios";
+import { unscale } from "src/utils/scenarios";
+import config from "src/data/config";
 
 // Construct raw HTML for the hover popup. This is really ugly, but MapLibre
 // doesn't seem to let us do much else (?).
 function makeHoverHtml(feat: GeoJSON.Feature,
     compareScenarioName: string | null,
     activeFactor: LayerName,
+    scaleFactors: Map<LayerName, { min: number, max: number }>,
 ) {
     // Generate a rectangle of a given colour
     function makeColoredBlock(color: string): string {
@@ -54,8 +56,8 @@ function makeHoverHtml(feat: GeoJSON.Feature,
             color = feat.properties[`${name}-color`];
         } else {
             const cmpVal = feat.properties[`${name}-cmp`];
-            const cmpValUnscaled = unscale(name, cmpVal);
-            const valUnscaled = unscale(name, val);
+            const cmpValUnscaled = unscale(name, cmpVal, scaleFactors);
+            const valUnscaled = unscale(name, val, scaleFactors);
             const chg = cmpValUnscaled === 0
                 ? 0
                 : ((valUnscaled - cmpValUnscaled) / cmpValUnscaled) * 100;
@@ -79,7 +81,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
     // Put it all together
     return [
         `<div class="hover-grid">`,
-        `<span class="oa-grid-item oa-name">${feat.properties.OA11CD}</span>`,
+        `<span class="oa-grid-item oa-name">${feat.properties[config.featureIdentifier]}</span>`,
         makeSig(),
         ...[...allIndicators.entries()].map(([name, indi]) => makeIndi(name, indi)),
         `</div>`,
@@ -92,6 +94,7 @@ export function makePopup(
     compareScenarioName: string | null,
     activeFactor: LayerName,
     closeButton: boolean,
+    scaleFactors: Map<LayerName, { min: number, max: number }>,
 ) {
     const bounds = getGeometryBounds(feat.geometry);
     const popup = new maplibregl.Popup({
@@ -101,7 +104,7 @@ export function makePopup(
         maxWidth: "none",
     })
         .setLngLat([bounds.getCenter().lng, bounds.getNorth()])
-        .setHTML(makeHoverHtml(feat, compareScenarioName, activeFactor))
+        .setHTML(makeHoverHtml(feat, compareScenarioName, activeFactor, scaleFactors))
         .addTo(map);
     return popup;
 }

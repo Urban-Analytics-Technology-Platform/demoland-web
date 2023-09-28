@@ -4,6 +4,7 @@
         type IndicatorName,
         type Indicator,
         allIndicators,
+        type Scenario,
     } from "src/constants";
     import {
         type ChartDataset,
@@ -11,11 +12,9 @@
         makeChartData,
         prettyLabel,
     } from "src/lib/rightSidebar/chart";
-    import { getValues } from "src/utils";
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
-    export let scenarioName: string;
-    export let compareScenarioName: string | null;
+    import { allScenarios, scenarioName, compareScenarioName} from "src/stores";
 
     // Number of bars to use in the chart
     const nbars = 11;
@@ -25,7 +24,7 @@
 
     function patchedGenerateLabels(chart: Chart, datasets: ChartDataset[]) {
         let labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-        if (compareScenarioName === null) {
+        if ($compareScenarioName === null) {
             // labels[0] is the scatter plot showing the mean
             labels[0].lineDash = [6, 3];
             labels[0].strokeStyle = "#000000";
@@ -86,7 +85,7 @@
                             callback: (val) =>
                                 prettyLabel(
                                     val as number,
-                                    compareScenarioName !== null
+                                    $compareScenarioName !== null
                                 ),
                             maxRotation: 0,
                             minRotation: 0,
@@ -122,8 +121,10 @@
         if (chart === null) return;
         const chartData = makeChartData(
             indicatorName,
-            scenarioName,
-            compareScenarioName,
+            $allScenarios.get($scenarioName),
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName),
             nbars,
             compareChartStyle
         );
@@ -141,11 +142,14 @@
     }
 
     onMount(() => {
+        console.log(`Chart.svelte:onMount indicatorName=${indicatorName}`);
         drawChart(
             makeChartData(
                 indicatorName,
-                scenarioName,
-                compareScenarioName,
+                $allScenarios.get($scenarioName),
+                $compareScenarioName === null
+                    ? null
+                    : $allScenarios.get($compareScenarioName),
                 nbars,
                 compareChartStyle
             )
@@ -162,23 +166,29 @@
     let chartType: "single" | "compareBoth" | "compareDifference";
     let chartHeight: string;
 
+    // Get all values for a given indicator in a given scenario.
+    function getValues(indicator: IndicatorName, scenario: Scenario): number[] {
+        return [...scenario.values.values()].map(m => m.get(indicator));
+    }
+
     $: {
         // Chart should be updated whenever these variables are changed
-        indicatorName, scenarioName, compareScenarioName, compareChartStyle;
+        indicatorName, $scenarioName, $compareScenarioName, compareChartStyle;
         // Useful variable which we can use to keep track of what kind of chart is being shown
         chartType =
-            compareScenarioName === null
+            $compareScenarioName === null
                 ? "single"
                 : compareChartStyle === "both"
                 ? "compareBoth"
                 : "compareDifference";
-
+        // Update chart data
         showLegend = chartType !== "compareDifference";
         chartHeight = chartType === "compareDifference" ? "128.6px" : "160px";
         updateChart();
-        values = getValues(indicatorName, scenarioName);
-        if (compareScenarioName !== null) {
-            cmpValues = getValues(indicatorName, compareScenarioName);
+        // Check if there are any changes at all
+        values = getValues(indicatorName, $allScenarios.get($scenarioName));
+        if ($compareScenarioName !== null) {
+            cmpValues = getValues(indicatorName, $allScenarios.get($compareScenarioName));
             changes = [...values.map((x, i) => x - cmpValues[i])];
             noChangesAtAll = changes.filter((x) => x !== 0).length === 0;
         }
@@ -186,7 +196,7 @@
 </script>
 
 <div class="chart-container">
-    {#if compareScenarioName !== null}
+    {#if $compareScenarioName !== null}
         {#if noChangesAtAll}
             No changes.
         {:else}

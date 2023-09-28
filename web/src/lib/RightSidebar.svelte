@@ -6,15 +6,12 @@
         type LayerName,
         allIndicators,
     } from "src/constants";
-
     import "overlayscrollbars/overlayscrollbars.css";
     import { overlayScrollbars } from "src/utils";
     import { onMount } from "svelte";
 
     export let activeLayer: LayerName;
     export let opacity: number;
-    export let scenarioName: string;
-    export let compareScenarioName: string | null;
 
     // Events which need to bubble up to main App
     import { createEventDispatcher } from "svelte";
@@ -44,8 +41,6 @@
             <Collapsible title={indi.short} collapsed={activeLayer !== "signature_type" && indiName !== activeLayer}>
                 <Chart
                     indicatorName={indiName}
-                    {scenarioName}
-                    {compareScenarioName}
                 />
             </Collapsible>
         {/each}
