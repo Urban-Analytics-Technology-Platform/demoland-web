@@ -5,6 +5,7 @@
     import LeftSidebar from "src/lib/LeftSidebar.svelte";
     import RightSidebar from "src/lib/RightSidebar.svelte";
     import InitialErrorScreen from "src/lib/InitialErrorScreen.svelte";
+    import LoadingScreen from "src/lib/LoadingScreen.svelte";
     import { allLayers, type LayerName } from "src/constants";
     import {
         makeCombinedGeoJSON,
@@ -530,10 +531,7 @@
 {:else if appState === "error"}
     <InitialErrorScreen bind:appErrorMessage />
 {:else if appState === "loading"}
-    <div id="loading">
-        Loading...
-        <div id="spinner" />
-    </div>
+    <LoadingScreen />
 {/if}
 <svelte:window on:resize={resizeContainer} />
 
@@ -567,31 +565,5 @@
         box-sizing: border-box;
         padding: 5px;
         background-color: #e8e8e8; /* grey */
-    }
-
-    div#loading {
-        font-family: sans-serif;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    div#spinner {
-        border: 8px solid #eeeeee;
-        border-top: 8px solid #32a852;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
     }
 </style>
