@@ -43,7 +43,7 @@
                             `The file '${f.name}' could not be parsed as valid JSON: ${e.message}`
                         );
                     })
-                    .then((obj) => fromScenarioObject(obj, $scaleFactors, $validAreaNames));
+                    .then((obj) => fromScenarioObject(obj, $scaleFactors, $validAreaNames, f.name));
             })
         );
         // If all of them succeeded, add them to the list of scenarios

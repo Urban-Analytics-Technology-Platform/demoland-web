@@ -26,7 +26,7 @@ export async function setupReferenceScenarioUnscaled(): Promise<Scenario> {
         // `null` to avoid scaling. The ScaleFactorMap that we use for
         // everything else will be returned by this function. Likewise for the
         // validAreaNames parameter.
-        .then((blob) => fromScenarioObject(blob, null, null));
+        .then((blob) => fromScenarioObject(blob, null, null, config.referenceScenarioFile));
 }
 
 /* This function returns a set of all valid area names, as read from the
@@ -77,7 +77,7 @@ export async function setupScenarioMap(
                     console.error(e);
                     throw new Error(`The file '${scenarioFile}' either does not exist, or could not be parsed as valid JSON.`);
                 })
-                .then((obj) => fromScenarioObject(obj, scaleFactors, validAreaNames))
+                .then((obj) => fromScenarioObject(obj, scaleFactors, validAreaNames, scenarioFile))
         })
     );
     return new Map(scenarioList.map((scenario) => [scenario.metadata.name, scenario]));
