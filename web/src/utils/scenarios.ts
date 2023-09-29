@@ -71,12 +71,14 @@ function fromChangesObject(
         if (validAreaNames !== null && !validAreaNames.has(oa)) {
             throw new Error(`Invalid OA '${oa}' found in scenario changes.${src}`);
         }
-        changesMap.set(oa, new Map());
-        // Loop over macrovariables
-        for (const [key, value] of Object.entries(map)) {
-            changesMap
-                .get(oa)
-                .set(key as MacroVar, value as number);
+        else {
+            changesMap.set(oa, new Map());
+            // Loop over macrovariables
+            for (const [key, value] of Object.entries(map)) {
+                changesMap
+                    .get(oa)
+                    .set(key as MacroVar, value as number);
+            }
         }
     }
     return changesMap;
@@ -92,18 +94,30 @@ function fromValuesObject(
 ): ScenarioValues {
     const src = appendSource(source);
     const valuesMap = new Map();
+    const foundAreaNames = new Set();
     for (const [oa, map] of Object.entries(values)) {
         if (validAreaNames !== null && !validAreaNames.has(oa)) {
             throw new Error(`Invalid OA '${oa}' found in scenario values.${src}`);
         }
-        valuesMap.set(oa, new Map());
-        for (const [key, value] of Object.entries(map)) {
-            if (value === null) {
-                throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
+        else {
+            valuesMap.set(oa, new Map());
+            foundAreaNames.add(oa);
+            for (const [key, value] of Object.entries(map)) {
+                if (value === null) {
+                    throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
+                }
+                const layerName = key as LayerName;
+                valuesMap.get(oa)
+                    .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
             }
-            const layerName = key as LayerName;
-            valuesMap.get(oa)
-                .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
+        }
+    }
+    // Check that all valid OAs are present
+    if (validAreaNames !== null) {
+        for (const oa of validAreaNames) {
+            if (!foundAreaNames.has(oa)) {
+                throw new Error(`OA '${oa}' not found in scenario values.${src}`);
+            }
         }
     }
     return valuesMap;
