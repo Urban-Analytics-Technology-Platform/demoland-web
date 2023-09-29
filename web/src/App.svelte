@@ -18,7 +18,14 @@
         scenarioName,
         compareScenarioName,
         scaleFactors,
+        validAreaNames,
     } from "src/stores";
+    import {
+        setupReferenceScenarioUnscaled,
+        setupScenarioMap,
+        setupScaleFactors,
+        setupAreaNames,
+    } from "src/initialise";
     import config from "src/data/config";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
@@ -38,8 +45,9 @@
     let clickPopup: maplibregl.Popup | null = null;
     // The map object
     let map: maplibregl.Map;
-    // The data to be plotted on the map
-    // Initialised in the next section
+    // The data to be plotted on the map. This variable is only initialised
+    // after the map DOM is created, because it depends on the app
+    // initialisation code.
     let mapData: GeoJSON.FeatureCollection = undefined;
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
@@ -54,31 +62,34 @@
     let opacity: number = 0.8;
 
     /* --------- APP INITIALISATION ------------------------------------- */
-    import { setupScenarioMap, setupScaleFactors } from "src/initialise";
     let appState: "loading" | "error" | "ready" = "loading";
     let appErrorMessage: string = "";
     onMount(async () => {
         try {
-            $scaleFactors = await setupScaleFactors();
-            $allScenarios = await setupScenarioMap($scaleFactors);
-            $scenarioName = $allScenarios.keys().next().value;
+            // See src/initialise.ts for descriptions.
+            const referenceScenarioUnscaled =
+                await setupReferenceScenarioUnscaled();
+            $scaleFactors = setupScaleFactors(referenceScenarioUnscaled);
+            $validAreaNames = setupAreaNames(referenceScenarioUnscaled);
+            $allScenarios = await setupScenarioMap(
+                $scaleFactors,
+                $validAreaNames
+            );
+            // Set the initial scenario name to the reference scenario, and the
+            // scenario being compared against to nothing
+            $scenarioName = referenceScenarioUnscaled.metadata.name;
             $compareScenarioName = null;
             console.log(
                 `App initialised with ${$allScenarios.size} scenarios.`
             );
             console.log(`Scenario names: ${Array.from($allScenarios.keys())}`);
             console.log(`Initial scenario: ${$scenarioName}`);
-
             // Show the app
             appState = "ready";
-            // For debugging purposes
-            // setTimeout(() => {
-            //     appState = "loaded";
-            // }, 5000);
         } catch (e) {
-            // TODO: Replace with error screen
             console.error(e);
             appErrorMessage = e.toString();
+            // Show an error screen.
             appState = "error";
         }
     });

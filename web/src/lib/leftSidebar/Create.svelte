@@ -15,7 +15,7 @@
         fromChangesObject,
         fromValuesObject,
     } from "src/utils/scenarios";
-    import { allScenarios, scaleFactors } from "src/stores";
+    import { allScenarios, scaleFactors, validAreaNames } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -74,8 +74,8 @@
                         long: "Custom: " + scenarioShort,
                         description: scenarioDescription,
                     },
-                    changes: fromChangesObject(changes),
-                    values: fromValuesObject(values, $scaleFactors),
+                    changes: fromChangesObject(changes, $validAreaNames),
+                    values: fromValuesObject(values, $scaleFactors, $validAreaNames),
                 };
                 // Check for name duplication
                 if ($allScenarios.has(newScenario.metadata.name)) {

@@ -8,3 +8,4 @@ export const allScenarios: Writable<Map<string, Scenario>> = writable(undefined)
 export const scenarioName: Writable<string> = writable(undefined);
 export const compareScenarioName: Writable<string | null> = writable(undefined);
 export const scaleFactors: Writable<Map<LayerName, { min: number, max: number }>> = writable(undefined);
+export const validAreaNames: Writable<Set<string>> = writable(undefined);

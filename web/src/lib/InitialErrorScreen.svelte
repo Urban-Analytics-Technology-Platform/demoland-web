@@ -7,6 +7,7 @@
 <div id="error">
     <h1>Oops: DemoLand failed to load!</h1>
     <p>{appErrorMessage}</p>
+    <p id="bottom">Please see the browser console for more information.</p>
 </div>
 </div>
 
@@ -41,7 +42,7 @@
         margin-bottom: 1rem;
     }
     
-    div#error > p {
+    p#bottom {
         margin-bottom: 0;
     }
 </style>
