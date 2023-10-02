@@ -1,10 +1,20 @@
+import type { ScenarioObject } from "src/constants";
+import baseline from "src/data/scenarios/baseline.json";
+import scenario1 from "src/data/scenarios/scenario1.json";
+import scenario2 from "src/data/scenarios/scenario2.json";
+import scenario3 from "src/data/scenarios/scenario3.json";
+import scenario4 from "src/data/scenarios/scenario4.json";
+import scenario5 from "src/data/scenarios/scenario5.json";
+import scenario6 from "src/data/scenarios/scenario6.json";
+import scenario7 from "src/data/scenarios/scenario7.json";
+
 interface Config {
     featureIdentifier: string;
     initialLatitude: number;
     initialLongitude: number;
     initialZoom: number;
-    referenceScenarioFile: string;
-    otherScenarioFiles: string[];
+    referenceScenarioFile: ScenarioObject;
+    otherScenarioFiles: ScenarioObject[];
 }
 
 const config: Config = {
@@ -17,17 +27,17 @@ const config: Config = {
     initialLongitude: -1.59,
     // Initial zoom level of the map
     initialZoom: 10.05,
-    // File name of reference scenario to scale values against
-    referenceScenarioFile: "src/data/scenarios/baseline.json",
-    // File names of other scenarios
+    // Imported JSON object of reference scenario to scale values against
+    referenceScenarioFile: baseline,
+    // Imported JSON objects for all other scenarios
     otherScenarioFiles: [
-        "src/data/scenarios/scenario1.json",
-        "src/data/scenarios/scenario2.json",
-        "src/data/scenarios/scenario3.json",
-        "src/data/scenarios/scenario4.json",
-        "src/data/scenarios/scenario5.json",
-        "src/data/scenarios/scenario6.json",
-        "src/data/scenarios/scenario7.json",
+        scenario1,
+        scenario2,
+        scenario3,
+        scenario4,
+        scenario5,
+        scenario6,
+        scenario7
     ]
 };
 

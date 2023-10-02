@@ -1,11 +1,16 @@
 import {
     type LayerName, type MacroVar,
-    type ScenarioMetadata, type ScenarioChanges, type ScenarioValues,
-    type Scenario,
+    type ScenarioChanges, type ScenarioValues, type Scenario,
+    type ChangesObject, type ValuesObject, type ScenarioObject,
+    type ScaleFactorMap,
     GLOBALMIN, GLOBALMAX
 } from "src/constants";
 
-export function rescale(layerName: LayerName, unscaledVal: number, scaleFactors: Map<LayerName, { min: number, max: number }> | null) {
+export function rescale(
+    layerName: LayerName,
+    unscaledVal: number,
+    scaleFactors: ScaleFactorMap | null
+): number {
     // TODO: define layer type and specify whether categorical or not
     if (layerName === "signature_type") {
         return unscaledVal;
@@ -21,7 +26,11 @@ export function rescale(layerName: LayerName, unscaledVal: number, scaleFactors:
     }
 }
 
-export function unscale(layerName: LayerName, scaledVal: number, scaleFactors: Map<LayerName, { min: number, max: number }> | null) {
+export function unscale(
+    layerName: LayerName,
+    scaledVal: number,
+    scaleFactors: ScaleFactorMap | null
+): number {
     // TODO: define layer type and specify whether categorical or not
     if (layerName === "signature_type") {
         return scaledVal;
@@ -44,17 +53,32 @@ function preprocess(num: number): number {
     return Math.max(+num.toPrecision(6), 0);
 }
 
+/* Convenience function to append a source string to an error message. */
+function appendSource(s: string | null): string {
+    return s === null ? "" : ` (from '${s}')`;
+}
+
 /* Generate the Map of input changes for a scenario, from a regular object. */
-export function fromChangesObject(changes: object): ScenarioChanges {
+function fromChangesObject(
+    changes: object,
+    validAreaNames: Set<string> | null,
+    source: string | null,
+): ScenarioChanges {
+    const src = appendSource(source);
     const changesMap = new Map();
     // Loop over OAs
     for (const [oa, map] of Object.entries(changes)) {
-        changesMap.set(oa, new Map());
-        // Loop over macrovariables
-        for (const [key, value] of Object.entries(map)) {
-            changesMap
-                .get(oa)
-                .set(key as MacroVar, value as number);
+        if (validAreaNames !== null && !validAreaNames.has(oa)) {
+            throw new Error(`Invalid OA '${oa}' found in scenario changes.${src}`);
+        }
+        else {
+            changesMap.set(oa, new Map());
+            // Loop over macrovariables
+            for (const [key, value] of Object.entries(map)) {
+                changesMap
+                    .get(oa)
+                    .set(key as MacroVar, value as number);
+            }
         }
     }
     return changesMap;
@@ -62,25 +86,47 @@ export function fromChangesObject(changes: object): ScenarioChanges {
 
 /* Generate the Map of output values in a scenario, from a regular object.
  * The `scale` parameter indicates whether the values should be scaled. */
-export function fromValuesObject(values: object, scaleFactors: Map<LayerName, { min: number, max: number }> | null): ScenarioValues {
+function fromValuesObject(
+    values: object,
+    scaleFactors: ScaleFactorMap | null,
+    validAreaNames: Set<string> | null,
+    source: string | null,
+): ScenarioValues {
+    const src = appendSource(source);
     const valuesMap = new Map();
+    const foundAreaNames = new Set();
     for (const [oa, map] of Object.entries(values)) {
-        valuesMap.set(oa, new Map());
-        for (const [key, value] of Object.entries(map)) {
-            if (value === null) {
-                throw new Error("Null value in scenario");
+        if (validAreaNames !== null && !validAreaNames.has(oa)) {
+            throw new Error(`Invalid OA '${oa}' found in scenario values.${src}`);
+        }
+        else {
+            valuesMap.set(oa, new Map());
+            foundAreaNames.add(oa);
+            for (const [key, value] of Object.entries(map)) {
+                if (value === null) {
+                    throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
+                }
+                const layerName = key as LayerName;
+                valuesMap.get(oa)
+                    .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
             }
-            const layerName = key as LayerName;
-            valuesMap.get(oa)
-                .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
+        }
+    }
+    // Check that all valid OAs are present
+    if (validAreaNames !== null) {
+        for (const oa of validAreaNames) {
+            if (!foundAreaNames.has(oa)) {
+                throw new Error(`OA '${oa}' not found in scenario values.${src}`);
+            }
         }
     }
     return valuesMap;
 }
 
-/* Convert a ScenarioChanges map into a regular object.
- * TODO: precise object typing */
-export function toChangesObject(changes: ScenarioChanges): object {
+/* Convert a ScenarioChanges map into a regular object. */
+function toChangesObject(
+    changes: ScenarioChanges
+): ChangesObject {
     const changesObj = {};
     for (const [oa, m] of changes.entries()) {
         changesObj[oa] = {};
@@ -91,69 +137,85 @@ export function toChangesObject(changes: ScenarioChanges): object {
     return changesObj;
 }
 
-/* Convert a ScenarioValues map into a regular object.
- * TODO: precise object typing */
-export function toValuesObject(values: ScenarioValues, scaleFactors: Map<LayerName, { min: number, max: number }> | null): object {
+/* Convert a ScenarioValues map into a regular object. */
+function toValuesObject(
+    values: ScenarioValues,
+    scaleFactors: ScaleFactorMap | null,
+): ValuesObject {
     const valuesObj = {};
     for (const [oa, m] of values.entries()) {
         valuesObj[oa] = {};
-        for (const [layerName, val] of m.entries()) {
-            valuesObj[oa][layerName] = unscale(layerName, val, scaleFactors);
+        for (const [ln, val] of m.entries()) {
+            valuesObj[oa][ln] = unscale(ln, val, scaleFactors);
         }
     }
     return valuesObj;
 }
 
-/* Read in a scenario from a JSON file.
- * The JSON file must be an object with three keys:
- *    - metadata: an object with the keys name, short, long, description
- *    - changes: an object which can be parsed by createChangesMap
- *    - values: an object which can be parsed by createValuesMap
- * The `scale` parameter indicates whether the values should be scaled.
- * The function throws an error if the JSON is invalid in any way.
- * TODO: More precise types for the JSON object
- * TODO: expose a `source` argument for more informative error messages */
-export function fromScenarioObject(json: object, scaleFactors: Map<LayerName, { min: number, max: number }> | null): Scenario {
+/* Parse a JSON object into a Scenario.
+ *
+ * The JSON object must obey the schema set out in (TODO).
+ *
+ * @param {ScenarioObject} json The JSON object to parse.
+ * @param {ScaleFactorMap | null} scaleFactors The scale factors for each layer
+ * (see the `setupScaleFactors` function), or null if no scaling is to be
+ * performed.
+ * @param {Set<string> | null} validAreaNames A set of valid OA names, or null
+ * if no validation is to be performed. If the scenario changes or values have
+ * any keys that are not in this set, an error will be thrown.
+ * @param {string | null} source A string describing the source of the JSON
+ * object, or null if no source is to be specified. This is used for more
+ * informative error messages.
+ * @returns {Scenario} A Scenario object.
+ */
+export function fromScenarioObject(
+    json: ScenarioObject,
+    scaleFactors: ScaleFactorMap | null,
+    validAreaNames: Set<string> | null,
+    source: string | null,
+): Scenario {
+    const src = appendSource(source);
     // Validation: check top-level keys
     for (const field of ["metadata", "changes", "values"]) {
         if (!Object.hasOwn(json, field)) {
-            throw new Error(`The scenario JSON file does not have a '${field}' field.`);
+            throw new Error(`The scenario JSON file does not have a '${field}' field.${src}`);
         }
         if (typeof json[field] !== "object") {
-            throw new Error(`The ${field} field in the scenario JSON file is not an object.`);
+            throw new Error(`The ${field} field in the scenario JSON file is not an object.${src}`);
         }
     }
     // Validation: check metadata keys
     for (const field of ["name", "short", "long", "description"]) {
         if (!Object.hasOwn(json.metadata, field)) {
             throw new Error(
-                `The scenario JSON file does not have a 'metadata.${field}' key.`
+                `The scenario JSON file does not have a 'metadata.${field}' key.${src}`
             );
         }
         if (typeof json.metadata[field] !== "string") {
             throw new Error(
-                `The 'metadata.${field}' key in the scenario JSON file is not a string.`
+                `The 'metadata.${field}' key in the scenario JSON file is not a string.${src}`
             );
         }
     }
 
-    // TODO: Validation: check changes and values
-
     // Parsing
     const metadata = json.metadata;
-    const changes = fromChangesObject(json.changes);
-    const values = fromValuesObject(json.values, scaleFactors);
+    const changes = fromChangesObject(json.changes, validAreaNames, source);
+    const values = fromValuesObject(json.values, scaleFactors, validAreaNames,
+        source);
     return {
-        metadata: metadata as ScenarioMetadata,
+        metadata: metadata,
         changes: changes,
         values: values
     };
 }
 
 /* Convert a scenario to a regular object.
- * TODO: More precise types
  * TODO: Ensure that fromScenarioObject(toScenarioObject(scenario)) === scenario */
-export function toScenarioObject(scenario: Scenario, scaleFactors: Map<LayerName, { min: number, max: number }>): object {
+export function toScenarioObject(
+    scenario: Scenario,
+    scaleFactors: ScaleFactorMap
+): ScenarioObject {
     return {
         metadata: scenario.metadata,
         changes: toChangesObject(scenario.changes),

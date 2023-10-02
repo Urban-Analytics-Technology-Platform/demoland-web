@@ -1,39 +1,40 @@
 import {
-    type LayerName,
     type Scenario,
+    type ScaleFactorMap,
     allLayers,
 } from "src/constants";
 import { fromScenarioObject } from "src/utils/scenarios";
 import config from "src/data/config";
 
-/* This function reads the values from an unscaled Values map and returns a pair
- * of functions, one for scaling and one for unscaling.
- *
- * The rescaling is done by linearly interpolating between the global minimum
- * and maximum value for each indicator as found in the baseline.
- */
-export async function setupScaleFactors(): (Promise<Map<LayerName, { min: number, max: number }>>) {
-    // Read in the reference scenario (without scaling)
-    // TODO: Remove circular reference to fromScenarioObject (?)
-    const referenceScenario: Scenario = await fetch(config.referenceScenarioFile)
-        .then((response) => response.blob())
-        .then((blob) => blob.text())
-        .catch((e) => {
-            console.error(e);
-            throw new Error(`Could not read reference scenario from the file '${config.referenceScenarioFile}'. Does the file exist?`);
-        })
-        .then((text) => JSON.parse(text))
-        .catch((e) => {
-            console.error(e);
-            throw new Error(`Could not parse '${config.referenceScenarioFile}' as a valid JSON file.`);
-        })
-        .then((blob) => fromScenarioObject(blob, null))
+/* This function reads the reference scenario from the file specified in the
+ * config file, and returns a Scenario object. The values are not scaled, so
+ * this scenario should not be used for anything beyond app initialisation. */
+export function setupReferenceScenarioUnscaled(): Scenario {
+    // At this point we don't have a real ScaleFactorMap, so we set it to
+    // `null` to avoid scaling. The ScaleFactorMap that we use for
+    // everything else will be returned by this function. Likewise for the
+    // validAreaNames parameter.
+    return fromScenarioObject(config.referenceScenarioFile, null, null, "reference scenario");
+}
 
+/* This function returns a set of all valid area names, as read from the
+ * reference scenario. */
+export function setupAreaNames(referenceScenario: Scenario): Set<string> {
+    return new Set(referenceScenario.values.keys());
+}
+
+/* This function reads the values from an unscaled scenario (i.e., that returned
+ * by setupReferenceScenarioUnscaled()) and returns a ScaleFactorMap which can
+ * be used for scaling values. The rescale and unscale functions are defined in
+ * src/utils/scenarios, and work by linearly scaling all values in the baseline
+ * to lie between 0 and 100.
+ */
+export function setupScaleFactors(referenceScenarioUnscaled: Scenario): ScaleFactorMap {
     // Calculate current minimum and maximum values
-    const scaleFactors: Map<LayerName, { min: number, max: number }> = new Map();
+    const scaleFactors: ScaleFactorMap = new Map();
     for (const layerName of allLayers.keys()) {
         const allValues = [];
-        for (const oaValues of referenceScenario.values.values()) {
+        for (const oaValues of referenceScenarioUnscaled.values.values()) {
             allValues.push(oaValues.get(layerName));
         }
         scaleFactors.set(layerName, {
@@ -44,25 +45,18 @@ export async function setupScaleFactors(): (Promise<Map<LayerName, { min: number
     return scaleFactors;
 }
 
-/* Add in all the scenarios */
-const allScenarioFiles = [
-    config.referenceScenarioFile,
-    ...config.otherScenarioFiles
-];
-
-export async function setupScenarioMap(scaleFactors: Map<LayerName, { min: number, max: number }>): Promise<Map<string, Scenario>> {
-    const scenarioList = await Promise.all(
-        allScenarioFiles.map((scenarioFile) => {
-            return fetch(scenarioFile)
-                .then((response) => response.blob())
-                .then((blob) => blob.text())
-                .then((text) => JSON.parse(text))
-                .catch((e) => {
-                    console.error(e);
-                    throw new Error(`The file '${scenarioFile}' either does not exist, or could not be parsed as valid JSON.`);
-                })
-                .then((obj) => fromScenarioObject(obj, scaleFactors))
-        })
-    );
+/* This function sets up a Map of scaled Scenarios, with the scenario names as the
+ * keys. */
+export function setupScenarioMap(
+    scaleFactors: ScaleFactorMap,
+    validAreaNames: Set<string>,
+): Map<string, Scenario> {
+    const allScenarioObjects = [
+        config.referenceScenarioFile,
+        ...config.otherScenarioFiles
+    ];
+    const scenarioList = allScenarioObjects.map((scenarioObject, i) => {
+        return fromScenarioObject(scenarioObject, scaleFactors, validAreaNames, `scenario #${i}`);
+    });
     return new Map(scenarioList.map((scenario) => [scenario.metadata.name, scenario]));
 }

@@ -5,6 +5,7 @@
     import LeftSidebar from "src/lib/LeftSidebar.svelte";
     import RightSidebar from "src/lib/RightSidebar.svelte";
     import InitialErrorScreen from "src/lib/InitialErrorScreen.svelte";
+    import LoadingScreen from "src/lib/LoadingScreen.svelte";
     import { allLayers, type LayerName } from "src/constants";
     import {
         makeCombinedGeoJSON,
@@ -17,7 +18,14 @@
         scenarioName,
         compareScenarioName,
         scaleFactors,
+        validAreaNames,
     } from "src/stores";
+    import {
+        setupReferenceScenarioUnscaled,
+        setupScenarioMap,
+        setupScaleFactors,
+        setupAreaNames,
+    } from "src/initialise";
     import config from "src/data/config";
 
     /* --------- STATE VARIABLES ---------------------------------------- */
@@ -37,8 +45,9 @@
     let clickPopup: maplibregl.Popup | null = null;
     // The map object
     let map: maplibregl.Map;
-    // The data to be plotted on the map
-    // Initialised in the next section
+    // The data to be plotted on the map. This variable is only initialised
+    // after the map DOM is created, because it depends on the app
+    // initialisation code.
     let mapData: GeoJSON.FeatureCollection = undefined;
     // Whether the re-centre button needs to be shown
     let offcentre: boolean = false;
@@ -53,31 +62,30 @@
     let opacity: number = 0.8;
 
     /* --------- APP INITIALISATION ------------------------------------- */
-    import { setupScenarioMap, setupScaleFactors } from "src/initialise";
     let appState: "loading" | "error" | "ready" = "loading";
     let appErrorMessage: string = "";
-    onMount(async () => {
+    onMount(() => {
         try {
-            $scaleFactors = await setupScaleFactors();
-            $allScenarios = await setupScenarioMap($scaleFactors);
-            $scenarioName = $allScenarios.keys().next().value;
+            // See src/initialise.ts for descriptions.
+            const referenceScenarioUnscaled = setupReferenceScenarioUnscaled();
+            $scaleFactors = setupScaleFactors(referenceScenarioUnscaled);
+            $validAreaNames = setupAreaNames(referenceScenarioUnscaled);
+            $allScenarios = setupScenarioMap($scaleFactors, $validAreaNames);
+            // Set the initial scenario name to the reference scenario, and the
+            // scenario being compared against to nothing
+            $scenarioName = referenceScenarioUnscaled.metadata.name;
             $compareScenarioName = null;
             console.log(
                 `App initialised with ${$allScenarios.size} scenarios.`
             );
             console.log(`Scenario names: ${Array.from($allScenarios.keys())}`);
             console.log(`Initial scenario: ${$scenarioName}`);
-
             // Show the app
             appState = "ready";
-            // For debugging purposes
-            // setTimeout(() => {
-            //     appState = "loaded";
-            // }, 5000);
         } catch (e) {
-            // TODO: Replace with error screen
             console.error(e);
             appErrorMessage = e.toString();
+            // Show an error screen.
             appState = "error";
         }
     });
@@ -530,10 +538,7 @@
 {:else if appState === "error"}
     <InitialErrorScreen bind:appErrorMessage />
 {:else if appState === "loading"}
-    <div id="loading">
-        Loading...
-        <div id="spinner" />
-    </div>
+    <LoadingScreen />
 {/if}
 <svelte:window on:resize={resizeContainer} />
 
@@ -567,31 +572,5 @@
         box-sizing: border-box;
         padding: 5px;
         background-color: #e8e8e8; /* grey */
-    }
-
-    div#loading {
-        font-family: sans-serif;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    div#spinner {
-        border: 8px solid #eeeeee;
-        border-top: 8px solid #32a852;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
     }
 </style>

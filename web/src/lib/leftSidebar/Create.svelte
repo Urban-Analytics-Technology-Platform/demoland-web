@@ -10,12 +10,9 @@
         getLocalChanges,
         changesToApiJson,
     } from "src/lib/leftSidebar/helpers";
-    import { type Scenario } from "src/constants";
-    import {
-        fromChangesObject,
-        fromValuesObject,
-    } from "src/utils/scenarios";
-    import { allScenarios, scaleFactors } from "src/stores";
+    import { type ValuesObject, type ScenarioObject, type Scenario } from "src/constants";
+    import { fromScenarioObject } from "src/utils/scenarios";
+    import { allScenarios, scaleFactors, validAreaNames } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -64,23 +61,30 @@
 
     function handleApiResponse(response: Response, changesJson: string) {
         if (response.ok) {
-            response.json().then((values: object) => {
-                console.log("Success!");
-                const changes = JSON.parse(changesJson)["scenario_json"];
-                const newScenario: Scenario = {
+            response.json().then((values: ValuesObject) => {
+                console.log("Successfully retrieved JSON from API backend");
+                const obj: ScenarioObject = {
                     metadata: {
                         name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
                         short: scenarioShort,
                         long: "Custom: " + scenarioShort,
                         description: scenarioDescription,
                     },
-                    changes: fromChangesObject(changes),
-                    values: fromValuesObject(values, $scaleFactors),
+                    changes: JSON.parse(changesJson)["scenario_json"],
+                    values: values,
                 };
+                const newScenario: Scenario = fromScenarioObject(
+                    obj,
+                    $scaleFactors,
+                    $validAreaNames,
+                    "custom scenario from API backend"
+                );
                 // Check for name duplication
                 if ($allScenarios.has(newScenario.metadata.name)) {
                     let i = 1;
-                    while ($allScenarios.has(`${newScenario.metadata.name}_${i})`)) {
+                    while (
+                        $allScenarios.has(`${newScenario.metadata.name}_${i})`)
+                    ) {
                         i++;
                     }
                     newScenario.metadata.name = `${newScenario.metadata.name}_${i}`;
@@ -118,7 +122,6 @@
     function acceptChangesAndCalculate() {
         // TODO should check that metadata is not empty
         // or use a default value if it is
-
         const changedJson = changesToApiJson(getLocalChanges());
         step = "calc"; // move on
 

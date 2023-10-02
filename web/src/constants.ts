@@ -97,6 +97,14 @@ export type Scenario = {
     values: ScenarioValues        // values of all indicators and inputs
 };
 
+// Corresponding JSON types
+export type ChangesObject = { [oa: string]: { [mv in MacroVar]: number } }
+export type ValuesObject = { [oa: string]: { [ln in LayerName]: number } }
+export type MetadataObject = { name: string, short: string, long: string, description: string }
+export type ScenarioObject = { metadata: MetadataObject, changes: ChangesObject, values: ValuesObject }
+
+export type ScaleFactorMap = Map<LayerName, { min: number, max: number }>;
+
 export const signatures = [
     { name: "Wild countryside", color: "#d7ded1" },
     { name: "Countryside agriculture", color: "#f2e6c7" },
