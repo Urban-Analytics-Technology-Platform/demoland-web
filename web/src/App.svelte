@@ -64,17 +64,13 @@
     /* --------- APP INITIALISATION ------------------------------------- */
     let appState: "loading" | "error" | "ready" = "loading";
     let appErrorMessage: string = "";
-    onMount(async () => {
+    onMount(() => {
         try {
             // See src/initialise.ts for descriptions.
-            const referenceScenarioUnscaled =
-                await setupReferenceScenarioUnscaled();
+            const referenceScenarioUnscaled = setupReferenceScenarioUnscaled();
             $scaleFactors = setupScaleFactors(referenceScenarioUnscaled);
             $validAreaNames = setupAreaNames(referenceScenarioUnscaled);
-            $allScenarios = await setupScenarioMap(
-                $scaleFactors,
-                $validAreaNames
-            );
+            $allScenarios = setupScenarioMap($scaleFactors, $validAreaNames);
             // Set the initial scenario name to the reference scenario, and the
             // scenario being compared against to nothing
             $scenarioName = referenceScenarioUnscaled.metadata.name;

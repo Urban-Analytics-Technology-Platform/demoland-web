@@ -9,24 +9,12 @@ import config from "src/data/config";
 /* This function reads the reference scenario from the file specified in the
  * config file, and returns a Scenario object. The values are not scaled, so
  * this scenario should not be used for anything beyond app initialisation. */
-export async function setupReferenceScenarioUnscaled(): Promise<Scenario> {
-    return fetch(config.referenceScenarioFile)
-        .then((response) => response.blob())
-        .then((blob) => blob.text())
-        .catch((e) => {
-            console.error(e);
-            throw new Error(`Could not read reference scenario from the file '${config.referenceScenarioFile}'. Does the file exist?`);
-        })
-        .then((text) => JSON.parse(text))
-        .catch((e) => {
-            console.error(e);
-            throw new Error(`Could not parse '${config.referenceScenarioFile}' as a valid JSON file.`);
-        })
-        // At this point we don't have a real ScaleFactorMap, so we set it to
-        // `null` to avoid scaling. The ScaleFactorMap that we use for
-        // everything else will be returned by this function. Likewise for the
-        // validAreaNames parameter.
-        .then((blob) => fromScenarioObject(blob, null, null, config.referenceScenarioFile));
+export function setupReferenceScenarioUnscaled(): Scenario {
+    // At this point we don't have a real ScaleFactorMap, so we set it to
+    // `null` to avoid scaling. The ScaleFactorMap that we use for
+    // everything else will be returned by this function. Likewise for the
+    // validAreaNames parameter.
+    return fromScenarioObject(config.referenceScenarioFile, null, null, "reference scenario");
 }
 
 /* This function returns a set of all valid area names, as read from the
@@ -59,26 +47,16 @@ export function setupScaleFactors(referenceScenarioUnscaled: Scenario): ScaleFac
 
 /* This function sets up a Map of scaled Scenarios, with the scenario names as the
  * keys. */
-export async function setupScenarioMap(
+export function setupScenarioMap(
     scaleFactors: ScaleFactorMap,
     validAreaNames: Set<string>,
-): Promise<Map<string, Scenario>> {
-    const allScenarioFiles = [
+): Map<string, Scenario> {
+    const allScenarioObjects = [
         config.referenceScenarioFile,
         ...config.otherScenarioFiles
     ];
-    const scenarioList = await Promise.all(
-        allScenarioFiles.map((scenarioFile) => {
-            return fetch(scenarioFile)
-                .then((response) => response.blob())
-                .then((blob) => blob.text())
-                .then((text) => JSON.parse(text))
-                .catch((e) => {
-                    console.error(e);
-                    throw new Error(`The file '${scenarioFile}' either does not exist, or could not be parsed as valid JSON.`);
-                })
-                .then((obj) => fromScenarioObject(obj, scaleFactors, validAreaNames, scenarioFile))
-        })
-    );
+    const scenarioList = allScenarioObjects.map((scenarioObject, i) => {
+        return fromScenarioObject(scenarioObject, scaleFactors, validAreaNames, `scenario #${i}`);
+    });
     return new Map(scenarioList.map((scenario) => [scenario.metadata.name, scenario]));
 }
