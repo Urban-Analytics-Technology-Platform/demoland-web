@@ -1,10 +1,15 @@
 <script lang="ts">
-    export let clickedOAName: string | null;
     export let userChangesPresent: boolean;
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    import { allScenarios, scenarioName } from "src/stores";
+    import { onMount, onDestroy } from "svelte";
+    import {
+        allScenarios,
+        scenarioName,
+        customScenarioInProgress,
+        clickedOAs,
+    } from "src/stores";
     import { signatures, type MacroVar } from "src/constants";
     import {
         getLocalChanges,
@@ -32,7 +37,9 @@
         const allChanges = getLocalChanges();
         if (!sigModified && !jobModified && !useModified && !greenModified) {
             // If no changes, remove it from the Map
-            allChanges.delete(clickedOAName);
+            $clickedOAs.forEach((oa) => {
+                allChanges.delete(oa.name);
+            });
         } else {
             const thisChanges: Map<MacroVar, number | null> = new Map([
                 ["signature_type", sigModified ? sig : null],
@@ -40,13 +47,18 @@
                 ["use", useModified ? use : null],
                 ["greenspace", greenModified ? green : null],
             ]);
-            allChanges.set(clickedOAName, thisChanges);
+            $clickedOAs.forEach((oa) => {
+                allChanges.set(oa.name, thisChanges);
+            });
         }
         storeLocalChanges(allChanges);
         userChangesPresent = true;
     }
 
-    function loadOAChangesToUI(oaName: string) {
+    function loadOAChangesToUI(oas) {
+        console.log(oas);
+        if (oas.length === 0) return;
+        const oaName = oas[0].name;
         const oaChanges = getOAChanges(oaName);
         sig = oaChanges.get("signature_type");
         sigModified = sig !== null;
@@ -56,14 +68,32 @@
         useModified = use !== null;
         green = oaChanges.get("greenspace");
         greenModified = green !== null;
-        baselineSig = clickedOAName === null ? null : getBaselineSig();
+        baselineSig = getBaselineSig();
     }
 
-    function getBaselineSig(): number {
-        return $allScenarios
-            .get("baseline")
-            .values.get(clickedOAName)
-            .get("signature_type");
+    function getBaselineSig(): null | number | "different" {
+        if ($clickedOAs.length === 0) {
+            return null;
+        } else if ($clickedOAs.length === 1) {
+            const oaName = $clickedOAs[0].name;
+            return $allScenarios
+                .get("baseline")
+                .values.get(oaName)
+                .get("signature_type");
+        } else {
+            const oaNames = $clickedOAs.map((oa) => oa.name);
+            const baselineSigs = oaNames.map((oaName) =>
+                $allScenarios
+                    .get("baseline")
+                    .values.get(oaName)
+                    .get("signature_type")
+            );
+            if (baselineSigs.every((sig) => sig === baselineSigs[0])) {
+                return baselineSigs[0];
+            } else {
+                return "different";
+            }
+        }
     }
 
     // Load current scenario into local storage
@@ -72,7 +102,7 @@
     // Variables for OA modifiers
     let sig: number | null = null;
     let sigModified: boolean;
-    let baselineSig: number; // Only shown when sigModified is false
+    let baselineSig: null | number | "different"; // Only shown when sigModified is false
     let job: number | null = null;
     let jobModified: boolean;
     let use: number | null = null;
@@ -80,8 +110,15 @@
     let green: number | null = null;
     let greenModified: boolean;
 
-    // Update values in dropdowns whenever clickedOAName is changed
-    $: loadOAChangesToUI(clickedOAName);
+    onMount(() => {
+        $customScenarioInProgress = true;
+    });
+    onDestroy(() => {
+        $customScenarioInProgress = false;
+    });
+
+    // Update values in dropdowns whenever clickedOAs is changed
+    $: loadOAChangesToUI($clickedOAs);
 </script>
 
 <h3>Step 2: Modify output areas</h3>
@@ -97,8 +134,8 @@
     on:click={() => dispatch("proceedToMetadata", {})}
 />
 
-{#if clickedOAName !== null}
-    <p>Currently selected OA: {clickedOAName}</p>
+{#if 0}
+    <p>Currently selected OA: {"names"}</p>
 
     <div id="changes-grid">
         <label for="sig-modified">Signature</label>
@@ -169,7 +206,7 @@
         />
     </div>
 {:else}
-    <p class="no-bottom-margin">Click on an output area on the map to begin.</p>
+    <p class="no-bottom-margin">{JSON.stringify($clickedOAs)}</p>
 {/if}
 
 <style>

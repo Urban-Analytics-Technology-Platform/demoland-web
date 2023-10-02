@@ -9,3 +9,5 @@ export const scenarioName: Writable<string> = writable(undefined);
 export const compareScenarioName: Writable<string | null> = writable(undefined);
 export const scaleFactors: Writable<Map<LayerName, { min: number, max: number }>> = writable(undefined);
 export const validAreaNames: Writable<Set<string>> = writable(undefined);
+export const clickedOAs: Writable<{ id: number, name: string }[]> = writable(undefined);
+export const customScenarioInProgress: Writable<boolean> = writable(false);

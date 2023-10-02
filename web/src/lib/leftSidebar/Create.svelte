@@ -1,5 +1,4 @@
 <script lang="ts">
-    export let clickedOAName: string | null;
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import InputMetadata from "src/lib/leftSidebar/create/InputMetadata.svelte";
@@ -154,7 +153,6 @@ Create your own scenario by modifying an existing one.
 
 {#if step === "modify"}
     <ModifyOutputAreas
-        bind:clickedOAName
         bind:userChangesPresent
         on:returnToSelection={returnToSelection}
         on:proceedToMetadata={() => (step = "metadata")}

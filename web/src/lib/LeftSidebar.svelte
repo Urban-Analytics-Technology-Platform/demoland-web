@@ -13,7 +13,6 @@
     import Tabs from "src/lib/leftSidebar/Tabs.svelte";
 
     import { scenarioName, compareScenarioName } from "src/stores";
-    export let clickedOAName: string | null;
     let welcomeVisible: boolean = !(
         localStorage.getItem("doNotShowWelcome") === "true"
     );
@@ -72,7 +71,6 @@
                 />
             {:else if selectedTab === "create"}
                 <Create
-                    bind:clickedOAName
                     on:changeScenario={() => {
                         $compareScenarioName = null;
                         dispatch("changeScenario");
