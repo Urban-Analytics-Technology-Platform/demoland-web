@@ -10,7 +10,11 @@
         customScenarioInProgress,
         clickedOAs,
     } from "src/stores";
-    import { signatures, type MacroVar } from "src/constants";
+    import {
+        signatures,
+        type MacroVar,
+        type ScenarioChanges,
+    } from "src/constants";
     import {
         getLocalChanges,
         storeLocalChanges,
@@ -18,8 +22,12 @@
 
     import Slider from "./Slider.svelte";
 
-    function getOAChanges(oaName: string): Map<MacroVar, number | null> {
-        const changes = getLocalChanges();
+    // TODO (perhaps): Store this in localChanges
+    let changes: ScenarioChanges = $allScenarios.get($scenarioName).changes;
+
+    // Get changes belonging to a single OA. If none, return null for all
+    // editable layers
+    function getSingleOAChanges(oaName: string): Map<MacroVar, number | null> {
         if (changes.has(oaName)) {
             return changes.get(oaName);
         } else {
@@ -32,13 +40,13 @@
         }
     }
 
+    // Update changes for all selected OAs
     function updateOAChanges() {
-        console.log("Updating OA changes");
-        const allChanges = getLocalChanges();
+        console.log(`Updating OAs ${$clickedOAs.map((oa) => oa.name).join(", ")}`);
         if (!sigModified && !jobModified && !useModified && !greenModified) {
             // If no changes, remove it from the Map
             $clickedOAs.forEach((oa) => {
-                allChanges.delete(oa.name);
+                changes.delete(oa.name);
             });
         } else {
             const thisChanges: Map<MacroVar, number | null> = new Map([
@@ -48,17 +56,18 @@
                 ["greenspace", greenModified ? green : null],
             ]);
             $clickedOAs.forEach((oa) => {
-                allChanges.set(oa.name, thisChanges);
+                changes.set(oa.name, thisChanges);
             });
         }
-        storeLocalChanges(allChanges);
+        console.log(changes);
         userChangesPresent = true;
     }
 
+    // TODO UPDATE THIS
     function loadOAChangesToUI(oas) {
         if (oas.length === 0) return;
         const oaName = oas[0].name;
-        const oaChanges = getOAChanges(oaName);
+        const oaChanges = getSingleOAChanges(oaName);
         sig = oaChanges.get("signature_type");
         sigModified = sig !== null;
         job = oaChanges.get("job_types");
@@ -95,9 +104,6 @@
         }
     }
 
-    // Load current scenario into local storage
-    storeLocalChanges($allScenarios.get($scenarioName).changes);
-
     // Variables for OA modifiers
     let sig: number | null = null;
     let sigModified: boolean;
@@ -117,7 +123,10 @@
     });
 
     // Update values in dropdowns whenever clickedOAs is changed
-    $: loadOAChangesToUI($clickedOAs);
+    $: {
+        console.log(changes);
+        loadOAChangesToUI($clickedOAs);
+    }
 </script>
 
 <h3>Step 2: Modify output areas</h3>
@@ -133,8 +142,18 @@
     on:click={() => dispatch("proceedToMetadata", {})}
 />
 
-{#if 0}
-    <p>Currently selected OA: {"names"}</p>
+{#if $clickedOAs.length === 0}
+    <p>
+        Click on the map to select an output area to modify. You can select
+        multiple output areas by holding down the Shift key.
+    </p>
+{:else}
+    <p>
+        Currently selected {$clickedOAs.length} OA{$clickedOAs.length > 1
+            ? "s"
+            : ""}: {$clickedOAs.map((oa) => oa.name).join(", ")}
+    </p>
+    <p>(Shift-click to select more output areas, or click anywhere outside the map to deselect all output areas.)</p>
 
     <div id="changes-grid">
         <label for="sig-modified">Signature</label>
@@ -204,10 +223,6 @@
             step={0.01}
         />
     </div>
-{:else}
-    {#each $clickedOAs as oa}
-        <p class="no-bottom-margin">id: {oa.id}, name: {oa.name}</p>
-    {/each}
 {/if}
 
 <style>

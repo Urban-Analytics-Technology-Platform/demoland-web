@@ -1,8 +1,7 @@
-import { type MacroVar, type LayerName } from "src/constants";
-import { type Metadata, type Changes, type Values } from "src/scenarios";
+import { type ScenarioChanges } from "src/constants";
 
 // Helper functions to load / save changes from localStorage
-export function getLocalChanges(): Changes {
+export function getLocalChanges(): ScenarioChanges {
     const stringified = localStorage.getItem("changed");
     if (stringified === null) {
         return new Map();
@@ -21,7 +20,7 @@ export function clearLocalChanges() {
     localStorage.removeItem("changed");
 }
 
-export function storeLocalChanges(changes: Changes) {
+export function storeLocalChanges(changes: ScenarioChanges) {
     // calling JSON.stringify directly on a map-of-a-map doesn't work, so we
     // need to convert each inner map first
     const intermediateMap = new Map();
@@ -38,7 +37,7 @@ export function storeLocalChanges(changes: Changes) {
 // JSON expected by the Python API. This function generates the JSON for the API
 //
 // TODO: unify both of these, it's silly to have two different formats
-export function changesToApiJson(changes: Changes): string {
+export function changesToApiJson(changes: ScenarioChanges): string {
     const obj = {};
     for (const [key, value] of changes.entries()) {
         obj[key] = Object.fromEntries(value.entries());
