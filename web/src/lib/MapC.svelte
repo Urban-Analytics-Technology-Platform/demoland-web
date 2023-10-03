@@ -37,8 +37,9 @@
     // The IDs of the OA(s) which were clicked on. Empty if no OA was clicked
     // on. Generally, this is a single OA, but can be multiple OAs during
     // custom scenario creation.
-    let clickedId: number[] = [];
-    // The popup shown when clicking on an OA
+    let clickedIds = [];
+    // The popup shown when clicking on an OA (unless in custom scenario
+    // creation)
     let clickPopup: maplibregl.Popup | null = null;
     // The map object
     let map: maplibregl.Map;
@@ -80,8 +81,9 @@
                 const feat = e.features[0];
                 if (feat.id !== hoveredId) {
                     disableHover();
-                    if (!clickedId.includes(feat.id as number))
+                    if (!clickedIds.includes(feat.id as number)) {
                         enableHover(feat);
+                    }
                 }
             }
         });
@@ -93,33 +95,65 @@
         // the defaultPrevented check, this function is only used to catch
         // clicks _outside_ the area of interest.
         map.on("click", function (e) {
-            if (!e.defaultPrevented) {
-                if (clickPopup !== null) {
-                    clickPopup.remove();
-                }
+            if (!e.defaultPrevented && !e.originalEvent.shiftKey) {
+                clickedIds.forEach((x) => {
+                    setClickState(x, false);
+                });
+                clickedIds = [];
             }
         });
 
         // Click functionality within the area of interest.
         // TODO60 Layer name is hardcoded
-        // TODO check e.originalEvent.shiftKey
         map.on("click", "air_quality-layer", function (e) {
             e.preventDefault();
             if (e.features.length > 0) {
-                // Clicked on an OA
                 const feat = e.features[0];
-                if (clickPopup !== null) {
-                    clickPopup.remove();
+                const n = feat.id as number;
+                // Shift-click
+                if (e.originalEvent.shiftKey) {
+                    console.log("Shift-clicked on OA");
+                    if (clickedIds.includes(n)) {
+                        clickedIds = clickedIds.filter((x) => x !== n);
+                        setClickState(n, false);
+                    } else {
+                        clickedIds = [...clickedIds, n];
+                        setClickState(n, true);
+                    }
                 }
-                clickedId = [feat.id as number];
-                enableClick(feat);
-                // Centre map on that OA if the new div would obscure it.
-                const oaBounds = getGeometryBounds(feat.geometry);
-                if (oaInWindowEdge(oaBounds, map.getBounds())) {
-                    map.flyTo({
-                        center: oaBounds.getCenter(),
-                        speed: 0.5,
+                // Non-shift-click
+                else {
+                    console.log("non-shift-clicked on OA");
+                    clickedIds.forEach((x) => {
+                        setClickState(x, false);
                     });
+                    if (clickPopup !== null) {
+                        clickPopup.remove();
+                    }
+                    clickedIds = [n];
+                    setClickState(n, true);
+                    if (!customScenarioInProgress) {
+                        clickPopup = makePopup(
+                            map,
+                            feat,
+                            $compareScenarioName,
+                            activeLayer,
+                            true,
+                            $scaleFactors
+                        );
+                        clickPopup.on("close", () => {
+                            clickedIds.forEach((x) => setClickState(x, false));
+                            clickedIds = [];
+                        });
+                    }
+                    // Centre map on that OA if the new div would obscure it.
+                    const oaBounds = getGeometryBounds(feat.geometry);
+                    if (oaInWindowEdge(oaBounds, map.getBounds())) {
+                        map.flyTo({
+                            center: oaBounds.getCenter(),
+                            speed: 0.5,
+                        });
+                    }
                 }
             }
         });
@@ -189,21 +223,6 @@
         return x < 340 || x > window.innerWidth - 295;
     }
 
-    // Callback to be run when a click popup is closed (either via the close
-    // button, or when the user clicks somewhere else on the map). Note: this
-    // does not remove a popup. It is to be called when the popup is removed.
-    function clickPopupCleanup() {
-        if (clickedId.length > 0) {
-            clickedId.forEach((id) => {
-                map.setFeatureState(
-                    { source: SOURCE_ID, id: id },
-                    { click: false }
-                );
-            });
-            clickedId = [];
-        }
-    }
-
     // Disable the currently active hover state, and remove the popup.
     function disableHover() {
         if (hoveredId !== null) {
@@ -234,24 +253,6 @@
             $scaleFactors
         );
         hoveredId = feat.id as number;
-    }
-
-    // Activate click state on the map for the feature with the given numeric
-    // ID. Note: this does not generate a popup.
-    function enableClick(feat: GeoJSON.Feature) {
-        map.setFeatureState(
-            { source: SOURCE_ID, id: feat.id as number },
-            { click: true }
-        );
-        clickPopup = makePopup(
-            map,
-            feat,
-            $compareScenarioName,
-            activeLayer,
-            true,
-            $scaleFactors
-        );
-        clickPopup.on("close", clickPopupCleanup);
     }
 
     // Draw the map layers. This should only be called when the map is
@@ -403,26 +404,28 @@
             "boundary"
         ) as maplibregl.GeoJSONSource;
         boundarySource.setData(diffedBoundaries);
-        // Update the hover
-        refreshClickedFeature(mapData);
-    }
-
-    // Refresh the click popup whenever the underlying data is changed. This is
-    // necessary because the click popup contains indicator values etc.
-    function refreshClickedFeature(mapData: GeoJSON.FeatureCollection) {
-        if (clickedId.length > 0) {
-            // Have to save it here because clickPopup.remove() will remove it
-            const tmpClickedId = clickedId;
-            // Remove popup
-            if (clickPopup !== null) {
-                clickPopup.remove();
-            }
-            // Regenerate popup
-            clickedId = tmpClickedId;
+        // Update the click popup if necessary. This bit is required because
+        // the click popup contains e.g. indicator values
+        if (clickPopup !== null) {
+            const tmpClickedIds = clickedIds;
+            clickPopup.remove();
             const feat = mapData.features.find((feat) =>
-                clickedId.includes(feat.id as number)
+                tmpClickedIds.includes(feat.id as number)
             );
-            enableClick(feat);
+            clickPopup = makePopup(
+                map,
+                feat,
+                $compareScenarioName,
+                activeLayer,
+                true,
+                $scaleFactors
+            );
+            clickPopup.on("close", () => {
+                clickedIds.forEach((x) => setClickState(x, false));
+                clickedIds = [];
+            });
+            tmpClickedIds.forEach((x) => setClickState(x, true));
+            clickedIds = tmpClickedIds;
         }
     }
 
@@ -469,9 +472,13 @@
         }
     }
 
+    function setClickState(n: number, state: boolean) {
+        map.setFeatureState({ source: SOURCE_ID, id: n }, { click: state });
+    }
+
     $: {
         toggleBoxZoom($customScenarioInProgress);
-        $clickedOAs = clickedId.map((id) => ({
+        $clickedOAs = clickedIds.map((id) => ({
             id: id,
             name: getOAName(id),
         }));

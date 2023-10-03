@@ -56,7 +56,6 @@
     }
 
     function loadOAChangesToUI(oas) {
-        console.log(oas);
         if (oas.length === 0) return;
         const oaName = oas[0].name;
         const oaChanges = getOAChanges(oaName);
@@ -206,7 +205,9 @@
         />
     </div>
 {:else}
-    <p class="no-bottom-margin">{JSON.stringify($clickedOAs)}</p>
+    {#each $clickedOAs as oa}
+        <p class="no-bottom-margin">id: {oa.id}, name: {oa.name}</p>
+    {/each}
 {/if}
 
 <style>
