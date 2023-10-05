@@ -15,15 +15,14 @@
         type MacroVar,
         type ScenarioChanges,
     } from "src/constants";
-    import {
-        getLocalChanges,
-        storeLocalChanges,
-    } from "src/lib/leftSidebar/helpers";
 
     import Slider from "./Slider.svelte";
 
     // TODO (perhaps): Store this in localChanges
-    let changes: ScenarioChanges = $allScenarios.get($scenarioName).changes;
+    // Initialised inside onMount
+    // Not entirely clear what benefits we get from doing that. The changes are
+    // not persisted when leaving the page anyway.
+    let changes: ScenarioChanges;
 
     // Get changes belonging to a single OA. If none, return null for all
     // editable layers
@@ -40,66 +39,168 @@
         }
     }
 
-    // Update changes for all selected OAs
+    // Update changes for all selected OAs from the slider
     function updateOAChanges() {
-        console.log(`Updating OAs ${$clickedOAs.map((oa) => oa.name).join(", ")}`);
         if (!sigModified && !jobModified && !useModified && !greenModified) {
             // If no changes, remove it from the Map
             $clickedOAs.forEach((oa) => {
                 changes.delete(oa.name);
             });
         } else {
-            const thisChanges: Map<MacroVar, number | null> = new Map([
+            const userSetChanges: Map<MacroVar, number | null> = new Map([
                 ["signature_type", sigModified ? sig : null],
                 ["job_types", jobModified ? job : null],
                 ["use", useModified ? use : null],
                 ["greenspace", greenModified ? green : null],
             ]);
-            $clickedOAs.forEach((oa) => {
-                changes.set(oa.name, thisChanges);
-            });
+            // If there's only one clicked OA, then we want whatever's shown to
+            // apply to that OA immediately.
+            if ($clickedOAs.length === 1) {
+                $clickedOAs.forEach((oa) => {
+                    changes.set(oa.name, userSetChanges);
+                });
+            }
+            // If there are more than one clicked OAs, then we only want to
+            // update anything that is not `null`.
+            // TODO: UNLESS - the checkbox was actively unticked - in which
+            // case we want to set it to null...
+            // Maybe it's not so hard - the checkbox can only be unticked if
+            // the underlying values were equal for all OAs to begin with, so
+            // instead of checking for the state of the checkbox we can check
+            // for the underlying values?
+            else if ($clickedOAs.length > 1) {
+                $clickedOAs.forEach((oa) => {
+                    const thisOAChanges = getSingleOAChanges(oa.name);
+                    userSetChanges.forEach((macroVarValue, macroVar) => {
+                        if (macroVarValue !== null) {
+                            thisOAChanges.set(macroVar, macroVarValue);
+                        }
+                    });
+                    changes.set(oa.name, thisOAChanges);
+                });
+            }
         }
-        console.log(changes);
+        const changesAsText =
+            changes.size === 0
+                ? "No changes"
+                : [...changes.entries()]
+                      .map(([oaName, thisOAChanges]) => {
+                          return (
+                              oaName +
+                              ": " +
+                              [...thisOAChanges.entries()]
+                                  .map(([macroVar, value]) => {
+                                      return (
+                                          macroVar +
+                                          ": " +
+                                          String(value).padEnd(4, " ")
+                                      );
+                                  })
+                                  .join("; ")
+                          );
+                      })
+                      .join("\n");
+        console.log(changesAsText);
         userChangesPresent = true;
     }
 
-    // TODO UPDATE THIS
-    function loadOAChangesToUI(oas) {
+    // Determine what should be shown in the UI based on the current changes of
+    // all the clicked OAs
+    // We call this with $clickedOAs (instead of just using it directly in the
+    // function body) to make sure that Svelte reruns this code whenever OAs
+    // are selected.
+    // TODO: Fix ugly code repetition (!)
+    function loadOAChangesToUI(oas: Array<{ name: string }>) {
         if (oas.length === 0) return;
-        const oaName = oas[0].name;
-        const oaChanges = getSingleOAChanges(oaName);
-        sig = oaChanges.get("signature_type");
-        sigModified = sig !== null;
-        job = oaChanges.get("job_types");
-        jobModified = job !== null;
-        use = oaChanges.get("use");
-        useModified = use !== null;
-        green = oaChanges.get("greenspace");
-        greenModified = green !== null;
-        baselineSig = getBaselineSig();
+        else if (oas.length === 1) {
+            const oaName = oas[0].name;
+            const oaChanges = getSingleOAChanges(oaName);
+            sig = oaChanges.get("signature_type");
+            sigModified = sig !== null;
+            job = oaChanges.get("job_types");
+            jobModified = job !== null;
+            use = oaChanges.get("use");
+            useModified = use !== null;
+            green = oaChanges.get("greenspace");
+            greenModified = green !== null;
+            baselineSig = getBaselineSig(oas);
+        } else {
+            const allSigs: Array<number | null> = oas.map((oa) =>
+                getSingleOAChanges(oa.name).get("signature_type")
+            );
+            // If none of the values were changed, check if the baseline value
+            // is the same. If so, display that
+            if (allSigs.every((s) => s === null)) {
+                sig = getBaselineSig(oas);
+                sigModified = false;
+            }
+            // If all the values were changed to be the same thing, then we can
+            // display that value.
+            else if (allSigs.every((s) => s === allSigs[0])) {
+                sig = allSigs[0];
+                sigModified = true;
+            }
+            // Otherwise just dim the value
+            // TODO: Show the baseline value if they are all the same
+            else {
+                sig = null;
+                sigModified = false;
+            }
+            const allJobs: Array<number | null> = oas.map((oa) =>
+                getSingleOAChanges(oa.name).get("job_types")
+            );
+            if (allJobs.every((j) => j === allJobs[0] && j !== null)) {
+                job = allJobs[0];
+                jobModified = true;
+            } else {
+                job = null;
+                jobModified = false;
+            }
+            const allUses: Array<number | null> = oas.map((oa) =>
+                getSingleOAChanges(oa.name).get("use")
+            );
+            if (allUses.every((u) => u === allUses[0] && u !== null)) {
+                use = allUses[0];
+                useModified = true;
+            } else {
+                use = null;
+                useModified = false;
+            }
+            const allGreens: Array<number | null> = oas.map((oa) =>
+                getSingleOAChanges(oa.name).get("greenspace")
+            );
+            if (allGreens.every((g) => g === allGreens[0] && g !== null)) {
+                green = allGreens[0];
+                greenModified = true;
+            } else {
+                green = null;
+                greenModified = false;
+            }
+        }
     }
 
-    function getBaselineSig(): null | number | "different" {
-        if ($clickedOAs.length === 0) {
+    function getBaselineSig(oas: Array<{ name: string }>): null | number {
+        if (oas.length === 0) {
             return null;
-        } else if ($clickedOAs.length === 1) {
-            const oaName = $clickedOAs[0].name;
+        } else if (oas.length === 1) {
+            const oaName = oas[0].name;
             return $allScenarios
                 .get("baseline")
                 .values.get(oaName)
                 .get("signature_type");
         } else {
-            const oaNames = $clickedOAs.map((oa) => oa.name);
+            const oaNames = oas.map((oa) => oa.name);
             const baselineSigs = oaNames.map((oaName) =>
                 $allScenarios
                     .get("baseline")
                     .values.get(oaName)
                     .get("signature_type")
             );
-            if (baselineSigs.every((sig) => sig === baselineSigs[0])) {
+            console.log(baselineSigs);
+            if (baselineSigs.every((s) => s === baselineSigs[0])) {
                 return baselineSigs[0];
             } else {
-                return "different";
+                return null;
             }
         }
     }
@@ -115,17 +216,20 @@
     let green: number | null = null;
     let greenModified: boolean;
 
+    let mounted = false;
     onMount(() => {
         $customScenarioInProgress = true;
+        changes = $allScenarios.get($scenarioName).changes;
+        mounted = true;
     });
     onDestroy(() => {
         $customScenarioInProgress = false;
+        changes = new Map();
     });
 
     // Update values in dropdowns whenever clickedOAs is changed
     $: {
-        console.log(changes);
-        loadOAChangesToUI($clickedOAs);
+        if (mounted) loadOAChangesToUI($clickedOAs);
     }
 </script>
 
@@ -153,7 +257,10 @@
             ? "s"
             : ""}: {$clickedOAs.map((oa) => oa.name).join(", ")}
     </p>
-    <p>(Shift-click to select more output areas, or click anywhere outside the map to deselect all output areas.)</p>
+    <p>
+        (Shift-click to select more output areas, or click anywhere outside the
+        map to deselect all output areas.)
+    </p>
 
     <div id="changes-grid">
         <label for="sig-modified">Signature</label>
@@ -163,7 +270,10 @@
             bind:checked={sigModified}
             on:change={() => {
                 if (sigModified) {
-                    sig = getBaselineSig();
+                    sig = getBaselineSig($clickedOAs);
+                }
+                if ($clickedOAs.length > 1 && !sigModified) {
+                    sig = null;
                 }
                 updateOAChanges();
             }}
@@ -246,9 +356,5 @@
 
     select#sig-dropdown {
         grid-column: 3 / span 2;
-    }
-
-    p.no-bottom-margin {
-        margin-bottom: 0;
     }
 </style>
