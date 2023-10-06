@@ -142,8 +142,6 @@
             const allBaselineSigs: Array<number> = oas.map((oa) =>
                 getSingleOAChanges(oa.name).get("baseline_sig")
             );
-            console.log("allSigs", allSigs);
-            console.log("allBaselineSigs", allBaselineSigs);
             // If none of the values were changed, check if the baseline values
             // are all the same. If so, display that
             if (allSigs.every((s) => s === null)) {

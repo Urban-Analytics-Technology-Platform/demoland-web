@@ -112,7 +112,6 @@
                 const n = feat.id as number;
                 // Shift-click
                 if (e.originalEvent.shiftKey) {
-                    console.log("Shift-clicked on OA");
                     if (clickedIds.includes(n)) {
                         clickedIds = clickedIds.filter((x) => x !== n);
                         setClickState(n, false);
@@ -123,7 +122,6 @@
                 }
                 // Non-shift-click
                 else {
-                    console.log("non-shift-clicked on OA");
                     clickedIds.forEach((x) => {
                         setClickState(x, false);
                     });
