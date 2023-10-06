@@ -26,7 +26,9 @@
 
     // Get changes belonging to a single OA. If none, return null for all
     // editable layers
-    function getSingleOAChanges(oaName: string): Map<MacroVar, number | null> {
+    function getSingleOAChanges(
+        oaName: string
+    ): Map<MacroVar | "baseline_sig", number | null> {
         if (changes.has(oaName)) {
             return changes.get(oaName);
         } else {
@@ -35,6 +37,13 @@
                 ["job_types", null],
                 ["use", null],
                 ["greenspace", null],
+                [
+                    "baseline_sig",
+                    $allScenarios
+                        .get("baseline")
+                        .values.get(oaName)
+                        .get("signature_type"),
+                ],
             ]);
         }
     }
@@ -113,6 +122,7 @@
     function loadOAChangesToUI(oas: Array<{ name: string }>) {
         if (oas.length === 0) return;
         else if (oas.length === 1) {
+            // Exactly one OA selected
             const oaName = oas[0].name;
             const oaChanges = getSingleOAChanges(oaName);
             sig = oaChanges.get("signature_type");
@@ -123,28 +133,47 @@
             useModified = use !== null;
             green = oaChanges.get("greenspace");
             greenModified = green !== null;
-            baselineSig = getBaselineSig(oas);
+            baselineSig = oaChanges.get("baseline_sig");
         } else {
+            // More than one OA selected
             const allSigs: Array<number | null> = oas.map((oa) =>
                 getSingleOAChanges(oa.name).get("signature_type")
             );
-            // If none of the values were changed, check if the baseline value
-            // is the same. If so, display that
+            const allBaselineSigs: Array<number> = oas.map((oa) =>
+                getSingleOAChanges(oa.name).get("baseline_sig")
+            );
+            console.log("allSigs", allSigs);
+            console.log("allBaselineSigs", allBaselineSigs);
+            // If none of the values were changed, check if the baseline values
+            // are all the same. If so, display that
             if (allSigs.every((s) => s === null)) {
-                sig = getBaselineSig(oas);
                 sigModified = false;
+                if (allBaselineSigs.every((s) => s === allBaselineSigs[0])) {
+                    baselineSig = allBaselineSigs[0];
+                } else {
+                    baselineSig = null;
+                }
             }
-            // If all the values were changed to be the same thing, then we can
-            // display that value.
-            else if (allSigs.every((s) => s === allSigs[0])) {
-                sig = allSigs[0];
-                sigModified = true;
-            }
-            // Otherwise just dim the value
-            // TODO: Show the baseline value if they are all the same
-            else {
+            // If some of the values were changed, but not all, display an unchecked checkbox
+            else if (allSigs.some((s) => s !== null)) {
                 sig = null;
                 sigModified = false;
+                baselineSig = null;
+            }
+            // If we reached here, then that means that all of the values were
+            // changed to something else.
+            else {
+                // If they were all changed to the same thing, display that value.
+                if (allSigs.every((s) => s === allSigs[0])) {
+                    sig = allSigs[0];
+                    sigModified = true;
+                }
+                // Otherwise, they were all changed to different things. Just
+                // default to an unchecked box
+                else {
+                    sig = null;
+                    sigModified = false;
+                }
             }
             const allJobs: Array<number | null> = oas.map((oa) =>
                 getSingleOAChanges(oa.name).get("job_types")
@@ -179,36 +208,10 @@
         }
     }
 
-    function getBaselineSig(oas: Array<{ name: string }>): null | number {
-        if (oas.length === 0) {
-            return null;
-        } else if (oas.length === 1) {
-            const oaName = oas[0].name;
-            return $allScenarios
-                .get("baseline")
-                .values.get(oaName)
-                .get("signature_type");
-        } else {
-            const oaNames = oas.map((oa) => oa.name);
-            const baselineSigs = oaNames.map((oaName) =>
-                $allScenarios
-                    .get("baseline")
-                    .values.get(oaName)
-                    .get("signature_type")
-            );
-            console.log(baselineSigs);
-            if (baselineSigs.every((s) => s === baselineSigs[0])) {
-                return baselineSigs[0];
-            } else {
-                return null;
-            }
-        }
-    }
-
     // Variables for OA modifiers
     let sig: number | null = null;
     let sigModified: boolean;
-    let baselineSig: null | number | "different"; // Only shown when sigModified is false
+    let baselineSig: null | number;
     let job: number | null = null;
     let jobModified: boolean;
     let use: number | null = null;
@@ -270,7 +273,7 @@
             bind:checked={sigModified}
             on:change={() => {
                 if (sigModified) {
-                    sig = getBaselineSig($clickedOAs);
+                    sig = baselineSig;
                 }
                 if ($clickedOAs.length > 1 && !sigModified) {
                     sig = null;
