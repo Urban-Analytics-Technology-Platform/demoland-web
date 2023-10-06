@@ -58,20 +58,19 @@ make be-deps   # First time only
 make be
 ```
 
-To run both frontend and backend concurrently, do:
+Note that this exposes the backend API on port 5174; this is where the frontend expects to find it.
+Specifically, the frontend looks for the `/api/` endpoint, which Vite reverse-proxies to port 5174.
+
+When running under Docker, the backend is not exposed to the host computer (it is only exposed to other containers).
+Running this locally is the only way to directly test the backend.
+
+Finally, to run both frontend and backend concurrently, do:
 
 ```
 make fe-deps   # First time only
 make be-deps   # First time only
 make local
 ```
-
-Note that the backend must be exposed on port 5174; this is where the frontend expects to find it.
-Specifically, the frontend looks for the `/api/` endpoint, which Vite reverse-proxies to port 5174.
-
-When running under Docker, the backend is not exposed to the host computer (it is only exposed to other containers).
-Running this locally is the only way to directly test the backend.
-
 
 ## Spinning up a new, customised copy of DemoLand
 
