@@ -16,6 +16,7 @@
         scaleFactors,
         customScenarioInProgress,
         clickedOAs,
+        hoveredId,
     } from "src/stores";
     import { onMount, onDestroy } from "svelte";
 
@@ -30,14 +31,8 @@
     /* --- OTHER STATE VARIABLES ------------------------------------------ */
     // The source id for the OA data. This can be any value, it's not important.
     const SOURCE_ID = "geojson_source";
-    // The numeric ID of the OA being hovered over.
-    let hoveredId: number | null = null;
     // The popup shown when hovering over an OA
     let hoverPopup: maplibregl.Popup | null = null;
-    // The IDs of the OA(s) which were clicked on. Empty if no OA was clicked
-    // on. Generally, this is a single OA, but can be multiple OAs during
-    // custom scenario creation.
-    let clickedIds = [];
     // The popup shown when clicking on an OA (unless in custom scenario
     // creation)
     let clickPopup: maplibregl.Popup | null = null;
@@ -79,9 +74,11 @@
         map.on("mousemove", "air_quality-layer", function (e) {
             if (e.features.length > 0) {
                 const feat = e.features[0];
-                if (feat.id !== hoveredId) {
+                if (feat.id !== $hoveredId) {
                     disableHover();
-                    if (!clickedIds.includes(feat.id as number)) {
+                    if (
+                        !$clickedOAs.some((x) => x.id === (feat.id as number))
+                    ) {
                         enableHover(feat);
                     }
                 }
@@ -96,10 +93,7 @@
         // clicks _outside_ the area of interest.
         map.on("click", function (e) {
             if (!e.defaultPrevented && !e.originalEvent.shiftKey) {
-                clickedIds.forEach((x) => {
-                    setClickState(x, false);
-                });
-                clickedIds = [];
+                $clickedOAs = [];
             }
         });
 
@@ -112,25 +106,22 @@
                 const n = feat.id as number;
                 // Shift-click
                 if (e.originalEvent.shiftKey) {
-                    if (clickedIds.includes(n)) {
-                        clickedIds = clickedIds.filter((x) => x !== n);
-                        setClickState(n, false);
+                    if ($clickedOAs.some((oa) => oa.id === n)) {
+                        $clickedOAs = $clickedOAs.filter((oa) => oa.id !== n);
                     } else {
-                        clickedIds = [...clickedIds, n];
-                        setClickState(n, true);
+                        $clickedOAs = [
+                            ...$clickedOAs,
+                            { id: n, name: getOAName(n) },
+                        ];
                     }
                 }
                 // Non-shift-click
                 else {
-                    clickedIds.forEach((x) => {
-                        setClickState(x, false);
-                    });
                     if (clickPopup !== null) {
                         clickPopup.remove();
                     }
-                    clickedIds = [n];
-                    setClickState(n, true);
-                    if (!customScenarioInProgress) {
+                    $clickedOAs = [{ id: n, name: getOAName(n) }];
+                    if (!$customScenarioInProgress) {
                         clickPopup = makePopup(
                             map,
                             feat,
@@ -140,8 +131,7 @@
                             $scaleFactors
                         );
                         clickPopup.on("close", () => {
-                            clickedIds.forEach((x) => setClickState(x, false));
-                            clickedIds = [];
+                            $clickedOAs = [];
                         });
                     }
                     // Centre map on that OA if the new div would obscure it.
@@ -223,12 +213,12 @@
 
     // Disable the currently active hover state, and remove the popup.
     function disableHover() {
-        if (hoveredId !== null) {
+        if ($hoveredId !== null) {
             map.setFeatureState(
-                { source: SOURCE_ID, id: hoveredId },
+                { source: SOURCE_ID, id: $hoveredId },
                 { hover: false }
             );
-            hoveredId = null;
+            $hoveredId = null;
         }
         if (hoverPopup !== null) {
             hoverPopup.remove();
@@ -250,7 +240,7 @@
             false,
             $scaleFactors
         );
-        hoveredId = feat.id as number;
+        $hoveredId = feat.id as number;
     }
 
     // Draw the map layers. This should only be called when the map is
@@ -405,10 +395,10 @@
         // Update the click popup if necessary. This bit is required because
         // the click popup contains e.g. indicator values
         if (clickPopup !== null) {
-            const tmpClickedIds = clickedIds;
+            const tmpClickedOAs = $clickedOAs;
             clickPopup.remove();
             const feat = mapData.features.find((feat) =>
-                tmpClickedIds.includes(feat.id as number)
+                tmpClickedOAs.some((oa) => oa.id === (feat.id as number))
             );
             clickPopup = makePopup(
                 map,
@@ -419,11 +409,9 @@
                 $scaleFactors
             );
             clickPopup.on("close", () => {
-                clickedIds.forEach((x) => setClickState(x, false));
-                clickedIds = [];
+                $clickedOAs = [];
             });
-            tmpClickedIds.forEach((x) => setClickState(x, true));
-            clickedIds = tmpClickedIds;
+            $clickedOAs = tmpClickedOAs;
         }
     }
 
@@ -470,16 +458,26 @@
         }
     }
 
-    function setClickState(n: number, state: boolean) {
-        map.setFeatureState({ source: SOURCE_ID, id: n }, { click: state });
-    }
-
+    // Declare variables for $: block
+    let oldClickedIds: number[] = [];
+    let clickedIds: number[] = [];
     $: {
+        // Toggle map UI based on whether custom scenarios are happening
         toggleBoxZoom($customScenarioInProgress);
-        $clickedOAs = clickedIds.map((id) => ({
-            id: id,
-            name: getOAName(id),
-        }));
+        if ($customScenarioInProgress && clickPopup) {
+            clickPopup.remove();
+            clickPopup = null;
+        }
+
+        // Toggle map click state based on $clickedOAs store
+        oldClickedIds = clickedIds;
+        oldClickedIds.forEach((id) =>
+            map.setFeatureState({ source: SOURCE_ID, id: id }, { click: false })
+        );
+        clickedIds = $clickedOAs.map((oa) => oa.id);
+        clickedIds.forEach((id) =>
+            map.setFeatureState({ source: SOURCE_ID, id: id }, { click: true })
+        );
     }
 </script>
 
