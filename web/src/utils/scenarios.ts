@@ -124,7 +124,7 @@ function fromValuesObject(
 }
 
 /* Convert a ScenarioChanges map into a regular object. */
-function toChangesObject(
+export function toChangesObject(
     changes: ScenarioChanges
 ): ChangesObject {
     const changesObj = {};

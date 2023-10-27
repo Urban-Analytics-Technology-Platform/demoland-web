@@ -1,12 +1,11 @@
 <script lang="ts">
-    export let userChangesPresent: boolean;
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
+    import Slider from "./Slider.svelte";
     import { onMount, onDestroy } from "svelte";
     import {
         allScenarios,
-        scenarioName,
         customScenarioInProgress,
         clickedOAs,
     } from "src/stores";
@@ -16,36 +15,46 @@
         type ScenarioChanges,
     } from "src/constants";
 
-    import Slider from "./Slider.svelte";
+    // The actual changes
+    export let changes: ScenarioChanges;
+    // Flag to determine whether changes were made relative to the scenario the
+    // user started from.
+    export let userChangesPresent: boolean;
 
-    // TODO (perhaps): Store this in localChanges
-    // Initialised inside onMount
-    // Not entirely clear what benefits we get from doing that. The changes are
-    // not persisted when leaving the page anyway.
-    let changes: ScenarioChanges;
+    // Initialisation code
+    let mounted = false;
+    onMount(() => {
+        $customScenarioInProgress = true;
+        mounted = true;
+    });
+    onDestroy(() => {
+        $customScenarioInProgress = false;
+    });
+
+    function getBaselineSig(oaName: string): number {
+        return $allScenarios
+            .get("baseline")
+            .values.get(oaName)
+            .get("signature_type");
+    }
 
     // Get changes belonging to a single OA. If none, return null for all
     // editable layers
     function getSingleOAChanges(
         oaName: string
     ): Map<MacroVar | "baseline_sig", number | null> {
-        if (changes.has(oaName)) {
-            return changes.get(oaName);
-        } else {
-            return new Map([
-                ["signature_type", null],
-                ["job_types", null],
-                ["use", null],
-                ["greenspace", null],
-                [
-                    "baseline_sig",
-                    $allScenarios
-                        .get("baseline")
-                        .values.get(oaName)
-                        .get("signature_type"),
-                ],
-            ]);
-        }
+        const hasChanges = changes.has(oaName);
+        const thisChanges = changes.get(oaName);
+        return new Map([
+            [
+                "signature_type",
+                hasChanges ? thisChanges.get("signature_type") : null,
+            ],
+            ["job_types", hasChanges ? thisChanges.get("job_types") : null],
+            ["use", hasChanges ? thisChanges.get("use") : null],
+            ["greenspace", hasChanges ? thisChanges.get("greenspace") : null],
+            ["baseline_sig", getBaselineSig(oaName)],
+        ]);
     }
 
     // Update changes for all selected OAs from the slider
@@ -69,14 +78,8 @@
                     changes.set(oa.name, userSetChanges);
                 });
             }
-            // If there are more than one clicked OAs, then we only want to
-            // update anything that is not `null`.
-            // TODO: UNLESS - the checkbox was actively unticked - in which
-            // case we want to set it to null...
-            // Maybe it's not so hard - the checkbox can only be unticked if
-            // the underlying values were equal for all OAs to begin with, so
-            // instead of checking for the state of the checkbox we can check
-            // for the underlying values?
+            // If there is more than one clicked OA, then we only want to
+            // update any of the macrovariable inputs that are not `null`.
             else if ($clickedOAs.length > 1) {
                 $clickedOAs.forEach((oa) => {
                     const thisOAChanges = getSingleOAChanges(oa.name);
@@ -85,7 +88,8 @@
                             thisOAChanges.set(macroVar, macroVarValue);
                         }
                     });
-                    changes.set(oa.name, thisOAChanges);
+                    thisOAChanges.delete("baseline_sig");
+                    changes.set(oa.name, thisOAChanges as Map<MacroVar, number>);
                 });
             }
         }
@@ -153,7 +157,10 @@
                 }
             }
             // If some of the values were changed, but not all, display an unchecked checkbox
-            else if (allSigs.some((s) => s !== null)) {
+            else if (
+                allSigs.some((s) => s !== null) &&
+                allSigs.some((s) => s === null)
+            ) {
                 sig = null;
                 sigModified = false;
                 baselineSig = null;
@@ -216,17 +223,6 @@
     let useModified: boolean;
     let green: number | null = null;
     let greenModified: boolean;
-
-    let mounted = false;
-    onMount(() => {
-        $customScenarioInProgress = true;
-        changes = $allScenarios.get($scenarioName).changes;
-        mounted = true;
-    });
-    onDestroy(() => {
-        $customScenarioInProgress = false;
-        changes = new Map();
-    });
 
     // Update values in dropdowns whenever clickedOAs is changed
     $: {
