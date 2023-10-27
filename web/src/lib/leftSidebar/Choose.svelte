@@ -25,10 +25,8 @@
     let previousScenarioName: string = $scenarioName;
     let previousCompareScenarioName: string | null = $compareScenarioName;
 
-    function changeScenario(event) {
-        console.log(event);
+    function changeScenario() {
         if ($compareScenarioName === $scenarioName) {
-            // To deal with a slightly annoying bug, see #38
             $compareScenarioName = null;
         }
         dispatch("changeScenario", {});

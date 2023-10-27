@@ -113,7 +113,7 @@
                           );
                       })
                       .join("\n");
-        console.log(changesAsText);
+        console.log('Updated \'changes\' to:\n', changesAsText);
         userChangesPresent = true;
     }
 
