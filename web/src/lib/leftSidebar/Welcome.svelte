@@ -2,13 +2,14 @@
     import leftSidebarScreenshot from "src/assets/left-sidebar.png";
     import rightSidebarScreenshot from "src/assets/right-sidebar.png";
     import mapScreenshot from "src/assets/map.png";
+    import changesScreenshot from "src/assets/changes.png";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =
         localStorage.getItem("doNotShowWelcome") === "true";
 
-    const bookUrl: string = "https://ciupava.github.io/LandUseDemonstrator"
+    const bookUrl: string = "https://ciupava.github.io/LandUseDemonstrator";
 
     // Whether the welcome screen is visible (initialised based on page load
     // setting, but can be toggled if the user wants to re-display it)
@@ -101,14 +102,14 @@
 
             <h2 class="smaller-bottom-margin">How to use</h2>
 
-            <div id="flex-navigation-help">
-                <div>
-                    <p>
+            <div class="flex-navigation-help">
+                <div class="flex-help">
+                    <span>
                         The <b>map</b> shows the area of Tyne and Wear county as
                         it is seen through the data today and in the seven development
                         scenarios.
-                    </p>
-                    <p>
+                    </span>
+                    <span>
                         The county is subdivided into 3,795
                         <a
                             href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/2011censuspopulationandhouseholdestimatesforsmallareasinenglandandwales/2012-11-23"
@@ -116,36 +117,48 @@
                             >Output Area geometries from the 2011 UK Census</a
                         >. You can hover or click on each Output Area to see
                         specific details about it.
-                    </p>
+                    </span>
                 </div>
                 <img src={mapScreenshot} alt="Screenshot of map" />
             </div>
 
-            <div id="flex-navigation-help">
+            <div class="flex-navigation-help">
                 <img
                     src={leftSidebarScreenshot}
                     alt="Screenshot of left sidebar"
                 />
-                <div>
-                    <p>
-                        Use the <b>left navigation bar</b> to change the scenario
-                        or switch to a comparison mode.
-                    </p>
-                    <p>
+                <div class="flex-help">
+                    <span>
+                        When in the <i>&lsquo;View scenarios&rsquo;</i> mode,
+                        use the
+                        <b>left navigation bar</b> to change the scenario or switch
+                        to a comparison mode.
+                    </span>
+                    <span>
                         The changes in each scenario (relative to the baseline)
                         are contained within a specific area of Tyne and Wear.
-                        When a scenario is selected, the modified area is
-                        outlined on the map in black.
-                    </p>
+                        When a scenario is selected, this modified area is
+                        outlined on the map in black:
+                    </span>
+                    <img
+                        class="align-center"
+                        src={changesScreenshot}
+                        alt="Modified area outlined in black"
+                        width="40%"
+                    />
+                    <span>
+                        You can also use the other tabs to create your own
+                        scenarios, or import scenarios from JSON files.
+                    </span>
                 </div>
             </div>
 
-            <div id="flex-navigation-help">
-                <div>
-                    <p>
+            <div class="flex-navigation-help">
+                <div class="flex-help">
+                    <span>
                         Use the <b>right navigation bar</b> to change what is displayed
                         on the map. You can choose between:
-                    </p>
+                    </span>
                     <ul>
                         <li>
                             <i>Land use</i>, as characterised by
@@ -154,7 +167,7 @@
                             >;
                         </li>
                     </ul>
-                    or any of the four quality-of-life indicators:
+                    <span>or any of the four quality-of-life indicators:</span>
                     <ul>
                         <li>
                             <i>Air pollution</i>, a composite index based on
@@ -185,11 +198,9 @@
 
 <style>
     button#background-cover-button {
-        /* remove all styling. Could use display: contents instead. */
-        background: none;
-        border: none;
-        padding: 0;
-        margin: 0;
+        /* remove all styling and make sure it doesn't occupy any space (or
+         * create a gap in the parent flexbox) */
+        display: contents;
     }
     div#background-cover {
         width: 100vw;
@@ -264,15 +275,34 @@
     ul > li {
         margin-bottom: 10px;
     }
+    ul > li:last-child {
+        margin-bottom: 0px;
+    }
 
-    div#flex-navigation-help {
+    div.flex-navigation-help {
         display: flex;
         gap: 40px;
         align-items: center;
         margin-bottom: 30px;
     }
 
-    div#flex-navigation-help > img {
+    div.flex-navigation-help > img {
         width: 250px;
+    }
+
+    div.flex-help {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: 15px;
+    }
+
+    div.flex-help > img.align-center {
+        margin: 0 auto;
+    }
+
+    div.flex-help > ul {
+        margin-top: 0px;
+        margin-bottom: 0px;
     }
 </style>
