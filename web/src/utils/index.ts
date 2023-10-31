@@ -14,8 +14,9 @@ export function parseJsonAsPromise(source: string, json: string): Promise<object
     }
 }
 
-export function overlayScrollbars(id: string) {
-    OverlayScrollbars(document.getElementById(id), {
+export function overlayScrollbars(node: HTMLElement) {
+    console.log(node);
+    OverlayScrollbars(node, {
         overflow: {
             x: 'hidden',
         },
@@ -27,4 +28,3 @@ export function overlayScrollbars(id: string) {
         },
     });
 }
-
