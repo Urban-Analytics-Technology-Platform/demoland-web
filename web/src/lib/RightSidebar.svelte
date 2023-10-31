@@ -45,9 +45,8 @@
 
 <style>
     div#right-sidebar {
-        display: grid;
-        grid-template-columns: 15px 225px;
-        align-items: baseline;
-        margin: 0px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 </style>

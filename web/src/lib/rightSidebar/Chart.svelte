@@ -230,7 +230,7 @@
     intentional and is because of an odd interaction where if a chart says 'no
     changes', and the scenario selection is toggled back to a comparison where
     there are changes, the chart doesn't show up again. -->
-    <div id="chart-container" class={noChangesAtAll ? "no-changes" : ""}>
+    <div class={noChangesAtAll ? "no-changes" : ""}>
         <div class="chart-canvas" style="height: {chartHeight}">
             <canvas id="chart-{indicatorName}" />
         </div>
@@ -249,6 +249,10 @@
 </div>
 
 <style>
+    div.chart-container {
+        width: 225px;
+        max-width: 225px;
+    }
     div.chart-pointers {
         display: flex;
     }

@@ -1,9 +1,5 @@
 <script lang="ts">
-    import {
-        type LayerName,
-        allInputs,
-        allIndicators,
-    } from "src/constants";
+    import { type LayerName, allInputs, allIndicators } from "src/constants";
     import Tooltip from "src/lib/reusable/Tooltip.svelte";
     import showWelcomeIcon from "src/assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
@@ -11,7 +7,7 @@
     export let opacity: number;
     const dispatch = createEventDispatcher();
 
-    const signaturesUrl: string = "https://urbangrammarai.xyz/story/#ss"
+    const signaturesUrl: string = "https://urbangrammarai.xyz/story/#ss";
 
     function changeLayer() {
         dispatch("changeLayer", {});
@@ -104,6 +100,10 @@
     }
 
     div#indicators {
+        /* Hardcoded width matches the width of the chart div so that the right
+         * sidebar width doesn't change when charts are shown/hidden. */
+        width: 225px;
+        max-width: 225px;
         line-height: 20px;
     }
 
