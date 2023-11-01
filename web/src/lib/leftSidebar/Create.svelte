@@ -140,8 +140,8 @@
         controller = new AbortController();
         signal = controller.signal;
 
-        const url = window.location.href.includes(
-            "Urban-Analytics-Technology-Platform.github.io"
+        const url = window.location.href.toLowerCase().includes(
+            "urban-analytics-technology-platform.github.io"
         )
             ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
             : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
