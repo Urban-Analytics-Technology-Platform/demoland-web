@@ -71,7 +71,6 @@
         if (response.ok) {
             response.json().then((values: ValuesObject) => {
                 console.log("Successfully retrieved JSON from API backend");
-                console.log(values["E00041708"]);
                 const obj: ScenarioObject = {
                     metadata: {
                         name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
