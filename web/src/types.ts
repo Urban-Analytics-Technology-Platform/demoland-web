@@ -51,3 +51,13 @@ export type MetadataObject = { name: string, short: string, long: string, descri
 export type ScenarioObject = { metadata: MetadataObject, changes: ChangesObject, values: ValuesObject }
 
 export type ScaleFactorMap = Map<LayerName, { min: number, max: number }>;
+
+// GeoJSON extensions
+export interface FeatureCollectionWithCRS extends GeoJSON.FeatureCollection {
+    crs: {
+        type: string;
+        properties: {
+            name: string;
+        }
+    }
+}

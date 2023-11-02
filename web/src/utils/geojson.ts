@@ -1,6 +1,6 @@
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { type LayerName, type ScenarioChanges, type Scenario } from "src/types";
+import type { LayerName, ScenarioChanges, Scenario, FeatureCollectionWithCRS } from "src/types";
 import { getColor, getDiffColor } from "src/utils/colors";
 import config from "src/data/config";
 
@@ -146,7 +146,7 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
 export function getInputDiffBoundaries(
     scenario: Scenario,
     compareScenario: Scenario | null
-): GeoJSON.FeatureCollection {
+): FeatureCollectionWithCRS {
     const changes: ScenarioChanges = scenario.changes;
     const cChanges: ScenarioChanges = compareScenario === null
         ? new Map()
@@ -181,7 +181,7 @@ export function getInputDiffBoundaries(
         "features": config.geography.features.filter(
             feature => differentOAs.has(feature.properties[config.featureIdentifier])
         ),
-    } as GeoJSON.FeatureCollection;
+    } as FeatureCollectionWithCRS;
 
     // Dissolve the boundaries. But we can't actually use dissolve because that
     // doesn't work with MultiPolygons. We instead use union in a nice,

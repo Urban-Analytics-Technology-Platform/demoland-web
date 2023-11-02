@@ -1,5 +1,6 @@
 import type { ScenarioObject, IndicatorName, Indicator,
-    InputName, Input, LayerName, Layer
+    InputName, Input, LayerName, Layer,
+    FeatureCollectionWithCRS
 } from "src/types";
 
 /* --------------------------------- */
@@ -152,7 +153,7 @@ const allLayers: Map<LayerName, Layer> = new Map(
 );
 
 interface Config {
-    geography: GeoJSON.FeatureCollection;
+    geography: FeatureCollectionWithCRS;
     featureIdentifier: string;
     initialLatitude: number;
     initialLongitude: number;
@@ -173,7 +174,7 @@ const config: Config = {
     initialLatitude: initialLatitude,
     initialLongitude: initialLongitude,
     initialZoom: initialZoom,
-    geography: geography as GeoJSON.FeatureCollection,
+    geography: geography as FeatureCollectionWithCRS,
     featureIdentifier: featureIdentifier,
     referenceScenarioObject: referenceScenarioObject,
     otherScenarioObjects: otherScenarioObjects,
