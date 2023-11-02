@@ -55,7 +55,7 @@ jobs:
 
     - name: Build v1.0 tag
       run: |
-        cd web
+        # note: v1.0 did not have engine and web subdirectories, so no `cd web`
         npm ci
         npm run build -- --outDir='dist/v1.0' --base='/demoland-web/v1.0'
 
