@@ -14,8 +14,10 @@ export function parseJsonAsPromise(source: string, json: string): Promise<object
     }
 }
 
+/* Enable overlay scrollbars for a given node. To use this function in a Svelte
+ * component, import it and write <div use:overlayScrollbars ...>: see
+ * https://svelte.dev/tutorial/actions */
 export function overlayScrollbars(node: HTMLElement) {
-    console.log(node);
     OverlayScrollbars(node, {
         overflow: {
             x: 'hidden',
