@@ -3,7 +3,7 @@
     const dispatch = createEventDispatcher();
 
     const githubIssueUrl: string =
-        "https://github.com/alan-turing-institute/demoland-web/issues";
+        "https://github.com/Urban-Analytics-Technology-Platform/demoland-web/issues";
 
     export let message: string;
 

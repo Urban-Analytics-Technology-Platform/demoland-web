@@ -13,6 +13,7 @@
     }
 </script>
 
+<div class="collapsible">
 <label
     class="collapsible-toggle {collapsed ? 'closed' : 'opened'}"
     transition:slide={{ duration: 400, easing: quintOut }}
@@ -37,6 +38,7 @@
         <slot />
     </div>
 {/if}
+</div>
 
 <style>
     h2 {
@@ -55,9 +57,14 @@
         color: #666;
     }
 
-    label.collapsible-title {
-        margin-bottom: 10px;
+    div.collapsible {
+        display: grid;
+        grid-template-columns: 15px max-content;
+        grid-row-gap: 10px;
+        align-items: baseline;
+        margin: 0px;
     }
+
     div.collapsible-content {
         grid-column: 2 / 3;
         margin-bottom: 15px;

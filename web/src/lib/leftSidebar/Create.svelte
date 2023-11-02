@@ -1,18 +1,23 @@
 <script lang="ts">
-    export let clickedOAName: string | null;
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import InputMetadata from "src/lib/leftSidebar/create/InputMetadata.svelte";
     import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
     import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
     import {
-        clearLocalChanges,
-        getLocalChanges,
-        changesToApiJson,
-    } from "src/lib/leftSidebar/helpers";
-    import { type ValuesObject, type ScenarioObject, type Scenario } from "src/constants";
-    import { fromScenarioObject } from "src/utils/scenarios";
-    import { allScenarios, scaleFactors, validAreaNames } from "src/stores";
+        type ValuesObject,
+        type ScenarioChanges,
+        type ScenarioObject,
+        type Scenario,
+    } from "src/constants";
+    import { toChangesObject, fromScenarioObject } from "src/utils/scenarios";
+    import {
+        allScenarios,
+        scenarioName,
+        scaleFactors,
+        validAreaNames,
+        clickedOAs,
+    } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -34,18 +39,20 @@
     let userChangesPromptText: string =
         "Are you sure you want to go back? All changes will be lost.";
     let userChangesPresent: boolean = false;
+    // Changes that user has made relative to baseline
+    let changes: ScenarioChanges = new Map();
 
     // Prompt user to confirm if they navigate away from this tab
     onDestroy(() => {
         if (userChangesPresent && window.confirm(userChangesPromptText)) {
-            clearLocalChanges();
+            changes = new Map();
         }
     });
     // or if they return to step 1
     function returnToSelection() {
         if (userChangesPresent) {
             if (window.confirm(userChangesPromptText)) {
-                clearLocalChanges();
+                changes = new Map();
                 userChangesPresent = false;
                 step = "choose";
             }
@@ -57,6 +64,7 @@
     function changeScenarioAndProceed() {
         dispatch("changeScenario", {});
         step = "modify"; // move on to the next step
+        changes = new Map($allScenarios.get($scenarioName).changes);
     }
 
     function handleApiResponse(response: Response, changesJson: string) {
@@ -90,10 +98,10 @@
                     newScenario.metadata.name = `${newScenario.metadata.name}_${i}`;
                 }
                 $allScenarios.set(newScenario.metadata.name, newScenario);
-                // Get rid of changes in localStorage; this also ensures that
-                // the "are you sure" confirmation prompt doesn't show up.
+                // Get rid of changes; this also ensures that the "are you
+                // sure" confirmation prompt doesn't show up.
                 userChangesPresent = false;
-                clearLocalChanges();
+                changes = new Map();
                 // Display the new scenario on the map.
                 dispatch("import", { name: newScenario.metadata.name });
             });
@@ -120,17 +128,19 @@
     }
 
     function acceptChangesAndCalculate() {
-        // TODO should check that metadata is not empty
-        // or use a default value if it is
-        const changedJson = changesToApiJson(getLocalChanges());
+        const changedJson = JSON.stringify({
+            scenario_json: toChangesObject(changes),
+        });
         step = "calc"; // move on
+        changes = new Map(); // reset changes
+        $clickedOAs = [];  // deselect any OAs
 
         // Create a new Controller each time the button is pressed
         controller = new AbortController();
         signal = controller.signal;
 
-        const url = window.location.href.includes(
-            "alan-turing-institute.github.io"
+        const url = window.location.href.toLowerCase().includes(
+            "urban-analytics-technology-platform.github.io"
         )
             ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
             : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
@@ -154,8 +164,8 @@ Create your own scenario by modifying an existing one.
 
 {#if step === "modify"}
     <ModifyOutputAreas
-        bind:clickedOAName
         bind:userChangesPresent
+        bind:changes
         on:returnToSelection={returnToSelection}
         on:proceedToMetadata={() => (step = "metadata")}
     />

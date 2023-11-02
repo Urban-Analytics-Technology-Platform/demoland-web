@@ -25,10 +25,8 @@
     let previousScenarioName: string = $scenarioName;
     let previousCompareScenarioName: string | null = $compareScenarioName;
 
-    function changeScenario(event) {
-        console.log(event);
+    function changeScenario() {
         if ($compareScenarioName === $scenarioName) {
-            // To deal with a slightly annoying bug, see #38
             $compareScenarioName = null;
         }
         dispatch("changeScenario", {});
@@ -45,7 +43,9 @@
     }
     let compareDescriptionVisible = false;
     function toggleCompareDescriptionVisible() {
-        compareDescriptionVisible = !compareDescriptionVisible;
+        if ($compareScenarioName !== null) {
+            compareDescriptionVisible = !compareDescriptionVisible;
+        }
     }
 
     // Custom transition
@@ -206,7 +206,7 @@ modelled development strategies on any of the four indicators.
 
 {#if descriptionVisible}
     <div id="scenario-description-container" transition:slide|local>
-        {#key scenarioName}
+        {#key $scenarioName}
             <div
                 id="scenario-description"
                 in:customFlyIn|local
@@ -258,7 +258,7 @@ modelled development strategies on any of the four indicators.
             alt="Increase compare scenario"
         />
     </button>
-    {#if compareScenarioName !== null}
+    {#if $compareScenarioName !== null}
         <button
             class="toggle-description"
             on:click={toggleCompareDescriptionVisible}
@@ -276,9 +276,9 @@ modelled development strategies on any of the four indicators.
     {/if}
 </div>
 
-{#if compareDescriptionVisible && compareScenarioName !== null}
+{#if compareDescriptionVisible && $compareScenarioName !== null}
     <div id="compare-scenario-description-container" transition:slide|local>
-        {#key compareScenarioName}
+        {#key $compareScenarioName}
             <div
                 id="compare-scenario-description"
                 in:customFlyInCmp|local
