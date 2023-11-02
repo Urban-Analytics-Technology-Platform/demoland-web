@@ -20,6 +20,10 @@ jobs:
       with:
         node-version: 20
 
+    - name: Create /demoland-web directory to store outputs
+      run: |
+        sudo mkdir /demoland-web
+
     - name: Checkout main branch
       uses: actions/checkout@v3
       with:
