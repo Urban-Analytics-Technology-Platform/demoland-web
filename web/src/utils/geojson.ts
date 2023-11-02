@@ -1,6 +1,6 @@
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import type { LayerName, ScenarioChanges, Scenario, FeatureCollectionWithCRS } from "src/types";
+import type { LayerName, ScenarioChanges, Scenario, PMPFeatureCollection } from "src/types";
 import { getColor, getDiffColor } from "src/utils/colors";
 import config from "src/data/config";
 
@@ -12,9 +12,8 @@ import config from "src/data/config";
  * It also proves easier to encode the colours for each indicator here, because
  * otherwise it results in some really complicated expressions in MapLibre.
  * 
- * @param {string} scenarioName: the name of the scenario being used.
- * @param {string} compareScenarioName: the name of the scenario being
- * compared against.
+ * @param {string} scenario: the Scenario being used.
+ * @param {string} compareScenario: the Scenario being compared against.
  *
  * @returns an updated GeoJSON file with the indicator values plus associated
  * colours added to the properties of each feature.
@@ -22,7 +21,7 @@ import config from "src/data/config";
 export function makeCombinedGeoJSON(
     scenario: Scenario,
     compareScenario: Scenario | null,
-): GeoJSON.FeatureCollection {
+): PMPFeatureCollection {
     // Precalculate differences between scenarios being compared, which gives us
     // the min and max values for the 'diff' colormap.
     const maxDiffExtents: Map<LayerName, number> = new Map();
@@ -37,7 +36,7 @@ export function makeCombinedGeoJSON(
         }
     }
 
-    const newGeography = JSON.parse(JSON.stringify(config.geography));
+    const newGeography: PMPFeatureCollection = JSON.parse(JSON.stringify(config.geography));
     // Merge geography with indicators
     newGeography.features = newGeography.features.map(function(feature) {
         const oaName = feature.properties[config.featureIdentifier];
@@ -64,14 +63,11 @@ export function makeCombinedGeoJSON(
                 feature.properties[`${layerName}-diff-color`] = getDiffColor(layerName, value, cmpValue, maxDiffExtents);
             }
         }
-
-        // @ts-ignore GeoJSON types don't seem to recognise feature id
         feature.id = feature.properties.id;
         return feature;
     });
 
-    // TODO: Figure out how to not cast here
-    return newGeography as GeoJSON.FeatureCollection;
+    return newGeography;
 }
 
 /**
@@ -146,7 +142,7 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
 export function getInputDiffBoundaries(
     scenario: Scenario,
     compareScenario: Scenario | null
-): FeatureCollectionWithCRS {
+): GeoJSON.FeatureCollection {
     const changes: ScenarioChanges = scenario.changes;
     const cChanges: ScenarioChanges = compareScenario === null
         ? new Map()
@@ -176,21 +172,18 @@ export function getInputDiffBoundaries(
 
     // Extract these OAs from the base geography
     const boundary = {
-        "type": "FeatureCollection",
-        "crs": config.geography.crs,
+        "type": "FeatureCollection" as const,
         "features": config.geography.features.filter(
             feature => differentOAs.has(feature.properties[config.featureIdentifier])
         ),
-    } as FeatureCollectionWithCRS;
+    };
 
-    // Dissolve the boundaries. But we can't actually use dissolve because that
-    // doesn't work with MultiPolygons. We instead use union in a nice,
-    // functional-style loop.
+    // Dissolve the boundaries. But we can't actually use turf's dissolve
+    // because some of our features are MultiPolygons, and that doesn't work
+    // with MultiPolygons. Instead, we can use union.
     if (boundary.features.length > 0) {
         const unioned = boundary.features.reduce((acc, feature) => {
-            const featureGeometry = feature.geometry;
-            // @ts-ignore Not sure how to best coerce GeoJSON types right now. But it works.
-            return union(acc, featureGeometry);
+            return union(acc, feature.geometry);
         });
         boundary.features = [unioned];
     }

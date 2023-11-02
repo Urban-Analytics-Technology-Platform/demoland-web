@@ -1,6 +1,7 @@
-import type { ScenarioObject, IndicatorName, Indicator,
+import type {
+    ScenarioObject, IndicatorName, Indicator,
     InputName, Input, LayerName, Layer,
-    FeatureCollectionWithCRS
+    PMPFeatureCollection
 } from "src/types";
 
 /* --------------------------------- */
@@ -139,10 +140,9 @@ const signatures = [
     { name: "Hyper concentrated urbanity", color: "#a7b799" },
 ];
 
-/* --------------------------------- */
-/* Everything after this does not    */
-/* need to be modified.              */
-/* --------------------------------- */
+/* ----------------------------------------------------- */
+/* Everything after this does not need to be modified.   */
+/* ----------------------------------------------------- */
 
 const allInputs: Map<InputName, Input> = new Map([
     ["signature_type", { "short": "Spatial signatures" }]
@@ -153,7 +153,7 @@ const allLayers: Map<LayerName, Layer> = new Map(
 );
 
 interface Config {
-    geography: FeatureCollectionWithCRS;
+    geography: PMPFeatureCollection;
     featureIdentifier: string;
     initialLatitude: number;
     initialLongitude: number;
@@ -174,7 +174,19 @@ const config: Config = {
     initialLatitude: initialLatitude,
     initialLongitude: initialLongitude,
     initialZoom: initialZoom,
-    geography: geography as FeatureCollectionWithCRS,
+    // We need the type cast here because the imported JSON file is not typed
+    // strictly enough. For example, when TS reads in
+    //     { type: "FeatureCollection", ... } 
+    // this gets interpreted as
+    //     {type: string}
+    // when in fact we want the string literal type
+    //     {type: "FeatureCollection"}. 
+    // If we embedded the GeoJSON in a TypeScript file as an object literal
+    // (instead of importing it), we could get around this using a const
+    // assertion: { type: "FeatureCollection" as const, ...}. But presently
+    // there is no way to do this with imported JSON files. See
+    // https://github.com/microsoft/TypeScript/issues/32063.
+    geography: geography as PMPFeatureCollection,
     featureIdentifier: featureIdentifier,
     referenceScenarioObject: referenceScenarioObject,
     otherScenarioObjects: otherScenarioObjects,
