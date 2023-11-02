@@ -7,7 +7,7 @@
     import { createEventDispatcher } from "svelte";
     import { fly, slide } from "svelte/transition";
 
-    import { type Scenario } from "src/constants";
+    import { type Scenario } from "src/types";
     import Export from "./Export.svelte";
     import {
         allScenarios,

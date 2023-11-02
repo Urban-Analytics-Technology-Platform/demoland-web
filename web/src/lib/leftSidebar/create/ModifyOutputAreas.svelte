@@ -10,10 +10,10 @@
         clickedOAs,
     } from "src/stores";
     import {
-        signatures,
         type MacroVar,
         type ScenarioChanges,
-    } from "src/constants";
+    } from "src/types";
+    import config from "src/data/config";
 
     // The actual changes
     export let changes: ScenarioChanges;
@@ -281,7 +281,7 @@
                 bind:value={sig}
                 on:change={updateOAChanges}
             >
-                {#each [...signatures.entries()] as [signatureId, signature]}
+                {#each [...config.signatures.entries()] as [signatureId, signature]}
                     <option value={signatureId}
                         >{signatureId}: {signature.name}</option
                     >
@@ -289,7 +289,7 @@
             </select>
         {:else}
             <select id="sig-dropdown" value={baselineSig} disabled>
-                {#each [...signatures.entries()] as [signatureId, signature]}
+                {#each [...config.signatures.entries()] as [signatureId, signature]}
                     <option value={signatureId}
                         >{signatureId}: {signature.name}</option
                     >

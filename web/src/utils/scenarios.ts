@@ -3,8 +3,8 @@ import {
     type ScenarioChanges, type ScenarioValues, type Scenario,
     type ChangesObject, type ValuesObject, type ScenarioObject,
     type ScaleFactorMap,
-    GLOBALMIN, GLOBALMAX
-} from "src/constants";
+} from "src/types";
+import config from "src/data/config";
 
 export function rescale(
     layerName: LayerName,
@@ -21,7 +21,7 @@ export function rescale(
         } else {
             const min = scaleFactors.get(layerName).min;
             const max = scaleFactors.get(layerName).max;
-            return GLOBALMIN + (GLOBALMAX - GLOBALMIN) * (unscaledVal - min) / (max - min);
+            return config.scale.min + (config.scale.max - config.scale.min) * (unscaledVal - min) / (max - min);
         }
     }
 }
@@ -41,7 +41,7 @@ export function unscale(
         } else {
             const min = scaleFactors.get(layerName).min;
             const max = scaleFactors.get(layerName).max;
-            return min + (max - min) * (scaledVal - GLOBALMIN) / (GLOBALMAX - GLOBALMIN);
+            return min + (max - min) * (scaledVal - config.scale.min) / (config.scale.max - config.scale.min);
         }
     }
 }

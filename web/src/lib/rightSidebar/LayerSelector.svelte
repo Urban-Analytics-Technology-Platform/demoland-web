@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { type LayerName, allInputs, allIndicators } from "src/constants";
+    import { type LayerName } from "src/types";
+    import config from "src/data/config";
     import Tooltip from "src/lib/reusable/Tooltip.svelte";
     import showWelcomeIcon from "src/assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";
@@ -19,7 +20,7 @@
 
 <div id="indicators">
     <div class="category-first">Land use</div>
-    {#each [...allInputs.entries()] as [inputName, input]}
+    {#each [...config.allInputs.entries()] as [inputName, input]}
         <label id={inputName + "-label"}
             ><input
                 bind:group={activeLayer}
@@ -51,7 +52,7 @@
     {/each}
 
     <div class="category-second">Indicators</div>
-    {#each [...allIndicators.entries()] as [indiName, indi]}
+    {#each [...config.allIndicators.entries()] as [indiName, indi]}
         <label id={indiName + "-label"}
             ><input
                 bind:group={activeLayer}

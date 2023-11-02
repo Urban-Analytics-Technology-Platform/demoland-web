@@ -9,7 +9,7 @@
         type ScenarioChanges,
         type ScenarioObject,
         type Scenario,
-    } from "src/constants";
+    } from "src/types";
     import { toChangesObject, fromScenarioObject } from "src/utils/scenarios";
     import {
         allScenarios,

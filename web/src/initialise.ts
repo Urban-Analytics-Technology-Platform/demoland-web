@@ -1,8 +1,7 @@
 import {
     type Scenario,
     type ScaleFactorMap,
-    allLayers,
-} from "src/constants";
+} from "src/types";
 import { fromScenarioObject } from "src/utils/scenarios";
 import config from "src/data/config";
 
@@ -32,7 +31,7 @@ export function setupAreaNames(referenceScenario: Scenario): Set<string> {
 export function setupScaleFactors(referenceScenarioUnscaled: Scenario): ScaleFactorMap {
     // Calculate current minimum and maximum values
     const scaleFactors: ScaleFactorMap = new Map();
-    for (const layerName of allLayers.keys()) {
+    for (const layerName of config.allLayers.keys()) {
         const allValues = [];
         for (const oaValues of referenceScenarioUnscaled.values.values()) {
             allValues.push(oaValues.get(layerName));

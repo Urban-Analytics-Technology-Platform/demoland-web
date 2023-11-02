@@ -5,8 +5,8 @@
     import Collapsible from "src/lib/reusable/Collapsible.svelte";
     import {
         type LayerName,
-        allIndicators,
-    } from "src/constants";
+    } from "src/types";
+    import config from "src/data/config";
 
     export let activeLayer: LayerName;
     export let opacity: number;
@@ -33,7 +33,7 @@
             />
         </Collapsible>
 
-        {#each [...allIndicators.entries()] as [indiName, indi]}
+        {#each [...config.allIndicators.entries()] as [indiName, indi]}
             <Collapsible title={indi.short} collapsed={activeLayer !== "signature_type" && indiName !== activeLayer}>
                 <Chart
                     indicatorName={indiName}

@@ -8,7 +8,7 @@
         getInputDiffBoundaries,
     } from "src/utils/geojson";
     import { makePopup } from "src/utils/hover";
-    import { allLayers, type LayerName } from "src/constants";
+    import { type LayerName } from "src/types";
     import {
         allScenarios,
         scenarioName,
@@ -267,7 +267,7 @@
         // The way around it is to use fill-opacity (which is not data-driven)
         // for four different layers. The only real drawback is (in principle)
         // performance, but I haven't really noticed any issues so far.
-        for (const layerName of allLayers.keys()) {
+        for (const layerName of config.allLayers.keys()) {
             const mapLayerId = `${layerName}-layer`;
             map.addLayer({
                 id: mapLayerId,
@@ -337,7 +337,7 @@
         // Fade in the layers that we want, after a small delay to allow for
         // loading.
         setTimeout(function () {
-            for (const layerName of allLayers.keys()) {
+            for (const layerName of config.allLayers.keys()) {
                 const mapLayerId = `${layerName}-layer`;
                 map.setPaintProperty(
                     mapLayerId,
@@ -366,7 +366,7 @@
     // as the opacity slider.
     export function updateLayers() {
         if (map) {
-            for (const layerName of allLayers.keys()) {
+            for (const layerName of config.allLayers.keys()) {
                 map.setPaintProperty(`${layerName}-layer`, "fill-color", [
                     "get",
                     $compareScenarioName === null

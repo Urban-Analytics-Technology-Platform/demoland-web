@@ -1,10 +1,6 @@
-import {
-    type IndicatorName,
-    GLOBALMIN,
-    GLOBALMAX,
-} from "src/constants";
+import { type IndicatorName, type Scenario } from "src/types";
 import { makeColormap } from "src/utils/colors";
-import { type Scenario } from "src/constants";
+import config from "src/data/config";
 
 // Get all values for a given indicator in a given scenario.
 export function getValues(indicator: IndicatorName, scenario: Scenario): number[] {
@@ -118,7 +114,7 @@ function makeChartDataOneScenario(
     // Plot one dataset only (current indicator, current scenario)
     const colors: string[] = makeColormap(indicator, nbars);
     const rawValues: number[] = getValues(indicator, scenario);
-    const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
+    const bins = bin(rawValues, config.scale.min, config.scale.max, nbars);
     const mean = getMean(rawValues);
 
     return {
@@ -146,7 +142,7 @@ function makeChartDataOneScenario(
             },
         ],
         labels: bins.centres,
-        tickStepSize: calculateTickStepSize(GLOBALMAX, GLOBALMIN),
+        tickStepSize: calculateTickStepSize(config.scale.max, config.scale.min),
     };
 }
 
@@ -160,8 +156,8 @@ function makeChartDataTwoScenarios(
     const colors: string[] = makeColormap(indicator, nbars);
     const rawValues: number[] = getValues(indicator, scenario);
     const cmpRawValues: number[] = getValues(indicator, compareScenario);
-    const bins = bin(rawValues, GLOBALMIN, GLOBALMAX, nbars);
-    const cmpBins = bin(cmpRawValues, GLOBALMIN, GLOBALMAX, nbars);
+    const bins = bin(rawValues, config.scale.min, config.scale.max, nbars);
+    const cmpBins = bin(cmpRawValues, config.scale.min, config.scale.max, nbars);
     const mean = getMean(rawValues);
     const cmpMean = getMean(cmpRawValues);
 
@@ -217,7 +213,7 @@ function makeChartDataTwoScenarios(
             },
         ],
         labels: bins.centres,
-        tickStepSize: calculateTickStepSize(GLOBALMAX, GLOBALMIN),
+        tickStepSize: calculateTickStepSize(config.scale.max, config.scale.min),
     };
 }
 

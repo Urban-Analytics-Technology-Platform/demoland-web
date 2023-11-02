@@ -1,7 +1,6 @@
-import geography from "src/data/geography.json";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { allLayers, type LayerName, type ScenarioChanges, type Scenario } from "src/constants";
+import { type LayerName, type ScenarioChanges, type Scenario } from "src/types";
 import { getColor, getDiffColor } from "src/utils/colors";
 import config from "src/data/config";
 
@@ -28,7 +27,7 @@ export function makeCombinedGeoJSON(
     // the min and max values for the 'diff' colormap.
     const maxDiffExtents: Map<LayerName, number> = new Map();
     if (compareScenario !== null) {
-        for (const layerName of allLayers.keys()) {
+        for (const layerName of config.allLayers.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
                 diffs.push(scenario.values.get(oa).get(layerName) - compareScenario.values.get(oa).get(layerName));
@@ -38,7 +37,7 @@ export function makeCombinedGeoJSON(
         }
     }
 
-    const newGeography = JSON.parse(JSON.stringify(geography));
+    const newGeography = JSON.parse(JSON.stringify(config.geography));
     // Merge geography with indicators
     newGeography.features = newGeography.features.map(function(feature) {
         const oaName = feature.properties[config.featureIdentifier];
@@ -46,7 +45,7 @@ export function makeCombinedGeoJSON(
         if (oaValues === undefined) {
             throw new Error(`${oaName} not found in values!`);
         }
-        for (const layerName of allLayers.keys()) {
+        for (const layerName of config.allLayers.keys()) {
             const value = oaValues.get(layerName);
             feature.properties[layerName] = value;
             feature.properties[`${layerName}-color`] = getColor(layerName, value);
@@ -56,7 +55,7 @@ export function makeCombinedGeoJSON(
             if (cOaValues === undefined) {
                 throw new Error(`Output area ${oaName} not found in compare values; this should not happen`);
             }
-            for (const layerName of allLayers.keys()) {
+            for (const layerName of config.allLayers.keys()) {
                 const value = oaValues.get(layerName);
                 const cmpValue = cOaValues.get(layerName);
                 feature.properties[`${layerName}-cmp`] = cmpValue;
@@ -178,8 +177,8 @@ export function getInputDiffBoundaries(
     // Extract these OAs from the base geography
     const boundary = {
         "type": "FeatureCollection",
-        "crs": geography.crs,
-        "features": geography.features.filter(
+        "crs": config.geography.crs,
+        "features": config.geography.features.filter(
             feature => differentOAs.has(feature.properties[config.featureIdentifier])
         ),
     } as GeoJSON.FeatureCollection;

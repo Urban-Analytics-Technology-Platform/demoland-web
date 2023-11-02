@@ -5,7 +5,7 @@
     import MapC from "src/lib/MapC.svelte";
     import InitialErrorScreen from "src/lib/InitialErrorScreen.svelte";
     import LoadingScreen from "src/lib/LoadingScreen.svelte";
-    import { type LayerName } from "src/constants";
+    import { type LayerName } from "src/types";
     import {
         allScenarios,
         scenarioName,

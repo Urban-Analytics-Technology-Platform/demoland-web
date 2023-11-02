@@ -1,5 +1,6 @@
 import colormap from "colormap";
-import { allIndicators, type IndicatorName, signatures, type LayerName, GLOBALMIN, GLOBALMAX } from "src/constants";
+import { type IndicatorName, type LayerName, } from "src/types";
+import config from "src/data/config";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     if (indicator === "diff") {
@@ -11,7 +12,7 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
         });
     }
     else {
-        const indi = allIndicators.get(indicator);
+        const indi = config.allIndicators.get(indicator);
         const cmap = colormap({
             colormap: indi.colormap,
             nshades: n,
@@ -48,11 +49,11 @@ export function getColor(layerName: LayerName, value: number) {
 
     if (layerName === "signature_type") {
         // Categorical variable
-        return signatures[value].color;
+        return config.signatures[value].color;
     }
     else {
         // Continuous variables, use the respective colormaps
-        return getColorFromMap(colormaps[layerName], value, GLOBALMIN, GLOBALMAX);
+        return getColorFromMap(colormaps[layerName], value, config.scale.min, config.scale.max);
     }
 }
 
@@ -74,7 +75,7 @@ export function getDiffColor(layerName: LayerName, value: number, cmpValue: numb
     if (layerName === "signature_type") {
         // Categorical variable. If it's the same, we don't show anything. If
         // it's different, we show the color of the main scenario.
-        return value === cmpValue ? "rgba(0, 0, 0, 0.1)" : signatures[value].color;
+        return value === cmpValue ? "rgba(0, 0, 0, 0.1)" : config.signatures[value].color;
     }
     else {
         // Continuous variables, use 'diff' colormap
