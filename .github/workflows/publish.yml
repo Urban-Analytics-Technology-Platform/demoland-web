@@ -48,16 +48,16 @@ jobs:
         npm ci
         npm run build -- --outDir='dist/dev' --base='/demoland-web/dev'
 
-    - name: Checkout v1 tag
+    - name: Checkout v1.0 tag
       uses: actions/checkout@v3
       with:
-        ref: v1
+        ref: v1.0
 
-    - name: Build v1 tag
+    - name: Build v1.0 tag
       run: |
         cd web
         npm ci
-        npm run build -- --outDir='dist/v1' --base='/demoland-web/v1'
+        npm run build -- --outDir='dist/v1.0' --base='/demoland-web/v1.0'
 
     - name: Publish all built versions to gh-pages branch
       uses: peaceiris/actions-gh-pages@v3
