@@ -38,7 +38,7 @@ import scenario7 from "src/data/scenarios/scenario7.json";
 
 // One of the scenarios is used as the 'reference', against which values are
 // scaled.
-const referenceScenarioFile = baseline;
+const referenceScenarioObject = baseline;
 
 // Range to scale all indicator values between (for the baseline).
 const scale = {
@@ -47,7 +47,7 @@ const scale = {
 }
 
 // List all the other scenarios here.
-const otherScenarioFiles = [
+const otherScenarioObjects = [
     scenario1,
     scenario1,
     scenario2,
@@ -157,8 +157,8 @@ interface Config {
     initialLatitude: number;
     initialLongitude: number;
     initialZoom: number;
-    referenceScenarioFile: ScenarioObject;
-    otherScenarioFiles: ScenarioObject[];
+    referenceScenarioObject: ScenarioObject;
+    otherScenarioObjects: ScenarioObject[];
     signatures: { name: string, color: string }[];
     allIndicators: Map<IndicatorName, Indicator>;
     allInputs: Map<InputName, Input>;
@@ -175,8 +175,8 @@ const config: Config = {
     initialZoom: initialZoom,
     geography: geography as GeoJSON.FeatureCollection,
     featureIdentifier: featureIdentifier,
-    referenceScenarioFile: referenceScenarioFile,
-    otherScenarioFiles: otherScenarioFiles,
+    referenceScenarioObject: referenceScenarioObject,
+    otherScenarioObjects: otherScenarioObjects,
     signatures: signatures,
     allIndicators: allIndicators,
     allInputs: allInputs,

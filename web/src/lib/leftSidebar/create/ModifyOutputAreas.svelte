@@ -31,9 +31,9 @@
         $customScenarioInProgress = false;
     });
 
-    function getBaselineSig(oaName: string): number {
+    function getReferenceSig(oaName: string): number {
         return $allScenarios
-            .get("baseline")
+            .get(config.referenceScenarioObject.metadata.name)
             .values.get(oaName)
             .get("signature_type");
     }
@@ -42,7 +42,7 @@
     // editable layers
     function getSingleOAChanges(
         oaName: string
-    ): Map<MacroVar | "baseline_sig", number | null> {
+    ): Map<MacroVar | "reference_sig", number | null> {
         const hasChanges = changes.has(oaName);
         const thisChanges = changes.get(oaName);
         return new Map([
@@ -53,7 +53,7 @@
             ["job_types", hasChanges ? thisChanges.get("job_types") : null],
             ["use", hasChanges ? thisChanges.get("use") : null],
             ["greenspace", hasChanges ? thisChanges.get("greenspace") : null],
-            ["baseline_sig", getBaselineSig(oaName)],
+            ["reference_sig", getReferenceSig(oaName)],
         ]);
     }
 
@@ -88,7 +88,7 @@
                             thisOAChanges.set(macroVar, macroVarValue);
                         }
                     });
-                    thisOAChanges.delete("baseline_sig");
+                    thisOAChanges.delete("reference_sig");
                     changes.set(oa.name, thisOAChanges as Map<MacroVar, number>);
                 });
             }
@@ -137,23 +137,23 @@
             useModified = use !== null;
             green = oaChanges.get("greenspace");
             greenModified = green !== null;
-            baselineSig = oaChanges.get("baseline_sig");
+            referenceSig = oaChanges.get("reference_sig");
         } else {
             // More than one OA selected
             const allSigs: Array<number | null> = oas.map((oa) =>
                 getSingleOAChanges(oa.name).get("signature_type")
             );
-            const allBaselineSigs: Array<number> = oas.map((oa) =>
-                getSingleOAChanges(oa.name).get("baseline_sig")
+            const allReferenceSigs: Array<number> = oas.map((oa) =>
+                getSingleOAChanges(oa.name).get("reference_sig")
             );
-            // If none of the values were changed, check if the baseline values
+            // If none of the values were changed, check if the reference values
             // are all the same. If so, display that
             if (allSigs.every((s) => s === null)) {
                 sigModified = false;
-                if (allBaselineSigs.every((s) => s === allBaselineSigs[0])) {
-                    baselineSig = allBaselineSigs[0];
+                if (allReferenceSigs.every((s) => s === allReferenceSigs[0])) {
+                    referenceSig = allReferenceSigs[0];
                 } else {
-                    baselineSig = null;
+                    referenceSig = null;
                 }
             }
             // If some of the values were changed, but not all, display an unchecked checkbox
@@ -163,7 +163,7 @@
             ) {
                 sig = null;
                 sigModified = false;
-                baselineSig = null;
+                referenceSig = null;
             }
             // If we reached here, then that means that all of the values were
             // changed to something else.
@@ -216,7 +216,7 @@
     // Variables for OA modifiers
     let sig: number | null = null;
     let sigModified: boolean;
-    let baselineSig: null | number;
+    let referenceSig: null | number;
     let job: number | null = null;
     let jobModified: boolean;
     let use: number | null = null;
@@ -267,7 +267,7 @@
             bind:checked={sigModified}
             on:change={() => {
                 if (sigModified) {
-                    sig = baselineSig;
+                    sig = referenceSig;
                 }
                 if ($clickedOAs.length > 1 && !sigModified) {
                     sig = null;
@@ -288,7 +288,7 @@
                 {/each}
             </select>
         {:else}
-            <select id="sig-dropdown" value={baselineSig} disabled>
+            <select id="sig-dropdown" value={referenceSig} disabled>
                 {#each [...config.signatures.entries()] as [signatureId, signature]}
                     <option value={signatureId}
                         >{signatureId}: {signature.name}</option

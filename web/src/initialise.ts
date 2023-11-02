@@ -13,7 +13,7 @@ export function setupReferenceScenarioUnscaled(): Scenario {
     // `null` to avoid scaling. The ScaleFactorMap that we use for
     // everything else will be returned by this function. Likewise for the
     // validAreaNames parameter.
-    return fromScenarioObject(config.referenceScenarioFile, null, null, "reference scenario");
+    return fromScenarioObject(config.referenceScenarioObject, null, null, "reference scenario");
 }
 
 /* This function returns a set of all valid area names, as read from the
@@ -51,8 +51,8 @@ export function setupScenarioMap(
     validAreaNames: Set<string>,
 ): Map<string, Scenario> {
     const allScenarioObjects = [
-        config.referenceScenarioFile,
-        ...config.otherScenarioFiles
+        config.referenceScenarioObject,
+        ...config.otherScenarioObjects
     ];
     const scenarioList = allScenarioObjects.map((scenarioObject, i) => {
         return fromScenarioObject(scenarioObject, scaleFactors, validAreaNames, `scenario #${i}`);
