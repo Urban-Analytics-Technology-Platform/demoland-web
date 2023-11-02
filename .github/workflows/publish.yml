@@ -1,0 +1,66 @@
+# This GitHub Action publishes:
+#  - the main branch to u-a-t-p.github.io/demoland-web
+#  - the dev branch to u-a-t-p.github.io/demoland-web/dev
+#  - the v1 tag to u-a-t-p.github.io/demoland-web/v1
+
+name: publish-website
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Node.JS
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Checkout main branch
+    - uses: actions/checkout@v3
+      with:
+        ref: main
+
+    # Vite ordinarily generates links that look like
+    # <script src="/assets/script.js">,
+    # which fail because the browser will look for them at
+    # https://alan-turing-institute.github.io/assets/script.js.
+    # The --base argument gets Vite to generate links of the form
+    # <script src="/demoland-web/assets/script.js"> which correctly resolve.
+    - name: Build main branch
+    - run: |
+        cd web
+        npm ci
+        npm run build -- --base='/demoland-web'
+
+    - name: Checkout dev branch
+    - uses: actions/checkout@v3
+      with:
+        ref: dev
+
+    - name: Build dev branch
+    - run: |
+        cd web
+        npm ci
+        npm run build -- --outDir='dist/dev' --base='/demoland-web/dev'
+
+    - name: Checkout v1 tag
+    - uses: actions/checkout@v3
+      with:
+        ref: v1
+
+    - name: Build v1 tag
+    - run: |
+        cd web
+        npm ci
+        npm run build -- --outDir='dist/v1' --base='/demoland-web/v1'
+
+    - name: Publish all built versions to gh-pages branch
+    - uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./web/dist
