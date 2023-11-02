@@ -88,6 +88,7 @@ export type ChartDataset = {
     order?: number,
     categoryPercentage?: number,
     barPercentage?: number,
+    borderDash?: number[],
     borderColor?: string,
     options?: object,
     pointStyle?: string,
