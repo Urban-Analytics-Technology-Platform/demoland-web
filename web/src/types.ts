@@ -2,7 +2,7 @@
 
 export type IndicatorName = "air_quality" | "house_price" | "job_accessibility" | "greenspace_accessibility";
 
-export type Indicator = { short: string, less: string, more: string, less_diff: string, more_diff: string, colormap: string, colormapReversed: boolean };
+export type Indicator = { short: string, hover: string, less: string, more: string, less_diff: string, more_diff: string, colormap: string, colormapReversed: boolean };
 
 /* Model inputs (land use) */
 

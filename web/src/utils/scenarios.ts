@@ -103,12 +103,14 @@ function fromValuesObject(
             valuesMap.set(oa, new Map());
             foundAreaNames.add(oa);
             for (const [key, value] of Object.entries(map)) {
-                if (value === null) {
-                    throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
-                }
                 const layerName = key as LayerName;
-                valuesMap.get(oa)
-                    .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
+                if (config.allLayers.has(layerName)) {
+                    if (value === null) {
+                        throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
+                    }
+                    valuesMap.get(oa)
+                        .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
+                }
             }
         }
     }

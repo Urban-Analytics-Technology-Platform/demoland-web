@@ -2,7 +2,7 @@ import colormap from "colormap";
 import { type IndicatorName, type LayerName, } from "src/types";
 import config from "src/data/config";
 
-export function makeColormap(indicator: IndicatorName | "diff", n: number) {
+export function makeColormap(indicator: IndicatorName | "diff", n: number): string[] {
     if (indicator === "diff") {
         return colormap({
             colormap: "RdBu",
@@ -23,12 +23,11 @@ export function makeColormap(indicator: IndicatorName | "diff", n: number) {
     }
 }
 
-const colormaps: { [key: string]: string[] } = {
-    "air_quality": makeColormap("air_quality", 100),
-    "house_price": makeColormap("house_price", 100),
-    "job_accessibility": makeColormap("job_accessibility", 100),
-    "greenspace_accessibility": makeColormap("greenspace_accessibility", 100),
-    "diff": makeColormap("diff", 100),
+const colormaps: Map<IndicatorName | "diff", string[]> = new Map([
+    ["diff", makeColormap("diff", 100)],
+])
+for (const indiName of config.allIndicators.keys()) {
+    colormaps.set(indiName, makeColormap(indiName, 100));
 }
 
 function getColorFromMap(map: string[], value: number, min: number, max: number) {
@@ -46,14 +45,13 @@ function getColorFromMap(map: string[], value: number, min: number, max: number)
  * @param value The value of the layer in the scenario
  */
 export function getColor(layerName: LayerName, value: number) {
-
     if (layerName === "signature_type") {
         // Categorical variable
         return config.signatures[value].color;
     }
     else {
         // Continuous variables, use the respective colormaps
-        return getColorFromMap(colormaps[layerName], value, config.scale.min, config.scale.max);
+        return getColorFromMap(colormaps.get(layerName), value, config.scale.min, config.scale.max);
     }
 }
 
@@ -81,6 +79,6 @@ export function getDiffColor(layerName: LayerName, value: number, cmpValue: numb
         // Continuous variables, use 'diff' colormap
         return value === cmpValue
             ? "rgba(0, 0, 0, 0.1)"
-            : getColorFromMap(colormaps["diff"], value - cmpValue, -maxDiffExtents.get(layerName), maxDiffExtents.get(layerName));
+            : getColorFromMap(colormaps.get("diff"), value - cmpValue, -maxDiffExtents.get(layerName), maxDiffExtents.get(layerName));
     }
 }

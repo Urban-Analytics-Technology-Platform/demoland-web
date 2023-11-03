@@ -63,10 +63,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
                 }${Math.abs(chg).toFixed(1)}%)`;
         }
         return [
-            `<span>${indi.short.replace(
-                "accessibility",
-                "access."
-            )}</span>`,
+            `<span>${indi.hover}</span>`,
             `<span class="right-align-grid-item ${activeFactor === name ? "strong" : ""
             }">`,
             activeFactor === name ? `${makeColoredBlock(color)}&nbsp;` : ``,

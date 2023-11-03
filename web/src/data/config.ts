@@ -70,6 +70,10 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
     ["air_quality", {
         // This is an actual prose name of the indicator used in the UI.
         "short": "Air pollution",
+        // This is used in the map hover text. Generally you'll want this to be
+        // the same as 'short', but in the original DemoLand app 'accessibility'
+        // is condensed to 'access.' to save space.
+        "hover": "Air pollution",
         // 'less' and 'more' are used in the charts to describe what smaller and
         // larger values mean respectively.
         "less": "cleaner",
@@ -87,6 +91,7 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
     }],
     ["house_price", {
         "short": "House prices",
+        "hover": "House prices",
         "less": "cheaper",
         "more": "more expensive",
         "less_diff": "decreased",
@@ -96,6 +101,7 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
     }],
     ["job_accessibility", {
         "short": "Job accessibility",
+        "hover": "Job access.",
         "less": "lower",
         "more": "higher",
         "less_diff": "decreased",
@@ -105,6 +111,7 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
     }],
     ["greenspace_accessibility", {
         "short": "Greenspace accessibility",
+        "hover": "Greenspace access.",
         "less": "lower",
         "more": "higher",
         "less_diff": "decreased",
