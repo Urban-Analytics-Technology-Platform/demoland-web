@@ -19,17 +19,19 @@
         clickedOAs,
     } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
+    import { runScenario } from "src/lib/python/pyoide";
     const dispatch = createEventDispatcher();
 
     // Stage of the scenario creation process
     let step: "choose" | "modify" | "metadata" | "calc" | "error" = "choose";
     // Only displayed if there is actually an error
     let errorMessage: string = "An error occurred.";
+    // Whether to run with WASM or HTTP API
+    let runner: "wasm" | "api" = "wasm";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
     let controller: AbortController;
-    let signal: AbortSignal;
     // Metadata which the user can provide for the scenario
     let scenarioShort: string = "";
     let scenarioDescription: string = "";
@@ -67,44 +69,46 @@
         changes = new Map($allScenarios.get($scenarioName).changes);
     }
 
+    function handleResult(values: ValuesObject, changesJson: string) {
+        console.log("handleResult called");
+        const obj: ScenarioObject = {
+            metadata: {
+                name: scenarioShort.replace(/\s/g, "_").toLowerCase(),
+                short: scenarioShort,
+                long: "Custom: " + scenarioShort,
+                description: scenarioDescription,
+            },
+            changes: JSON.parse(changesJson)["scenario_json"],
+            values: values,
+        };
+        console.log('obj', obj);
+        const newScenario: Scenario = fromScenarioObject(
+            obj,
+            $scaleFactors,
+            $validAreaNames,
+            "custom scenario"
+        );
+        console.log('newScenario', newScenario);
+        // Check for name duplication
+        if ($allScenarios.has(newScenario.metadata.name)) {
+            let i = 1;
+            while ($allScenarios.has(`${newScenario.metadata.name}_${i})`)) {
+                i++;
+            }
+            newScenario.metadata.name = `${newScenario.metadata.name}_${i}`;
+        }
+        $allScenarios.set(newScenario.metadata.name, newScenario);
+        // Get rid of changes; this also ensures that the "are you
+        // sure" confirmation prompt doesn't show up.
+        userChangesPresent = false;
+        changes = new Map();
+        // Display the new scenario on the map.
+        dispatch("import", { name: newScenario.metadata.name });
+    }
+
     function handleApiResponse(response: Response, changesJson: string) {
         if (response.ok) {
-            response.json().then((values: ValuesObject) => {
-                console.log("Successfully retrieved JSON from API backend");
-                const obj: ScenarioObject = {
-                    metadata: {
-                        name: scenarioShort.replace(/\s/g, "_").toLowerCase(), // name
-                        short: scenarioShort,
-                        long: "Custom: " + scenarioShort,
-                        description: scenarioDescription,
-                    },
-                    changes: JSON.parse(changesJson)["scenario_json"],
-                    values: values,
-                };
-                const newScenario: Scenario = fromScenarioObject(
-                    obj,
-                    $scaleFactors,
-                    $validAreaNames,
-                    "custom scenario from API backend"
-                );
-                // Check for name duplication
-                if ($allScenarios.has(newScenario.metadata.name)) {
-                    let i = 1;
-                    while (
-                        $allScenarios.has(`${newScenario.metadata.name}_${i})`)
-                    ) {
-                        i++;
-                    }
-                    newScenario.metadata.name = `${newScenario.metadata.name}_${i}`;
-                }
-                $allScenarios.set(newScenario.metadata.name, newScenario);
-                // Get rid of changes; this also ensures that the "are you
-                // sure" confirmation prompt doesn't show up.
-                userChangesPresent = false;
-                changes = new Map();
-                // Display the new scenario on the map.
-                dispatch("import", { name: newScenario.metadata.name });
-            });
+            response.json().then((values) => handleResult(values, changesJson));
         } else {
             step = "error";
             errorMessage = `HTTP request to custom scenario server failed: received ${response.status} ${response.statusText}.`;
@@ -133,26 +137,41 @@
         });
         step = "calc"; // move on
         changes = new Map(); // reset changes
-        $clickedOAs = [];  // deselect any OAs
+        $clickedOAs = []; // deselect any OAs
 
         // Create a new Controller each time the button is pressed
         controller = new AbortController();
-        signal = controller.signal;
 
-        const url = window.location.href.toLowerCase().includes(
-            "urban-analytics-technology-platform.github.io"
-        )
-            ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
-            : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
-
-        fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: changedJson,
-            signal: signal,
-        })
-            .then((resp) => handleApiResponse(resp, changedJson))
-            .catch((err) => handleError(err));
+        // WASM
+        if (runner === "wasm") {
+            runScenario(changedJson)
+                .then((result) => {
+                    if (result.error) {
+                        handleError(result.error);
+                    } else {
+                        console.log(result);
+                        handleResult(result, changedJson);
+                        console.log("scenario result is ", result);
+                    }
+                })
+                .catch((err) => handleError(err));
+        }
+        else if (runner === "api") {
+            // Azure API
+            const url = window.location.href.toLowerCase().includes(
+                "urban-analytics-technology-platform.github.io"
+            )
+                ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
+                : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: changedJson,
+                signal: controller.signal,
+            })
+                .then((resp) => handleApiResponse(resp, changedJson))
+                .catch((err) => handleError(err));
+        }
     }
 </script>
 
