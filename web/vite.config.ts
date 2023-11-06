@@ -9,6 +9,12 @@ export default defineConfig({
         target: 'esnext',
     },
     plugins: [svelte(), tsconfigPaths()],
+    define: {
+      requireFromFile: null,
+      'process.platform': null,
+      'process.version': null,
+      'process.env':{}
+    },
     server: {
         proxy: {
             // This proxies localhost:5173/api/ to localhost:5174
