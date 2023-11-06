@@ -81,14 +81,14 @@
             changes: JSON.parse(changesJson)["scenario_json"],
             values: values,
         };
-        console.log('obj', obj);
+        console.log("obj", obj);
         const newScenario: Scenario = fromScenarioObject(
             obj,
             $scaleFactors,
             $validAreaNames,
             "custom scenario"
         );
-        console.log('newScenario', newScenario);
+        console.log("newScenario", newScenario);
         // Check for name duplication
         if ($allScenarios.has(newScenario.metadata.name)) {
             let i = 1;
@@ -146,8 +146,9 @@
         if (runner === "wasm") {
             runScenario(changedJson)
                 .then((result) => {
+                    console.log("result", result);
                     if (result.error) {
-                        handleError(result.error);
+                        handleError(new Error(result.error));
                     } else {
                         console.log(result);
                         handleResult(result, changedJson);
@@ -155,12 +156,11 @@
                     }
                 })
                 .catch((err) => handleError(err));
-        }
-        else if (runner === "api") {
+        } else if (runner === "api") {
             // Azure API
-            const url = window.location.href.toLowerCase().includes(
-                "urban-analytics-technology-platform.github.io"
-            )
+            const url = window.location.href
+                .toLowerCase()
+                .includes("urban-analytics-technology-platform.github.io")
                 ? "https://demoland-api.azurewebsites.net/" // deployed to Azure
                 : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
             fetch(url, {

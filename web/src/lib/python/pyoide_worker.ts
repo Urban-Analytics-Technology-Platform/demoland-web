@@ -23,7 +23,11 @@ let pyodideReadyPromise = loadPyodideAndPackages();
 
 self.onmessage = async (event) => {
   // make sure loading is done
-  await pyodideReadyPromise;
+  try {
+    await pyodideReadyPromise;
+  } catch (error) {
+    self.postMessage({ error: error.message });
+  }
   // Don't bother yet with this line, suppose our API is built in such a way:
   const { id, python, ...context } = event.data;
   // The worker copies the context in its own "memory" (an object mapping name to values)
