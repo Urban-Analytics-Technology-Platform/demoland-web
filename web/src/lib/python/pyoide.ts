@@ -15,7 +15,7 @@ async function createOrGetWorker() {
   };
 
   return syncWorker
-};
+}
 
 
 export async function asyncRun(script, context) {
@@ -29,11 +29,11 @@ export async function asyncRun(script, context) {
       id,
     });
   });
-};
+}
 
 export async function runScenario(scenario) {
 
-  let pythonProgram = `
+  const pythonProgram = `
     import pyodide_http
     pyodide_http.patch_all() 
     from js import scenario_json

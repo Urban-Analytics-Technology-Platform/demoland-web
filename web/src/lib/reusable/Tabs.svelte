@@ -1,7 +1,9 @@
 <script lang="ts">
+    import type { ComponentType } from "svelte";
+
     type Tab = {
         name: string;
-        component: any;
+        component: ComponentType;
     };
     export let tabs: Tab[] = [];
     export let activeTab: number = 0;
