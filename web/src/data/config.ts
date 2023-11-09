@@ -147,6 +147,19 @@ const signatures = [
     { name: "Hyper concentrated urbanity", color: "#a7b799" },
 ];
 
+/* --------------------------------- */
+/* CUSTOM SCENARIO CREATION          */
+/* --------------------------------- */
+
+// The base URL of the GitHub Pages site where the web app is hosted.
+const baseUrl = "https://urban-analytics-technology-platform.github.io/demoland-web";
+
+// This is the endpoint to send POST requests to in order to calculate
+// indicators for a new scenario. See the project book
+// (https://urban-analytics-technology-platform.github.io/demoland-project/book/developer_notes.html)
+// for the API specification.
+const webApiUrl = "https://demolandapi.azurewebsites.net/api/scenario";
+
 /* ----------------------------------------------------- */
 /* Everything after this does not need to be modified.   */
 /* ----------------------------------------------------- */
@@ -175,6 +188,8 @@ interface Config {
         min: number;
         max: number;
     };
+    baseUrl: string;
+    webApiUrl: string;
 }
 
 const config: Config = {
@@ -202,6 +217,8 @@ const config: Config = {
     allInputs: allInputs,
     allLayers: allLayers,
     scale: scale,
+    baseUrl: baseUrl,
+    webApiUrl: webApiUrl,
 };
 
 export default config;
