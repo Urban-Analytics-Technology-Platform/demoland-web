@@ -20,7 +20,7 @@
     } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
     import { runScenario } from "src/lib/python/pyoide";
-    import { config } from "src/data/config";
+    import config from "src/data/config";
     const dispatch = createEventDispatcher();
 
     // Stage of the scenario creation process
