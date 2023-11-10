@@ -9,7 +9,8 @@
         type ScenarioChanges,
         type ScenarioObject,
         type Scenario,
-    } from "src/types";
+        config,
+    } from "src/data/config";
     import { toChangesObject, fromScenarioObject } from "src/utils/scenarios";
     import {
         allScenarios,
@@ -20,7 +21,6 @@
     } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
     import { runScenario } from "src/lib/python/pyoide";
-    import config from "src/data/config";
     const dispatch = createEventDispatcher();
 
     // Stage of the scenario creation process

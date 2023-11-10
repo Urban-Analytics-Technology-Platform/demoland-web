@@ -1,14 +1,13 @@
 <script lang="ts">
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
-    import config from "src/data/config";
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
         getInputDiffBoundaries,
     } from "src/utils/geojson";
     import { makePopup } from "src/utils/hover";
-    import { type LayerName } from "src/types";
+    import { type LayerName, config } from "src/data/config";
     import {
         allScenarios,
         scenarioName,

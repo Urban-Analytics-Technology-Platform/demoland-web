@@ -1,9 +1,9 @@
 import {
     type Scenario,
     type ScaleFactorMap,
-} from "src/types";
+    config
+} from "src/data/config";
 import { fromScenarioObject } from "src/utils/scenarios";
-import config from "src/data/config";
 
 /* This function reads the reference scenario from the file specified in the
  * config file, and returns a Scenario object. The values are not scaled, so

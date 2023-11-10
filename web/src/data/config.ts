@@ -1,8 +1,55 @@
-import type {
-    ScenarioObject, IndicatorName, Indicator,
-    InputName, Input, LayerName, Layer,
-    PMPFeatureCollection
-} from "src/types";
+import type { PMPFeatureCollection } from "src/types";
+
+/* --------------------------------- */
+/* TYPE DEFINITIONS                  */
+/* --------------------------------- */
+
+// Output indicators which we display on the map.
+export type Indicator = {
+    short: string,
+    hover: string,
+    less: string,
+    more: string,
+    less_diff: string,
+    more_diff: string,
+    colormap: string,
+    colormapReversed: boolean
+};
+
+/* Model inputs which we display on the map. */
+export type Input = { short: string };
+
+// A generic type, handling all inputs and outputs which can be visualised as a map layer.
+export type Layer = { short: string };
+
+// Macro variables. Ideally, these would just be `Input`s, but we don't actually
+// plot most of these yet (only signature types), so these have to be given a
+// new type.
+export type MacroVar = "signature_type" | "use" | "greenspace" | "job_types";
+
+// Scenarios
+export type ScenarioMetadata = {
+    name: string,           // unique identifier
+    short: string,          // short description (for dropdown box)
+    long: string,           // long description (title in UI)
+    description: string,    // full text description
+};
+export type ScenarioChanges = Map<string, Map<MacroVar, number | null>>;
+export type ScenarioValues = Map<string, Map<LayerName, number>>;
+
+export type Scenario = {
+    metadata: ScenarioMetadata,   // as described above
+    changes: ScenarioChanges,     // inputs changed relative to baseline
+    values: ScenarioValues        // values of all indicators and inputs
+};
+
+// Corresponding JSON types
+export type ChangesObject = { [oa: string]: { [mv in MacroVar]: number } }
+export type ValuesObject = { [oa: string]: { [ln in LayerName]: number } }
+export type MetadataObject = { name: string, short: string, long: string, description: string }
+export type ScenarioObject = { metadata: MetadataObject, changes: ChangesObject, values: ValuesObject }
+
+export type ScaleFactorMap = Map<LayerName, { min: number, max: number }>;
 
 /* --------------------------------- */
 /* GEOGRAPHY                         */
@@ -64,10 +111,13 @@ const otherScenarioObjects = [
 /* INDICATORS                        */
 /* --------------------------------- */
 
-const allIndicators: Map<IndicatorName, Indicator> = new Map([
+// Do not insert a type annotation here! TypeScript will infer the most
+// restrictive type possible, which allows us to subsequently extract
+// IndicatorName as a union type of all the keys in this object.
+const allIndicators = {
     // The IndicatorName here must match with the name of the indicator given in
     // the JSON file.
-    ["air_quality", {
+    "air_quality": {
         // This is an actual prose name of the indicator used in the UI.
         "short": "Air pollution",
         // This is used in the map hover text. Generally you'll want this to be
@@ -88,8 +138,8 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
         // https://www.npmjs.com/package/colormap.
         "colormap": "magma",
         "colormapReversed": false,
-    }],
-    ["house_price", {
+    },
+    "house_price": {
         "short": "House prices",
         "hover": "House prices",
         "less": "cheaper",
@@ -98,8 +148,8 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
         "more_diff": "increased",
         "colormap": "viridis",
         "colormapReversed": false,
-    }],
-    ["job_accessibility", {
+    },
+    "job_accessibility": {
         "short": "Job accessibility",
         "hover": "Job access.",
         "less": "lower",
@@ -108,8 +158,8 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
         "more_diff": "increased",
         "colormap": "plasma",
         "colormapReversed": false,
-    }],
-    ["greenspace_accessibility", {
+    },
+    "greenspace_accessibility": {
         "short": "Greenspace accessibility",
         "hover": "Greenspace access.",
         "less": "lower",
@@ -118,8 +168,8 @@ const allIndicators: Map<IndicatorName, Indicator> = new Map([
         "more_diff": "increased",
         "colormap": "chlorophyll",
         "colormapReversed": true,
-    }],
-]);
+    },
+};
 
 /* --------------------------------- */
 /* SPATIAL SIGNATURES                */
@@ -164,12 +214,19 @@ const webApiUrl = "https://demolandapi.azurewebsites.net/api/scenario";
 /* Everything after this does not need to be modified.   */
 /* ----------------------------------------------------- */
 
-const allInputs: Map<InputName, Input> = new Map([
-    ["signature_type", { "short": "Spatial signatures" }]
-]);
+export type IndicatorName = keyof typeof allIndicators;
+
+const allInputs = { "signature_type": { "short": "Spatial signatures" } }
+
+export type InputName = keyof typeof allInputs;
+
+export type LayerName = InputName | IndicatorName;
+
+const allIndicatorsMap: Map<IndicatorName, Indicator> = new Map(Object.entries(allIndicators));
+const allInputsMap: Map<InputName, Input> = new Map(Object.entries(allInputs));
 
 const allLayers: Map<LayerName, Layer> = new Map(
-    [...allInputs.entries(), ...allIndicators.entries()]
+    [...allInputsMap.entries(), ...allIndicatorsMap.entries()]
 );
 
 interface Config {
@@ -192,7 +249,7 @@ interface Config {
     webApiUrl: string;
 }
 
-const config: Config = {
+export const config: Config = {
     initialLatitude: initialLatitude,
     initialLongitude: initialLongitude,
     initialZoom: initialZoom,
@@ -213,12 +270,10 @@ const config: Config = {
     referenceScenarioObject: referenceScenarioObject,
     otherScenarioObjects: otherScenarioObjects,
     signatures: signatures,
-    allIndicators: allIndicators,
-    allInputs: allInputs,
+    allIndicators: allIndicatorsMap,
+    allInputs: allInputsMap,
     allLayers: allLayers,
     scale: scale,
     baseUrl: baseUrl,
     webApiUrl: webApiUrl,
 };
-
-export default config;

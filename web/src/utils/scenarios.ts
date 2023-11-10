@@ -3,8 +3,8 @@ import {
     type ScenarioChanges, type ScenarioValues, type Scenario,
     type ChangesObject, type ValuesObject, type ScenarioObject,
     type ScaleFactorMap,
-} from "src/types";
-import config from "src/data/config";
+    config
+} from "src/data/config";
 
 export function rescale(
     layerName: LayerName,

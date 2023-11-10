@@ -1,8 +1,8 @@
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import type { LayerName, ScenarioChanges, Scenario, PMPFeatureCollection } from "src/types";
+import { config, type LayerName, type ScenarioChanges, type Scenario } from "src/data/config";
+import type { PMPFeatureCollection } from "src/types";
 import { getColor, getDiffColor } from "src/utils/colors";
-import config from "src/data/config";
 
 /** The indicator values are stored as a JSON file, separate from the
  * geometry data. This allows the geometry data to be reused for different

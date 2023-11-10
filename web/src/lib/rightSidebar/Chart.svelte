@@ -4,7 +4,8 @@
         type IndicatorName,
         type Indicator,
         type Scenario,
-    } from "src/types";
+        config
+    } from "src/data/config";
     import {
         type ChartDataset,
         type ChartData,
@@ -14,7 +15,6 @@
     import { onMount, onDestroy } from "svelte";
     export let indicatorName: IndicatorName;
     import { allScenarios, scenarioName, compareScenarioName} from "src/stores";
-    import config from "src/data/config";
 
     // Number of bars to use in the chart
     const nbars = 11;

@@ -12,8 +12,8 @@
     import {
         type MacroVar,
         type ScenarioChanges,
-    } from "src/types";
-    import config from "src/data/config";
+        config,
+    } from "src/data/config";
 
     // The actual changes
     export let changes: ScenarioChanges;

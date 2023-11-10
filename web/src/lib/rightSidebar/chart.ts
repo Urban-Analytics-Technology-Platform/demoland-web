@@ -1,6 +1,5 @@
-import { type IndicatorName, type Scenario } from "src/types";
+import { type IndicatorName, type Scenario, config } from "src/data/config";
 import { makeColormap } from "src/utils/colors";
-import config from "src/data/config";
 
 // Get all values for a given indicator in a given scenario.
 export function getValues(indicator: IndicatorName, scenario: Scenario): number[] {
