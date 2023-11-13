@@ -1,6 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 
-import { type Scenario, type LayerName } from 'src/types';
+import { type Scenario, type LayerName } from 'src/data/config';
 
 // Create stores, but don't initialise their values yet; this will be done at
 // the top of App.svelte.

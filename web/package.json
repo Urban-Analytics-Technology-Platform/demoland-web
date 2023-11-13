@@ -41,6 +41,8 @@
     "jszip": "^3.10.1",
     "maplibre-gl": "^2.4.0",
     "overlayscrollbars": "^2.2.1",
-    "vite-tsconfig-paths": "^4.2.0"
+    "vite-tsconfig-paths": "^4.2.0",
+    "node-fetch": "^3.3.2",
+    "pyodide": "^0.24.1"
   }
 }

@@ -3,10 +3,7 @@
     import Chart from "src/lib/rightSidebar/Chart.svelte";
     import LayerSelector from "src/lib/rightSidebar/LayerSelector.svelte";
     import Collapsible from "src/lib/reusable/Collapsible.svelte";
-    import {
-        type LayerName,
-    } from "src/types";
-    import config from "src/data/config";
+    import { type LayerName, config } from "src/data/config";
 
     export let activeLayer: LayerName;
     export let opacity: number;

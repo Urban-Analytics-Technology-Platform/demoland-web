@@ -12,8 +12,8 @@
     import {
         type MacroVar,
         type ScenarioChanges,
-    } from "src/types";
-    import config from "src/data/config";
+        config,
+    } from "src/data/config";
 
     // The actual changes
     export let changes: ScenarioChanges;
@@ -302,7 +302,9 @@
             bind:modified={jobModified}
             bind:value={job}
             on:modified={updateOAChanges}
-            min={-1}
+            leftEdge={0}
+            rightEdge={1}
+            min={0}
             max={1}
             defaultVal={0}
             step={0.01}
@@ -313,6 +315,8 @@
             bind:modified={useModified}
             bind:value={use}
             on:modified={updateOAChanges}
+            leftEdge={0}
+            rightEdge={1}
             min={0}
             max={1}
             defaultVal={0}
@@ -324,6 +328,8 @@
             bind:modified={greenModified}
             bind:value={green}
             on:modified={updateOAChanges}
+            leftEdge={0}
+            rightEdge={1}
             min={0}
             max={1}
             defaultVal={0}
