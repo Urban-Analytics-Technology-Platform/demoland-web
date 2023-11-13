@@ -28,7 +28,7 @@
     // Only displayed if there is actually an error
     let errorMessage: string = "An error occurred.";
     // Whether to run with WASM or HTTP API
-    let runner: "wasm" | "api" = "wasm";
+    let runner: "wasm" | "api" = "api";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
