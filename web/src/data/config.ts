@@ -179,23 +179,134 @@ const allIndicators = {
 // signatures is important: signatures are stored as integers in the JSON files
 // and this list is indexed using those integers to get the correct signature.
 const signatures = [
-    { name: "Wild countryside", color: "#d7ded1" },
-    { name: "Countryside agriculture", color: "#f2e6c7" },
-    { name: "Urban buffer", color: "#c2d0d9" },
-    { name: "Warehouse/Park land", color: "#c3abaf" },
-    { name: "Open sprawl", color: "#d7a59f" },
-    { name: "Disconnected suburbia", color: "#f0d17d" },
-    { name: "Accessible suburbia", color: "#8fa37e" },
-    { name: "Connected residential neighbourhoods", color: "#94666e" },
-    { name: "Dense residential neighbourhoods", color: "#678ea6" },
-    { name: "Gridded residential quarters", color: "#e4cbc8" },
-    { name: "Dense urban neighbourhoods", color: "#efc758" },
-    { name: "Local urbanity", color: "#3b6e8c" },
-    { name: "Regional urbanity", color: "#ab888e" },
-    { name: "Metropolitan urbanity", color: "#bc5b4f" },
-    { name: "Concentrated urbanity", color: "#333432" },
-    { name: "Hyper concentrated urbanity", color: "#a7b799" },
-];
+    {
+        "name": "Wild countryside",
+        "color": "#d7ded1",
+        "job_d1": 0.2307692308,
+        "job_d9": 0.5801975309,
+        "use_d1": 0.044990606,
+        "use_d9": 0.5892211644
+    },
+    {
+        "name": "Countryside agriculture",
+        "color": "#f2e6c7",
+        "job_d1": 0.229142535,
+        "job_d9": 0.7031759556,
+        "use_d1": -0.1986845208,
+        "use_d9": 0.6906424058
+    },
+    {
+        "name": "Urban buffer",
+        "color": "#c2d0d9",
+        "job_d1": 0.2645245771,
+        "job_d9": 0.7422680412,
+        "use_d1": 0.0688937326,
+        "use_d9": 0.7689247424
+    },
+    {
+        "name": "Warehouse/Park land",
+        "color": "#c3abaf",
+        "job_d1": 0.1764706388,
+        "job_d9": 0.7980769231,
+        "use_d1": -0.5330864468,
+        "use_d9": 0.7905052697
+    },
+    {
+        "name": "Open sprawl",
+        "color": "#d7a59f",
+        "job_d1": 0.2984615385,
+        "job_d9": 0.7799113737,
+        "use_d1": 0.1611908739,
+        "use_d9": 0.79067578
+    },
+    {
+        "name": "Disconnected suburbia",
+        "color": "#f0d17d",
+        "job_d1": 0.3536585366,
+        "job_d9": 0.7934118177,
+        "use_d1": 0.2544929783,
+        "use_d9": 0.8022311756
+    },
+    {
+        "name": "Accessible suburbia",
+        "color": "#8fa37e",
+        "job_d1": 0.3640186103,
+        "job_d9": 0.7802045479,
+        "use_d1": 0.3862093858,
+        "use_d9": 0.7964351173
+    },
+    {
+        "name": "Connected residential neighbourhoods",
+        "color": "#94666e",
+        "job_d1": 0.3347880155,
+        "job_d9": 0.8226219671,
+        "use_d1": 0.1836960102,
+        "use_d9": 0.7934267429
+    },
+    {
+        "name": "Dense residential neighbourhoods",
+        "color": "#678ea6",
+        "job_d1": 0.3042270633,
+        "job_d9": 0.8394626321,
+        "use_d1": -0.2196994108,
+        "use_d9": 0.767701265
+    },
+    {
+        "name": "Gridded residential quarters",
+        "color": "#e4cbc8",
+        "job_d1": 0.3869775942,
+        "job_d9": 0.8190790739,
+        "use_d1": 0.1423421619,
+        "use_d9": 0.7847879704
+    },
+    {
+        "name": "Dense urban neighbourhoods",
+        "color": "#efc758",
+        "job_d1": 0.2952175012,
+        "job_d9": 0.8681238226,
+        "use_d1": -0.4874049471,
+        "use_d9": 0.7381499662
+    },
+    {
+        "name": "Local urbanity",
+        "color": "#3b6e8c",
+        "job_d1": 0.3226690243,
+        "job_d9": 0.8865929841,
+        "use_d1": -0.7232868016,
+        "use_d9": 0.7183937729
+    },
+    {
+        "name": "Regional urbanity",
+        "color": "#ab888e",
+        "job_d1": 0.3996857274,
+        "job_d9": 0.9051496044,
+        "use_d1": -0.6217777543,
+        "use_d9": 0.6964795358
+    },
+    {
+        "name": "Metropolitan urbanity",
+        "color": "#bc5b4f",
+        "job_d1": 0.5281291173,
+        "job_d9": 0.9448576949,
+        "use_d1": -0.8206404544,
+        "use_d9": 0.5366170123
+    },
+    {
+        "name": "Concentrated urbanity",
+        "color": "#333432",
+        "job_d1": 0.6853582555,
+        "job_d9": 0.9180880262,
+        "use_d1": -0.9853343597,
+        "use_d9": -0.61619044
+    },
+    {
+        "name": "Hyper concentrated urbanity",
+        "color": "#a7b799",
+        "job_d1": 0.6340095491,
+        "job_d9": 0.8429180008,
+        "use_d1": -0.9432273745,
+        "use_d9": -0.6446765856
+    }]
 
 /* --------------------------------- */
 /* CUSTOM SCENARIO CREATION          */
@@ -237,7 +348,7 @@ interface Config {
     initialZoom: number;
     referenceScenarioObject: ScenarioObject;
     otherScenarioObjects: ScenarioObject[];
-    signatures: { name: string, color: string }[];
+    signatures: { name: string, color: string, job_d1: number, job_d9: number, use_d1: number, use_d9: number }[];
     allIndicators: Map<IndicatorName, Indicator>;
     allInputs: Map<InputName, Input>;
     allLayers: Map<LayerName, Layer>;
