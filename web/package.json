@@ -23,6 +23,7 @@
     "concurrently": "^8.2.1",
     "eslint": "^8.42.0",
     "eslint-plugin-svelte": "^2.30.0",
+    "isomorphic-fetch": "^3.0.0",
     "svelte": "^3.59.1",
     "svelte-check": "^2.10.3",
     "tslib": "^2.5.0",
@@ -41,7 +42,7 @@
     "jszip": "^3.10.1",
     "maplibre-gl": "^2.4.0",
     "overlayscrollbars": "^2.2.1",
-    "vite-tsconfig-paths": "^4.2.0",
-    "pyodide": "=0.23.4"
+    "pyodide": "^0.24.1",
+    "vite-tsconfig-paths": "^4.2.0"
   }
 }

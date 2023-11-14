@@ -10,6 +10,11 @@ export default defineConfig({
     },
     worker: { format: 'es' },
     plugins: [svelte(), tsconfigPaths()],
+    resolve: {
+        alias: {
+            'node-fetch': 'isomorphic-fetch',
+        },
+    },
     server: {
         proxy: {
             // This proxies localhost:5173/api/ to localhost:5174

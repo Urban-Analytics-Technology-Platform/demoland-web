@@ -1,7 +1,7 @@
 import { loadPyodide } from "pyodide";
 
 async function loadPyodideAndPackages() {
-    self.pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
+    self.pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
     await self.pyodide.loadPackage(["micropip"]);
     console.log("loading micropip")
     const micropip = self.pyodide.pyimport("micropip");
