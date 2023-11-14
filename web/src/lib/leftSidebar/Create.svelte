@@ -20,7 +20,7 @@
         clickedOAs,
     } from "src/stores";
     import { onDestroy, createEventDispatcher } from "svelte";
-    import { runScenario } from "src/lib/python/pyoide";
+    import { runScenario } from "src/lib/python/pyodide";
     const dispatch = createEventDispatcher();
 
     // Stage of the scenario creation process
@@ -28,7 +28,7 @@
     // Only displayed if there is actually an error
     let errorMessage: string = "An error occurred.";
     // Whether to run with WASM or HTTP API
-    let runner: "wasm" | "api" = "api";
+    let runner: "wasm" | "api" = "wasm";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()

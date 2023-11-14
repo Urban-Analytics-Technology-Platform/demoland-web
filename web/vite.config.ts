@@ -8,6 +8,7 @@ export default defineConfig({
         // Required for top-level await
         target: 'esnext',
     },
+    worker: { format: 'es' },
     plugins: [svelte(), tsconfigPaths()],
     server: {
         proxy: {

@@ -3,37 +3,41 @@ const callbacks = {};
 let id = 0; // identify a Promise
 
 async function createOrGetWorker() {
-  if (syncWorker) return syncWorker
+    if (syncWorker) return syncWorker;
 
-  const SyncWorker = await import('./pyoide_worker.ts?worker');
-  syncWorker = new SyncWorker.default();
-  syncWorker.onmessage = (event) => {
-    const { id, ...data } = event.data;
-    const onSuccess = callbacks[id];
-    delete callbacks[id];
-    onSuccess(data);
-  };
+    const SyncWorker = await import('./pyodide_worker.ts?worker');
+    syncWorker = new SyncWorker.default();
+    syncWorker.onmessage = (event) => {
+        if (event.data.error) {
+            throw new Error(event.data.error);
+        }
+        else {
+            const { id, ...data } = event.data;
+            const onSuccess = callbacks[id];
+            console.log(callbacks);
+            delete callbacks[id];
+            onSuccess(data);
+        }
+    };
 
-  return syncWorker
+    return syncWorker;
 }
 
-
 export async function asyncRun(script, context) {
-  const worker = await createOrGetWorker()
-  id = (id + 1) % Number.MAX_SAFE_INTEGER;
-  return new Promise((onSuccess) => {
-    callbacks[id] = onSuccess;
-    worker.postMessage({
-      ...context,
-      python: script,
-      id,
+    const worker = await createOrGetWorker();
+    id = (id + 1) % Number.MAX_SAFE_INTEGER;
+    return new Promise((onSuccess) => {
+        callbacks[id] = onSuccess;
+        worker.postMessage({
+            ...context,
+            python: script,
+            id,
+        });
     });
-  });
 }
 
 export async function runScenario(scenario) {
-
-  const pythonProgram = `
+    const pythonProgram = `
     import pyodide_http
     pyodide_http.patch_all() 
     from js import scenario_json
@@ -46,12 +50,10 @@ export async function runScenario(scenario) {
     import sklearn
     import time
     
-    
     start= time.time()
     print(scenario_json)
     scenario = json.loads(scenario_json)
     print(json.dumps(scenario, indent=2))
-    
     
     df = demoland_engine.get_empty()  
     print("Got empty")
@@ -92,11 +94,10 @@ export async function runScenario(scenario) {
     print(f"{time.time()- start} s to run")
     json.dumps(prediction)
     `
-  const result = await asyncRun(pythonProgram, { scenario_json: scenario })
-  if (result.error) {
-    console.error(result.error)
-    return result
-  }
-  return JSON.parse(result.results)
-
+    const result = await asyncRun(pythonProgram, { scenario_json: scenario })
+    if (result.error) {
+        console.error(result.error);
+        return result;
+    }
+    return JSON.parse(result.results);
 }
