@@ -9,7 +9,7 @@ declare global {
     }
 }
 
-async function loadPyodideAndPackages() {
+async function loadPyodideAndPackages(pathname: string) {
     self.pyodide = await loadPyodide({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
     });
@@ -17,25 +17,32 @@ async function loadPyodideAndPackages() {
     const micropip = self.pyodide.pyimport("micropip");
     await micropip.install("lzma")
     await micropip.install("pyodide-http")
-    await micropip.install(window.location.pathname + "demoland_engine-0.1.dev1+gcccf10a-py3-none-any.whl");
+    await micropip.install(pathname + "demoland_engine-0.1.dev1+g2b07f90-py3-none-any.whl");
 }
 
 self.onmessage = async (event) => {
+    // The data passed in from the main thread must contain these fields.
+    // TODO: Type this properly
+    const { id, python, pathname, scenario_json, BASE_URL } = event.data;
+
     // Load packages
     try {
-        await loadPyodideAndPackages();
+        await loadPyodideAndPackages(pathname);
     } catch (error) {
         console.error(error);
         self.postMessage({ error: error.message });
     }
-    const { id, python, ...context } = event.data;
 
-    // The 'context' allows us to pass in variables from the main thread
-    // to the worker thread, and access them in Python code. On the TypeScript
-    // side we can do `from js import scenario_json`; and in the Python package
-    // itself we can do `import pyodide_js; pyodide_js.globals.get("BASE_URL")`.
-    self.scenario_json = context.scenario_json;
-    self.BASE_URL = context.BASE_URL;
+    // Setting this property on `self` allows us to pass in variables from
+    // the main thread to the worker thread, and access them in Python code.
+    // So, on the TypeScript side (pyodide.ts) we can do `from js import
+    // scenario_json`.
+    self.scenario_json = scenario_json;
+    // The BASE_URL is more tricky because it must be accessed from the Python
+    // package itself. We need to set this as a global variable here, which lets
+    // us do `import pyodide_js; pyodide_js.globals.get("BASE_URL")` (in the
+    // `cache.py` file).
+    self.pyodide.globals.set("BASE_URL", BASE_URL);
 
     try {
         await self.pyodide.loadPackagesFromImports(python);
