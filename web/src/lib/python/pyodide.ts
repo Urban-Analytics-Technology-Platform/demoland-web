@@ -23,7 +23,10 @@ async function createOrGetWorker() {
     return syncWorker;
 }
 
-export async function asyncRun(script, context) {
+export async function asyncRunScenario(
+    script: string,
+    context: object,
+) {
     const worker = await createOrGetWorker();
     id = (id + 1) % Number.MAX_SAFE_INTEGER;
     return new Promise((onSuccess) => {
@@ -36,36 +39,26 @@ export async function asyncRun(script, context) {
     });
 }
 
-export async function runScenario(scenario) {
+// TODO convert scenario here?
+export async function runScenario(scenario: string) {
     const pythonProgram = `
     import pyodide_http
     pyodide_http.patch_all() 
+    print(globals())
     from js import scenario_json
-    import sys
     import demoland_engine
     import json
-    import pandas as pd 
-    import numpy as np
-    import joblib
-    import sklearn
     import time
     
-    start= time.time()
-    print(scenario_json)
+    start = time.time()
     scenario = json.loads(scenario_json)
-    print(json.dumps(scenario, indent=2))
     
     df = demoland_engine.get_empty()  
-    print("Got empty")
 
     for oa_code, vals in scenario["scenario_json"].items():
-        print(oa_code, list(vals.values()))
         df.loc[oa_code] = list(vals.values())
 
-    print("setup codes")
-    
     pred = demoland_engine.get_indicators(df, random_seed=42)
-    print("made prediction")
     sig = demoland_engine.sampling.oa_key.primary_type.copy()
 
     mapping = {
@@ -91,10 +84,13 @@ export async function runScenario(scenario) {
     sig.loc[changed.index] = changed
     pred["signature_type"] = sig
     prediction = pred.to_dict("index")
-    print(f"{time.time()- start} s to run")
+    print(f"{time.time() - start}s to run")
     json.dumps(prediction)
     `
-    const result = await asyncRun(pythonProgram, { scenario_json: scenario })
+    const result = await asyncRunScenario(pythonProgram, {
+        scenario_json: scenario,
+        BASE_URL: window.location.origin + window.location.pathname
+    });
     if (result.error) {
         console.error(result.error);
         return result;

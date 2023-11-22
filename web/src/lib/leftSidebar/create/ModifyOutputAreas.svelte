@@ -138,6 +138,13 @@
             green = oaChanges.get("greenspace");
             greenModified = green !== null;
             referenceSig = oaChanges.get("reference_sig");
+            // Update sliders as well
+            console.log(sig);
+            console.log(referenceSig);
+            jobMin = config.signatures[sig || referenceSig].job_d1;
+            jobMax = config.signatures[sig || referenceSig].job_d9;
+            useMin = config.signatures[sig || referenceSig].use_d1;
+            useMax = config.signatures[sig || referenceSig].use_d9;
         } else {
             // More than one OA selected
             const allSigs: Array<number | null> = oas.map((oa) =>
@@ -224,8 +231,12 @@
     let green: number | null = null;
     let greenModified: boolean;
 
-    // Update values in dropdowns whenever clickedOAs is changed
+    let jobMin: number;
+    let jobMax: number;
+    let useMin: number;
+    let useMax: number;
     $: {
+        // Update values in dropdowns whenever clickedOAs is changed
         if (mounted) loadOAChangesToUI($clickedOAs);
     }
 </script>
@@ -304,9 +315,9 @@
             on:modified={updateOAChanges}
             leftEdge={0}
             rightEdge={1}
-            min={0}
-            max={1}
-            defaultVal={0}
+            min={jobMin}
+            max={jobMax}
+            defaultVal={jobMin}
             step={0.01}
         />
 
@@ -317,9 +328,9 @@
             on:modified={updateOAChanges}
             leftEdge={0}
             rightEdge={1}
-            min={0}
-            max={1}
-            defaultVal={0}
+            min={useMin}
+            max={useMax}
+            defaultVal={useMin}
             step={0.01}
         />
 
