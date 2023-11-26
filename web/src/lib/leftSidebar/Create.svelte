@@ -49,6 +49,7 @@
     onDestroy(() => {
         if (userChangesPresent && window.confirm(userChangesPromptText)) {
             changes = new Map();
+            $clickedOAs = [];
         }
     });
     // or if they return to step 1
@@ -57,9 +58,11 @@
             if (window.confirm(userChangesPromptText)) {
                 changes = new Map();
                 userChangesPresent = false;
+                $clickedOAs = [];
                 step = "choose";
             }
         } else {
+            $clickedOAs = [];
             step = "choose";
         }
     }
@@ -67,6 +70,7 @@
     function changeScenarioAndProceed() {
         dispatch("changeScenario", {});
         step = "modify"; // move on to the next step
+        $clickedOAs = []; // deselect any OAs
         changes = new Map($allScenarios.get($scenarioName).changes);
     }
 

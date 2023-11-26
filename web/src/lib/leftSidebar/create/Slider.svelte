@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     export let modified: boolean;
     export let value: number | null;
     export let title: string;
@@ -9,27 +10,46 @@
     export let max: number; // Maximum valid value for slider
     export let step: number;
 
+    let container: HTMLElement;
+    let slider: HTMLInputElement;
+
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    function setContainerPadding(node: HTMLElement) {
-        node.style.paddingLeft = `${
-            ((min - leftEdge) / (rightEdge - leftEdge)) * 100
-        }px`;
-        node.style.paddingRight = `${
-            ((rightEdge - max) / (rightEdge - leftEdge)) * 100
-        }px`;
-        node.style.width = "104px";
+    function setContainerPadding() {
+        const paddingLeft = ((min - leftEdge) / (rightEdge - leftEdge)) * 100;
+        const paddingRight = ((rightEdge - max) / (rightEdge - leftEdge)) * 100;
+        container.style.paddingLeft = `${paddingLeft}px`;
+        container.style.paddingRight = `${paddingRight}px`;
+        container.style.width = "104px";
     }
-    function setSliderWidth(node: HTMLElement) {
-        // node.style.width = `100px`;
-        node.style.width = `${((max - min) / (rightEdge - leftEdge)) * 100}px`;
+
+    function setSliderWidthAndValue() {
+        const sliderWidth = ((max - min) / (rightEdge - leftEdge)) * 100;
+        slider.style.width = `${sliderWidth}px`;
     }
 
     const idTitle = title.replace(/\s/g, "-").toLowerCase();
 
-    function dispatchModified() {
-        dispatch("modified", {});
+    function dispatchChange() {
+        dispatch("change", {});
+    }
+
+    onMount(() => {
+        if (!modified) {
+            value = defaultVal;
+        }
+    });
+
+    $: {
+        // Update the slider width and container padding when any of the
+        // parameters change (in effect, when the underlying signature type
+        // changes)
+        min, max, leftEdge, rightEdge, defaultVal;
+        if (container && slider) {
+            setContainerPadding();
+            setSliderWidthAndValue();
+        }
     }
 </script>
 
@@ -39,22 +59,18 @@
     id="{idTitle}-modified"
     bind:checked={modified}
     on:change={() => {
-        if (modified) {
-            // ^ this is the state before the change, so this branch
-            // corresponds to unchecking it
-            value = defaultVal;
-        }
-        dispatchModified();
+        value = defaultVal;
+        dispatchChange();
     }}
 />
-{#if modified}
-    <div use:setContainerPadding>
+{#if modified && value !== null}
+    <div bind:this={container}>
         <input
             type="range"
             class="range"
-            use:setSliderWidth
+            bind:this={slider}
             bind:value
-            on:change={dispatchModified}
+            on:change={dispatchChange}
             {min}
             {max}
             {step}
@@ -64,7 +80,7 @@
         type="number"
         class="value"
         bind:value
-        on:input={() => {
+        on:focusout={() => {
             if (value > max) {
                 value = max;
             } else if (value < min) {
@@ -79,26 +95,34 @@
             } else if (value === null) {
                 value = defaultVal;
             }
-            dispatchModified();
+            dispatchChange();
         }}
         {min}
         {max}
         {step}
     />
 {:else}
-    <div use:setContainerPadding>
+    <div bind:this={container}>
         <input
             type="range"
             class="range"
-            use:setSliderWidth
-            value={defaultVal}
+            bind:this={slider}
+            bind:value={defaultVal}
             disabled
             {min}
             {max}
             {step}
         />
     </div>
-    <input type="number" class="value" value="" disabled />
+    <input
+        type="number"
+        class="value"
+        bind:value={defaultVal}
+        disabled
+        {min}
+        {max}
+        {step}
+    />
 {/if}
 
 <style>
@@ -114,5 +138,17 @@
     input.value {
         font-size: 0.8em;
         width: 50px;
+    }
+
+    input:disabled {
+        color: #ff8cee;
+        border: 1px solid #ff8cee;
+        border-radius: 4px;
+    }
+    input:disabled::-moz-range-track {
+        color: #ff8cee;
+        border: 1px solid #ff8cee;
+        border-radius: 4px;
+        box-shadow: 1px 1px 2px #A6A6A6;
     }
 </style>

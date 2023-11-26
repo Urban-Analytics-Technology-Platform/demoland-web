@@ -31,7 +31,160 @@
         $customScenarioInProgress = false;
     });
 
-    function getReferenceSig(oaName: string): number {
+    // UI variables
+    let sig: number | null = null; // Active value of the signature
+    let sigModified: boolean; // Signature checkbox
+    let referenceSig: null | number; // Underlying signature type (if no changes)
+    let job: number | null = null; // Job types slider value
+    let jobModified: boolean; // Job types checkbox
+    let jobMin: number; // Minimum value of job types slider
+    let jobMax: number; // Maximum value of job types slider
+    let use: number | null = null; // Building use slider value
+    let useModified: boolean; // Building use checkbox
+    let useMin: number; // Minimum value of building use slider
+    let useMax: number; // Maximum value of building use slider
+    let green: number | null = null; // Greenspace slider value
+    let greenModified: boolean; // Greenspace checkbox
+    let showMacroVariables: boolean = false; // Whether to show the macrovariable sliders
+
+    // Much of the logic in custom scenario creation has to do with determining
+    // the signature types of the OAs being selected. This, in turn, determines
+    // what is shown in the UI. There are several possible states for OA
+    // selection, enumerated in the following discriminated union.
+    interface None {
+        // When the user has not selected any OAs
+        kind: "None";
+    }
+    interface SingleActive {
+        // When the user has selected one OA and has modified the signature type
+        kind: "SingleActive";
+        oaName: string;
+        sigId: number;
+    }
+    interface SinglePassive {
+        // When the user has selected one OA and has not modified the signature
+        // type, i.e. we are fetching the baseline signature
+        kind: "SinglePassive";
+        oaName: string;
+        sigId: number;
+    }
+    interface MultipleDifferent {
+        // When the user has selected multiple OAs and they are not all the same
+        kind: "MultipleDifferent";
+        oaNames: string[];
+        sigIds: number[]; // Baseline signatures
+    }
+    interface MultipleSameActive {
+        // When the user has selected multiple OAs and has changed all of them
+        // to the same signature type
+        kind: "MultipleSameActive";
+        oaNames: string[];
+        sigId: number;
+    }
+    interface MultipleSamePassive {
+        // When the user has selected multiple OAs and has changed none or some
+        // of them, and all now have the same signature type
+        kind: "MultipleSamePassive";
+        oaNames: string[];
+        sigId: number;
+    }
+    type SignatureState =
+        | None
+        | SingleActive
+        | SinglePassive
+        | MultipleDifferent
+        | MultipleSameActive
+        | MultipleSamePassive;
+    function determineSignatureState(
+        oas: Array<{ name: string }>
+    ): SignatureState {
+        if (oas.length === 0) {
+            return { kind: "None" };
+        } else if (oas.length === 1) {
+            const oaName = oas[0].name;
+            const sig = getSingleOAChanges(oaName).get("signature_type");
+            if (sig === null) {
+                return {
+                    kind: "SinglePassive",
+                    oaName,
+                    sigId: getReferenceSigSingleOA(oaName),
+                };
+            } else {
+                return { kind: "SingleActive", oaName, sigId: sig };
+            }
+        } else {
+            const oaNames = oas.map((oa) => oa.name);
+            const oaChanges = oas.map((oa) => getSingleOAChanges(oa.name));
+            const allSigs = oaChanges.map((oa) => oa.get("signature_type"));
+            const allReferenceSigs = oaNames.map((oa) =>
+                getReferenceSigSingleOA(oa)
+            );
+            if (allSigs.every((s) => s === null)) {
+                // None of the OAs have been modified ...
+                if (allReferenceSigs.every((s) => s === allReferenceSigs[0])) {
+                    // ... and all the reference signatures are the same
+                    return {
+                        kind: "MultipleSamePassive",
+                        oaNames,
+                        sigId: allReferenceSigs[0],
+                    };
+                } else {
+                    // ... and the reference signatures are different
+                    return {
+                        kind: "MultipleDifferent",
+                        oaNames,
+                        sigIds: allReferenceSigs,
+                    };
+                }
+            } else if (
+                allSigs.some((s) => s !== null) &&
+                allSigs.some((s) => s === null)
+            ) {
+                // Some of the OAs have been modified, but not all ...
+                const allUnderlyingSigs = allSigs.map(
+                    (sig, i) => sig || allReferenceSigs[i]
+                );
+                if (
+                    allUnderlyingSigs.every((s) => s === allUnderlyingSigs[0])
+                ) {
+                    // ... and all the underlying signatures are the same
+                    return {
+                        kind: "MultipleSamePassive",
+                        oaNames,
+                        sigId: allUnderlyingSigs[0],
+                    };
+                } else {
+                    // ... and the underlying signatures are different
+                    return {
+                        kind: "MultipleDifferent",
+                        oaNames,
+                        sigIds: allUnderlyingSigs,
+                    };
+                }
+            } else {
+                // All of the OAs have been modified ...
+                if (allSigs.every((s) => s === allSigs[0])) {
+                    // ... to the same thing
+                    return {
+                        kind: "MultipleSameActive",
+                        oaNames,
+                        sigId: allSigs[0],
+                    };
+                } else {
+                    // ... to different things
+                    return {
+                        kind: "MultipleDifferent",
+                        oaNames,
+                        sigIds: allSigs,
+                    };
+                }
+            }
+        }
+    }
+    let sigState = determineSignatureState($clickedOAs);
+
+    // Extract the signature type from the reference scenario (i.e. baseline)
+    function getReferenceSigSingleOA(oaName: string): number {
         return $allScenarios
             .get(config.referenceScenarioObject.metadata.name)
             .values.get(oaName)
@@ -40,9 +193,7 @@
 
     // Get changes belonging to a single OA. If none, return null for all
     // editable layers
-    function getSingleOAChanges(
-        oaName: string
-    ): Map<MacroVar | "reference_sig", number | null> {
+    function getSingleOAChanges(oaName: string): Map<MacroVar, number | null> {
         const hasChanges = changes.has(oaName);
         const thisChanges = changes.get(oaName);
         return new Map([
@@ -53,12 +204,43 @@
             ["job_types", hasChanges ? thisChanges.get("job_types") : null],
             ["use", hasChanges ? thisChanges.get("use") : null],
             ["greenspace", hasChanges ? thisChanges.get("greenspace") : null],
-            ["reference_sig", getReferenceSig(oaName)],
         ]);
     }
 
+    // Log changes to the console
+    function logChanges(changes: ScenarioChanges) {
+        const changesAsText =
+            changes.size === 0
+                ? "No changes"
+                : [...changes.entries()]
+                      .map(([oaName, thisOAChanges]) => {
+                          return (
+                              "  [" +
+                              oaName +
+                              "] " +
+                              [...thisOAChanges.entries()]
+                                  .map(([macroVar, value]) => {
+                                      return (
+                                          macroVar +
+                                          ": " +
+                                          String(value).padEnd(
+                                              macroVar === "signature_type"
+                                                  ? 2
+                                                  : 4,
+                                              " "
+                                          )
+                                      );
+                                  })
+                                  .join(" | ")
+                          );
+                      })
+                      .join("\n");
+        console.log("Updated 'changes' to:\n" + changesAsText);
+    }
+
     // Update changes for all selected OAs from the slider
-    function updateOAChanges() {
+    function setOAChanges() {
+        console.log("setOAChanges");
         if (!sigModified && !jobModified && !useModified && !greenModified) {
             // If no changes, remove it from the Map
             $clickedOAs.forEach((oa) => {
@@ -71,174 +253,157 @@
                 ["use", useModified ? use : null],
                 ["greenspace", greenModified ? green : null],
             ]);
-            // If there's only one clicked OA, then we want whatever's shown to
-            // apply to that OA immediately.
-            if ($clickedOAs.length === 1) {
-                $clickedOAs.forEach((oa) => {
-                    changes.set(oa.name, userSetChanges);
-                });
-            }
-            // If there is more than one clicked OA, then we only want to
-            // update any of the macrovariable inputs that are not `null`.
-            else if ($clickedOAs.length > 1) {
-                $clickedOAs.forEach((oa) => {
-                    const thisOAChanges = getSingleOAChanges(oa.name);
-                    userSetChanges.forEach((macroVarValue, macroVar) => {
-                        if (macroVarValue !== null) {
-                            thisOAChanges.set(macroVar, macroVarValue);
-                        }
-                    });
-                    thisOAChanges.delete("reference_sig");
-                    changes.set(oa.name, thisOAChanges as Map<MacroVar, number>);
-                });
-            }
+            $clickedOAs.forEach((oa) => {
+                changes.set(oa.name, userSetChanges);
+            });
         }
-        const changesAsText =
-            changes.size === 0
-                ? "No changes"
-                : [...changes.entries()]
-                      .map(([oaName, thisOAChanges]) => {
-                          return (
-                              oaName +
-                              ": " +
-                              [...thisOAChanges.entries()]
-                                  .map(([macroVar, value]) => {
-                                      return (
-                                          macroVar +
-                                          ": " +
-                                          String(value).padEnd(4, " ")
-                                      );
-                                  })
-                                  .join("; ")
-                          );
-                      })
-                      .join("\n");
-        console.log('Updated \'changes\' to:\n', changesAsText);
+        logChanges(changes);
         userChangesPresent = true;
     }
 
-    // Determine what should be shown in the UI based on the current changes of
-    // all the clicked OAs
-    // We call this with $clickedOAs (instead of just using it directly in the
-    // function body) to make sure that Svelte reruns this code whenever OAs
-    // are selected.
-    // TODO: Fix ugly code repetition (!)
-    function loadOAChangesToUI(oas: Array<{ name: string }>) {
-        if (oas.length === 0) return;
-        else if (oas.length === 1) {
-            // Exactly one OA selected
-            const oaName = oas[0].name;
-            const oaChanges = getSingleOAChanges(oaName);
-            sig = oaChanges.get("signature_type");
-            sigModified = sig !== null;
-            job = oaChanges.get("job_types");
-            jobModified = job !== null;
-            use = oaChanges.get("use");
-            useModified = use !== null;
-            green = oaChanges.get("greenspace");
-            greenModified = green !== null;
-            referenceSig = oaChanges.get("reference_sig");
-            // Update sliders as well
-            console.log(sig);
-            console.log(referenceSig);
-            jobMin = config.signatures[sig || referenceSig].job_d1;
-            jobMax = config.signatures[sig || referenceSig].job_d9;
-            useMin = config.signatures[sig || referenceSig].use_d1;
-            useMax = config.signatures[sig || referenceSig].use_d9;
-        } else {
-            // More than one OA selected
-            const allSigs: Array<number | null> = oas.map((oa) =>
-                getSingleOAChanges(oa.name).get("signature_type")
-            );
-            const allReferenceSigs: Array<number> = oas.map((oa) =>
-                getSingleOAChanges(oa.name).get("reference_sig")
-            );
-            // If none of the values were changed, check if the reference values
-            // are all the same. If so, display that
-            if (allSigs.every((s) => s === null)) {
-                sigModified = false;
-                if (allReferenceSigs.every((s) => s === allReferenceSigs[0])) {
-                    referenceSig = allReferenceSigs[0];
-                } else {
-                    referenceSig = null;
-                }
+    function roundToTwoDecimals(num: number): number {
+        return Math.round(num * 100) / 100;
+    }
+
+    function setMacroVariablesSingleOA(oaName: string, sigId: number) {
+        job = getSingleOAChanges(oaName).get("job_types");
+        use = getSingleOAChanges(oaName).get("use");
+        green = getSingleOAChanges(oaName).get("greenspace");
+        jobModified = job !== null;
+        useModified = use !== null;
+        greenModified = green !== null;
+        jobMin = roundToTwoDecimals(config.signatures[sigId].job_d1);
+        jobMax = roundToTwoDecimals(config.signatures[sigId].job_d9);
+        useMin = roundToTwoDecimals(config.signatures[sigId].use_d1);
+        useMax = roundToTwoDecimals(config.signatures[sigId].use_d9);
+    }
+
+    function setMacroVariablesMultipleSame(oaNames: string[], sigId: number) {
+        const oaChanges = oaNames.map((oaName) => getSingleOAChanges(oaName));
+        function setMacroVariable(
+            macroVarName: "job_types" | "use" | "greenspace"
+        ) {
+            const allValues = oaChanges.map((oa) => oa.get(macroVarName));
+            if (allValues.every((v) => v === allValues[0] && v !== null)) {
+                return allValues[0];
+            } else {
+                return null;
             }
-            // If some of the values were changed, but not all, display an unchecked checkbox
-            else if (
-                allSigs.some((s) => s !== null) &&
-                allSigs.some((s) => s === null)
-            ) {
+        }
+        job = setMacroVariable("job_types");
+        jobModified = job !== null;
+        use = setMacroVariable("use");
+        useModified = use !== null;
+        green = setMacroVariable("greenspace");
+        greenModified = green !== null;
+        jobMin = config.signatures[sigId].job_d1;
+        jobMax = config.signatures[sigId].job_d9;
+        useMin = config.signatures[sigId].use_d1;
+        useMax = config.signatures[sigId].use_d9;
+    }
+
+    // Determine what should be shown in the UI based on the current changes of
+    // all the clicked OAs.
+    // TODO: Fix ugly code repetition (!)
+    function loadOAChangesToUI() {
+        console.log("loadOAChangesToUI");
+
+        switch (sigState.kind) {
+            case "None":
+                return;
+            case "SingleActive":
+                sig = sigState.sigId;
+                sigModified = true;
+                referenceSig = sigState.sigId;
+                break;
+            case "SinglePassive":
+                sig = null;
+                sigModified = false;
+                referenceSig = sigState.sigId;
+                break;
+            case "MultipleDifferent":
                 sig = null;
                 sigModified = false;
                 referenceSig = null;
-            }
-            // If we reached here, then that means that all of the values were
-            // changed to something else.
-            else {
-                // If they were all changed to the same thing, display that value.
-                if (allSigs.every((s) => s === allSigs[0])) {
-                    sig = allSigs[0];
-                    sigModified = true;
-                }
-                // Otherwise, they were all changed to different things. Just
-                // default to an unchecked box
-                else {
-                    sig = null;
-                    sigModified = false;
-                }
-            }
-            const allJobs: Array<number | null> = oas.map((oa) =>
-                getSingleOAChanges(oa.name).get("job_types")
-            );
-            if (allJobs.every((j) => j === allJobs[0] && j !== null)) {
-                job = allJobs[0];
-                jobModified = true;
-            } else {
-                job = null;
-                jobModified = false;
-            }
-            const allUses: Array<number | null> = oas.map((oa) =>
-                getSingleOAChanges(oa.name).get("use")
-            );
-            if (allUses.every((u) => u === allUses[0] && u !== null)) {
-                use = allUses[0];
-                useModified = true;
-            } else {
-                use = null;
-                useModified = false;
-            }
-            const allGreens: Array<number | null> = oas.map((oa) =>
-                getSingleOAChanges(oa.name).get("greenspace")
-            );
-            if (allGreens.every((g) => g === allGreens[0] && g !== null)) {
-                green = allGreens[0];
-                greenModified = true;
-            } else {
-                green = null;
-                greenModified = false;
-            }
+                break;
+            case "MultipleSameActive":
+                sig = sigState.sigId;
+                sigModified = true;
+                referenceSig = null;
+                break;
+            case "MultipleSamePassive":
+                sig = null;
+                sigModified = false;
+                referenceSig = sigState.sigId;
+                break;
+        }
+        updateSliderUI();
+    }
+
+    function updateSliderUI() {
+        console.log("updateSliderUI");
+
+        function setJobUseMinMax(lsig: number) {
+            jobMin = roundToTwoDecimals(config.signatures[lsig].job_d1);
+            jobMax = roundToTwoDecimals(config.signatures[lsig].job_d9);
+            useMin = roundToTwoDecimals(config.signatures[lsig].use_d1);
+            useMax = roundToTwoDecimals(config.signatures[lsig].use_d9);
+        }
+
+        switch (sigState.kind) {
+            case "None":
+                showMacroVariables = false;
+                break;
+            case "SingleActive":
+                showMacroVariables = true;
+                setMacroVariablesSingleOA(sigState.oaName, sigState.sigId);
+                setJobUseMinMax(sigState.sigId);
+                break;
+            case "SinglePassive":
+                showMacroVariables = true;
+                setMacroVariablesSingleOA(sigState.oaName, sigState.sigId);
+                setJobUseMinMax(sigState.sigId);
+                console.log("job", job);
+                console.log("use", use);
+                break;
+            case "MultipleSameActive":
+                showMacroVariables = true;
+                setMacroVariablesMultipleSame(sigState.oaNames, sigState.sigId);
+                setJobUseMinMax(sigState.sigId);
+                break;
+            case "MultipleSamePassive":
+                showMacroVariables = true;
+                setMacroVariablesMultipleSame(sigState.oaNames, sigState.sigId);
+                setJobUseMinMax(sigState.sigId);
+                break;
+            case "MultipleDifferent":
+                sig = null;
+                sigModified = false;
+                referenceSig = null;
+                showMacroVariables = false;
+                break;
         }
     }
 
-    // Variables for OA modifiers
-    let sig: number | null = null;
-    let sigModified: boolean;
-    let referenceSig: null | number;
-    let job: number | null = null;
-    let jobModified: boolean;
-    let use: number | null = null;
-    let useModified: boolean;
-    let green: number | null = null;
-    let greenModified: boolean;
-
-    let jobMin: number;
-    let jobMax: number;
-    let useMin: number;
-    let useMax: number;
+    // Update entire UI whenever clicked OAs are changed
     $: {
-        // Update values in dropdowns whenever clickedOAs is changed
-        if (mounted) loadOAChangesToUI($clickedOAs);
+        $clickedOAs;
+        sigState = determineSignatureState($clickedOAs);
+        console.log("sigState", sigState);
+        if (mounted) loadOAChangesToUI();
     }
+    // Update slider UI whenever underlying signature type is changed
+    $: {
+        sig, sigModified, sigState;
+        sigState = determineSignatureState($clickedOAs);
+        if (mounted) updateSliderUI();
+    }
+    // In general, we want to set changes (i.e. `setOAChanges()`) whenever any
+    // of the macrovariables are changed. However, we can't use reactive
+    // statements for this because the process of _loading_ the changes into
+    // the UI will trigger the reactive statement, which will then overwrite
+    // the changes we just loaded. So, the changes are set in the respective
+    // elements themselves using events.
 </script>
 
 <h3>Step 2: Modify output areas</h3>
@@ -277,21 +442,12 @@
             id="sig-modified"
             bind:checked={sigModified}
             on:change={() => {
-                if (sigModified) {
-                    sig = referenceSig;
-                }
-                if ($clickedOAs.length > 1 && !sigModified) {
-                    sig = null;
-                }
-                updateOAChanges();
+                sig = sigModified ? referenceSig : null;
+                setOAChanges();
             }}
         />
         {#if sigModified}
-            <select
-                id="sig-dropdown"
-                bind:value={sig}
-                on:change={updateOAChanges}
-            >
+            <select id="sig-dropdown" bind:value={sig} on:change={setOAChanges}>
                 {#each [...config.signatures.entries()] as [signatureId, signature]}
                     <option value={signatureId}
                         >{signatureId}: {signature.name}</option
@@ -308,44 +464,46 @@
             </select>
         {/if}
 
-        <Slider
-            title="Job types"
-            bind:modified={jobModified}
-            bind:value={job}
-            on:modified={updateOAChanges}
-            leftEdge={0}
-            rightEdge={1}
-            min={jobMin}
-            max={jobMax}
-            defaultVal={jobMin}
-            step={0.01}
-        />
+        {#if showMacroVariables}
+            <Slider
+                title="Job types"
+                bind:modified={jobModified}
+                bind:value={job}
+                leftEdge={0}
+                rightEdge={1}
+                min={jobMin}
+                max={jobMax}
+                defaultVal={jobMin}
+                step={0.01}
+                on:change={setOAChanges}
+            />
 
-        <Slider
-            title="Building use"
-            bind:modified={useModified}
-            bind:value={use}
-            on:modified={updateOAChanges}
-            leftEdge={0}
-            rightEdge={1}
-            min={useMin}
-            max={useMax}
-            defaultVal={useMin}
-            step={0.01}
-        />
+            <Slider
+                title="Building use"
+                bind:modified={useModified}
+                bind:value={use}
+                leftEdge={-1}
+                rightEdge={1}
+                min={useMin}
+                max={useMax}
+                defaultVal={useMin}
+                step={0.01}
+                on:change={setOAChanges}
+            />
 
-        <Slider
-            title="Greenspace"
-            bind:modified={greenModified}
-            bind:value={green}
-            on:modified={updateOAChanges}
-            leftEdge={0}
-            rightEdge={1}
-            min={0}
-            max={1}
-            defaultVal={0}
-            step={0.01}
-        />
+            <Slider
+                title="Greenspace"
+                bind:modified={greenModified}
+                bind:value={green}
+                leftEdge={0}
+                rightEdge={1}
+                min={0}
+                max={1}
+                defaultVal={0}
+                step={0.01}
+                on:change={setOAChanges}
+            />
+        {/if}
     </div>
 {/if}
 
@@ -363,6 +521,7 @@
         width: 100%;
         display: grid;
         grid-template-columns: max-content min-content 1fr 1fr;
+        grid-auto-rows: 25px;
         grid-column-gap: 2px;
         grid-row-gap: 5px;
         align-items: center;
