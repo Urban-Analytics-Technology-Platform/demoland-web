@@ -45,12 +45,9 @@
     // Changes that user has made relative to baseline
     let changes: ScenarioChanges = new Map();
 
-    // Prompt user to confirm if they navigate away from this tab
+    // Deselect OAs if the user navigates away
     onDestroy(() => {
-        if (userChangesPresent && window.confirm(userChangesPromptText)) {
-            changes = new Map();
-            $clickedOAs = [];
-        }
+        $clickedOAs = [];
     });
     // or if they return to step 1
     function returnToSelection() {
