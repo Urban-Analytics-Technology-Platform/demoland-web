@@ -27,8 +27,8 @@
     let step: "choose" | "modify" | "metadata" | "calc" | "error" = "choose";
     // Only displayed if there is actually an error
     let errorMessage: string = "An error occurred.";
-    // Whether to run with WASM or HTTP API
-    let runner: "wasm" | "api" = "wasm";
+    // Whether to run with Azure REST API, WASM, or local REST API
+    let runner: "azure" | "wasm" | "local";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
@@ -144,6 +144,8 @@
         // Create a new Controller each time the button is pressed
         controller = new AbortController();
 
+        console.log("Running with runner", runner);
+
         // WASM
         if (runner === "wasm") {
             runScenario(changedJson)
@@ -158,11 +160,9 @@
                     }
                 })
                 .catch((err) => handleError(err));
-        } else if (runner === "api") {
-            // Azure API
-            const url = window.location.href
-                .toLowerCase()
-                .includes(config.baseUrl.toLowerCase())
+        } else if (runner === "azure" || runner === "local") {
+            // REST API
+            const url = runner === "azure"
                 ? config.webApiUrl // deployed to Azure
                 : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
             fetch(url, {
@@ -196,6 +196,7 @@ Create your own scenario by modifying an existing one.
     <InputMetadata
         bind:scenarioShort
         bind:scenarioDescription
+        bind:calculationMethod={runner}
         on:returnToModify={() => (step = "modify")}
         on:acceptChangesAndCalculate={acceptChangesAndCalculate}
     />
