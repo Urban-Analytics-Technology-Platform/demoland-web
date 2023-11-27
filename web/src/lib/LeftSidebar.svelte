@@ -68,6 +68,9 @@
                             dispatch("changeScenario");
                         }}
                         on:import={handleImportEvent}
+                        on:changesUpdated={() => {
+                            dispatch("updateBoundaryLayer");
+                        }}
                     />
                 {:else if selectedTab === "import"}
                     <Import on:import={handleImportEvent} />

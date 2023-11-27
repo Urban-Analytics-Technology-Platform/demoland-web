@@ -1,12 +1,22 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { allScenarios, scenarioName, compareScenarioName } from "src/stores";
+    import {
+        allScenarios,
+        scenarioName,
+        compareScenarioName,
+    } from "src/stores";
+    import { copyScenario } from "src/utils/scenarios";
     const dispatch = createEventDispatcher();
     dispatch("changeScenario", {});
 
     function setScenario(event: Event) {
         let button = event.target as HTMLButtonElement;
-        $scenarioName = button.value;
+        const customScenarioName = "custom_in_progress";
+        $allScenarios.set(
+            customScenarioName,
+            copyScenario($allScenarios.get(button.value))
+        );
+        $scenarioName = customScenarioName;
         $compareScenarioName = null;
         dispatch("changeScenario", {});
     }
@@ -16,7 +26,9 @@
 
 <div id="starting-scenario-buttons">
     {#each [...$allScenarios.entries()] as [name, scenario]}
-        <button value={name} on:click={setScenario}>{scenario.metadata.long}</button>
+        <button value={name} on:click={setScenario}
+            >{scenario.metadata.long}</button
+        >
     {/each}
 </div>
 

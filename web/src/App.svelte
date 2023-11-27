@@ -64,6 +64,9 @@
     function updateLayers() {
         mapC.updateLayers();
     }
+    function updateBoundaryLayer() {
+        mapC.updateBoundaryLayer();
+    }
     function recentreMap() {
         mapC.recentre();
     }
@@ -74,7 +77,10 @@
         <MapC bind:this={mapC} bind:offcentre bind:activeLayer bind:opacity />
 
         <div id="other-content-container">
-            <LeftSidebar on:changeScenario={updateScenario} />
+            <LeftSidebar
+                on:changeScenario={updateScenario}
+                on:updateBoundaryLayer={updateBoundaryLayer}
+            />
 
             <div id="recentre">
                 {#if offcentre}

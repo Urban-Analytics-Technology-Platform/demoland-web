@@ -6,6 +6,7 @@
     import { onMount, onDestroy } from "svelte";
     import {
         allScenarios,
+        scenarioName,
         customScenarioInProgress,
         clickedOAs,
     } from "src/stores";
@@ -16,7 +17,8 @@
     } from "src/data/config";
 
     // The actual changes
-    export let changes: ScenarioChanges;
+    export let changes: ScenarioChanges =
+        $allScenarios.get($scenarioName).changes;
     // Flag to determine whether changes were made relative to the scenario the
     // user started from.
     export let userChangesPresent: boolean;
@@ -257,7 +259,12 @@
                 changes.set(oa.name, userSetChanges);
             });
         }
+        // TODO REMOVE LOGGING
+        console.log("changes");
         logChanges(changes);
+        console.log("allScenarios.get('baseline').changes");
+        logChanges($allScenarios.get("baseline").changes);
+        dispatch("changesUpdated");
         userChangesPresent = true;
     }
 
@@ -304,7 +311,6 @@
 
     // Determine what should be shown in the UI based on the current changes of
     // all the clicked OAs.
-    // TODO: Fix ugly code repetition (!)
     function loadOAChangesToUI() {
         console.log("loadOAChangesToUI");
 
@@ -449,12 +455,13 @@
                 if (sigModified && sigState.kind !== "MultipleDifferent") {
                     // Box was ticked, there is a single underlying signature -- set it
                     sig = referenceSig;
-                }
-                else if (sigModified && sigState.kind === "MultipleDifferent") {
+                } else if (
+                    sigModified &&
+                    sigState.kind === "MultipleDifferent"
+                ) {
                     // Box was ticked, but there are multiple underlying signatures
                     sig = null;
-                }
-                else {
+                } else {
                     // Box was unticked
                     sig = null;
                 }

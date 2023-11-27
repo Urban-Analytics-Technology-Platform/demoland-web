@@ -313,10 +313,10 @@
         // Generate the LineString layer showing the boundary of the changed
         // areas.
         const diffedBoundaries = getInputDiffBoundaries(
-            $allScenarios.get($scenarioName),
+            $allScenarios.get($scenarioName).changes,
             $compareScenarioName === null
                 ? null
-                : $allScenarios.get($compareScenarioName)
+                : $allScenarios.get($compareScenarioName).changes
         );
         map.addSource("boundary", {
             type: "geojson",
@@ -360,6 +360,21 @@
         }
     }
 
+    export function updateBoundaryLayer() {
+        // Update the LineString layer showing the boundary of the changed
+        // areas.
+        const diffedBoundaries = getInputDiffBoundaries(
+            $allScenarios.get($scenarioName).changes,
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName).changes
+        );
+        const boundarySource = map.getSource(
+            "boundary"
+        ) as maplibregl.GeoJSONSource;
+        boundarySource.setData(diffedBoundaries);
+    }
+
     // Update layer styles. This is quite a general function --- it updates the
     // fill colours and opacity again according to the underlying data as well
     // as the opacity slider.
@@ -380,17 +395,8 @@
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
-        // Update the LineString layer
-        const diffedBoundaries = getInputDiffBoundaries(
-            $allScenarios.get($scenarioName),
-            $compareScenarioName === null
-                ? null
-                : $allScenarios.get($compareScenarioName)
-        );
-        const boundarySource = map.getSource(
-            "boundary"
-        ) as maplibregl.GeoJSONSource;
-        boundarySource.setData(diffedBoundaries);
+        // Update boundary layer.
+        updateBoundaryLayer();
         // Update the click popup if necessary. This bit is required because
         // the click popup contains e.g. indicator values
         if (clickPopup !== null) {
@@ -457,7 +463,6 @@
         }
     }
 
-    // Declare variables for $: block
     let oldClickedIds: number[] = [];
     let clickedIds: number[] = [];
     $: {

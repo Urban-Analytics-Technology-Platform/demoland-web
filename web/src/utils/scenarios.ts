@@ -1,5 +1,6 @@
 import {
     type LayerName, type MacroVar,
+    type ScenarioMetadata,
     type ScenarioChanges, type ScenarioValues, type Scenario,
     type ChangesObject, type ValuesObject, type ScenarioObject,
     type ScaleFactorMap,
@@ -223,4 +224,24 @@ export function toScenarioObject(
         changes: toChangesObject(scenario.changes),
         values: toValuesObject(scenario.values, scaleFactors)
     };
+}
+
+export function copyScenario(
+    scenario: Scenario,
+): Scenario {
+    const metadata = {
+        name: scenario.metadata.name,
+        short: scenario.metadata.short,
+        long: scenario.metadata.long,
+        description: scenario.metadata.description
+    }
+    const changes = new Map();
+    for (const [oa, oaMap] of scenario.changes.entries()) {
+        changes.set(oa, new Map(oaMap));
+    }
+    const values = new Map();
+    for (const [oa, oaMap] of scenario.values.entries()) {
+        values.set(oa, new Map(oaMap));
+    }
+    return { metadata, changes, values };
 }

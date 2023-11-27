@@ -134,28 +134,25 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
  * collating the areas where the values differ, and then performing a union of
  * these areas.
  *
- * @param scenarioName First scenario
- * @param compareScenarioName Second scenario
+ * @param changes Changes from the first scenario
+ * @param compareChanges Changes from the second scenario
  * @returns A GeoJSON FeatureCollection containing the boundaries of the areas
  * as a MultiPolygon.
  */
 export function getInputDiffBoundaries(
-    scenario: Scenario,
-    compareScenario: Scenario | null
+    changes: ScenarioChanges,
+    compareChanges: ScenarioChanges | null
 ): GeoJSON.FeatureCollection {
-    const changes: ScenarioChanges = scenario.changes;
-    const cChanges: ScenarioChanges = compareScenario === null
-        ? new Map()
-        : compareScenario.changes;
+    if (compareChanges === null) compareChanges = new Map();
 
     // Determine OAs which are different
     const allPossibleOAs: Set<string> = new Set([
-        ...changes.keys(), ...cChanges.keys()
+        ...changes.keys(), ...compareChanges.keys()
     ]);
     const differentOAs: Set<string> = new Set();
     for (const oa of allPossibleOAs) {
         const m1 = changes.get(oa);
-        const m2 = cChanges.get(oa);
+        const m2 = compareChanges.get(oa);
         if (m1 === undefined && m2 === undefined) {
             // Both undefined - no changes occurred wrt baseline
             continue;

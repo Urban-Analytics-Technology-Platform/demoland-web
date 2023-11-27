@@ -6,7 +6,6 @@
     import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
     import {
         type ValuesObject,
-        type ScenarioChanges,
         type ScenarioObject,
         type Scenario,
         config,
@@ -42,8 +41,6 @@
     let userChangesPromptText: string =
         "Are you sure you want to go back? All changes will be lost.";
     let userChangesPresent: boolean = false;
-    // Changes that user has made relative to baseline
-    let changes: ScenarioChanges = new Map();
 
     // Deselect OAs if the user navigates away
     onDestroy(() => {
@@ -53,10 +50,12 @@
     function returnToSelection() {
         if (userChangesPresent) {
             if (window.confirm(userChangesPromptText)) {
-                changes = new Map();
                 userChangesPresent = false;
                 $clickedOAs = [];
                 step = "choose";
+                // Reset scenario name to default
+                $scenarioName = config.referenceScenarioObject.metadata.name;
+                dispatch("changeScenario");
             }
         } else {
             $clickedOAs = [];
@@ -68,7 +67,6 @@
         dispatch("changeScenario", {});
         step = "modify"; // move on to the next step
         $clickedOAs = []; // deselect any OAs
-        changes = new Map($allScenarios.get($scenarioName).changes);
     }
 
     function handleResult(values: ValuesObject, changesJson: string) {
@@ -100,10 +98,8 @@
             newScenario.metadata.name = `${newScenario.metadata.name}_${i}`;
         }
         $allScenarios.set(newScenario.metadata.name, newScenario);
-        // Get rid of changes; this also ensures that the "are you
-        // sure" confirmation prompt doesn't show up.
+        // Suppress "are you sure" confirmation prompt
         userChangesPresent = false;
-        changes = new Map();
         // Display the new scenario on the map.
         dispatch("import", { name: newScenario.metadata.name });
     }
@@ -135,10 +131,12 @@
 
     function acceptChangesAndCalculate() {
         const changedJson = JSON.stringify({
-            scenario_json: toChangesObject(changes),
+            scenario_json: toChangesObject(
+                $allScenarios.get($scenarioName).changes
+            ),
         });
+        console.log("changedJson", changedJson);
         step = "calc"; // move on
-        changes = new Map(); // reset changes
         $clickedOAs = []; // deselect any OAs
 
         // Create a new Controller each time the button is pressed
@@ -162,9 +160,10 @@
                 .catch((err) => handleError(err));
         } else if (runner === "azure" || runner === "local") {
             // REST API
-            const url = runner === "azure"
-                ? config.webApiUrl // deployed to Azure
-                : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
+            const url =
+                runner === "azure"
+                    ? config.webApiUrl // deployed to Azure
+                    : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
             fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -186,8 +185,10 @@ Create your own scenario by modifying an existing one.
 {#if step === "modify"}
     <ModifyOutputAreas
         bind:userChangesPresent
-        bind:changes
         on:returnToSelection={returnToSelection}
+        on:changesUpdated={() => {
+            dispatch("changesUpdated");
+        }}
         on:proceedToMetadata={() => (step = "metadata")}
     />
 {/if}
