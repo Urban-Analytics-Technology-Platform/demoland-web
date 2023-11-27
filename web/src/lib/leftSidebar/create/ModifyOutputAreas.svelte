@@ -377,10 +377,14 @@
                 setJobUseMinMax(sigState.sigId);
                 break;
             case "MultipleDifferent":
-                sig = null;
-                sigModified = false;
-                referenceSig = null;
                 showMacroVariables = false;
+                job = null;
+                use = null;
+                green = null;
+                jobModified = false;
+                useModified = false;
+                greenModified = false;
+                setOAChanges();
                 break;
         }
     }
@@ -442,7 +446,18 @@
             id="sig-modified"
             bind:checked={sigModified}
             on:change={() => {
-                sig = sigModified ? referenceSig : null;
+                if (sigModified && sigState.kind !== "MultipleDifferent") {
+                    // Box was ticked, there is a single underlying signature -- set it
+                    sig = referenceSig;
+                }
+                else if (sigModified && sigState.kind === "MultipleDifferent") {
+                    // Box was ticked, but there are multiple underlying signatures
+                    sig = null;
+                }
+                else {
+                    // Box was unticked
+                    sig = null;
+                }
                 setOAChanges();
             }}
         />
