@@ -16,17 +16,13 @@
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
-    function setContainerPadding() {
-        const paddingLeft = ((min - leftEdge) / (rightEdge - leftEdge)) * 100;
-        const paddingRight = ((rightEdge - max) / (rightEdge - leftEdge)) * 100;
-        container.style.paddingLeft = `${paddingLeft}px`;
-        container.style.paddingRight = `${paddingRight}px`;
-        container.style.width = "104px";
-    }
-
-    function setSliderWidthAndValue() {
+    function setSliderPosition() {
         const sliderWidth = ((max - min) / (rightEdge - leftEdge)) * 100;
         slider.style.width = `${sliderWidth}px`;
+        const marginLeft = ((min - leftEdge) / (rightEdge - leftEdge)) * 100;
+        const marginRight = ((rightEdge - max) / (rightEdge - leftEdge)) * 100;
+        slider.style.marginLeft = `${marginLeft}px`;
+        slider.style.marginRight = `${marginRight}px`;
     }
 
     const idTitle = title.replace(/\s/g, "-").toLowerCase();
@@ -42,13 +38,11 @@
     });
 
     $: {
-        // Update the slider width and container padding when any of the
-        // parameters change (in effect, when the underlying signature type
-        // changes)
+        // Update the slider width and margin when any of the parameters change
+        // (in effect, when the underlying signature type changes)
         min, max, leftEdge, rightEdge, defaultVal;
         if (container && slider) {
-            setContainerPadding();
-            setSliderWidthAndValue();
+            setSliderPosition();
         }
     }
 </script>
@@ -64,7 +58,8 @@
     }}
 />
 {#if modified && value !== null}
-    <div bind:this={container}>
+    <div bind:this={container} class="container">
+        <div class="slider-background red" />
         <input
             type="range"
             class="range"
@@ -102,7 +97,8 @@
         {step}
     />
 {:else}
-    <div bind:this={container}>
+    <div bind:this={container} class="container">
+        <div class="slider-background grey" />
         <input
             type="range"
             class="range"
@@ -140,15 +136,106 @@
         width: 50px;
     }
 
-    input:disabled {
-        color: #ff8cee;
-        border: 1px solid #ff8cee;
-        border-radius: 4px;
+    div.container {
+        position: relative; /* required for red-background to be positioned correctly */
+        width: 100px;
+        margin-left: 2px;
+        margin-right: 2px;
     }
-    input:disabled::-moz-range-track {
-        color: #ff8cee;
-        border: 1px solid #ff8cee;
+
+    div.slider-background {
+        position: absolute;
+        height: 5px;
+        /* I don't know why -3px instead of -2.5, but it works */
+        top: calc(50% - 3px);
+        width: 100%;
+        left: 0;
         border-radius: 4px;
-        box-shadow: 1px 1px 2px #A6A6A6;
+        cursor: not-allowed;
+    }
+    div.slider-background.red {
+        background-color: #f0d8de;
+    }
+    div.slider-background.grey {
+        background-color: #e2e2e2;
+    }
+
+    input[type="checkbox"] {
+        cursor: pointer;
+    }
+
+    input[type="number"]:disabled {
+        color: #aaa;
+        cursor: not-allowed;
+    }
+
+    /* cross-browser slider CSS. :upside_down_smile: */
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        background: transparent;
+        z-index: 2;
+        --disabled-color: #d0d0d0;
+        --active-color: #0d8c08;
+        --thumb-color: #ddd;
+
+        &:focus {
+            outline: none;
+        }
+        &::-webkit-slider-runnable-track {
+            -webkit-appearance: none;
+            appearance: none;
+            /* For webkit browsers, need to move it upwards by the height. Not sure why. */
+            position: relative;
+            /* This value is off by a little bit in Safari (needs top: -4.5px). I don't know why.
+               However, there isn't a robust way to detect Safari (and not Chrome), so I'm
+               going to ignore it. */
+            top: -5px;
+            height: 5px;
+            cursor: pointer;
+            background: var(--active-color);
+            border-radius: 2px;
+        }
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            border: 1px solid #444;
+            height: 15px;
+            width: 15px;
+            border-radius: 25px;
+            background: var(--thumb-color);
+            cursor: pointer;
+            margin-top: -5px;
+        }
+        &::-moz-range-track {
+            height: 5px;
+            cursor: pointer;
+            background: var(--active-color);
+            border-radius: 2px;
+        }
+        &::-moz-range-thumb {
+            border: 1px solid #444;
+            height: 15px;
+            width: 15px;
+            border-radius: 25px;
+            background: var(--thumb-color);
+            cursor: pointer;
+        }
+        /* Grey out disabled sliders */
+        &:disabled::-webkit-slider-runnable-track {
+            background: var(--disabled-color);
+            cursor: not-allowed;
+        }
+        &:disabled::-webkit-slider-thumb {
+            cursor: not-allowed;
+        }
+        &:disabled::-moz-range-track {
+            background: var(--disabled-color);
+            cursor: not-allowed;
+        }
+        &:disabled::-moz-range-thumb {
+            cursor: not-allowed;
+        }
     }
 </style>
