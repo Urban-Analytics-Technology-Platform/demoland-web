@@ -242,7 +242,6 @@
 
     // Update changes for all selected OAs from the slider
     function setOAChanges() {
-        console.log("setOAChanges");
         if (!sigModified && !jobModified && !useModified && !greenModified) {
             // If no changes, remove it from the Map
             $clickedOAs.forEach((oa) => {
@@ -259,11 +258,6 @@
                 changes.set(oa.name, userSetChanges);
             });
         }
-        // TODO REMOVE LOGGING
-        console.log("changes");
-        logChanges(changes);
-        console.log("allScenarios.get('baseline').changes");
-        logChanges($allScenarios.get("baseline").changes);
         dispatch("changesUpdated");
         userChangesPresent = true;
     }
@@ -312,8 +306,6 @@
     // Determine what should be shown in the UI based on the current changes of
     // all the clicked OAs.
     function loadOAChangesToUI() {
-        console.log("loadOAChangesToUI");
-
         switch (sigState.kind) {
             case "None":
                 return;
@@ -347,8 +339,6 @@
     }
 
     function updateSliderUI() {
-        console.log("updateSliderUI");
-
         function setJobUseMinMax(lsig: number) {
             jobMin = roundToTwoDecimals(config.signatures[lsig].job_d1);
             jobMax = roundToTwoDecimals(config.signatures[lsig].job_d9);
@@ -369,8 +359,6 @@
                 showMacroVariables = true;
                 setMacroVariablesSingleOA(sigState.oaName, sigState.sigId);
                 setJobUseMinMax(sigState.sigId);
-                console.log("job", job);
-                console.log("use", use);
                 break;
             case "MultipleSameActive":
                 showMacroVariables = true;
@@ -399,7 +387,6 @@
     $: {
         $clickedOAs;
         sigState = determineSignatureState($clickedOAs);
-        console.log("sigState", sigState);
         if (mounted) loadOAChangesToUI();
     }
     // Update slider UI whenever underlying signature type is changed
@@ -438,7 +425,7 @@
     <p>
         Currently selected {$clickedOAs.length} OA{$clickedOAs.length > 1
             ? "s"
-            : ""}: {$clickedOAs.map((oa) => oa.name).join(", ")}
+            : ""}.
     </p>
     <p>
         (Shift-click to select more output areas, or click anywhere outside the

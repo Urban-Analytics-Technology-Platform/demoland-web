@@ -6,6 +6,7 @@
         getGeometryBounds,
         getInputDiffBoundaries,
     } from "src/utils/geojson";
+    import intersect from "@turf/intersect";
     import { makePopup } from "src/utils/hover";
     import { type LayerName, config } from "src/data/config";
     import {
@@ -18,6 +19,8 @@
         hoveredId,
     } from "src/stores";
     import { onMount, onDestroy } from "svelte";
+    import type { PMPFeatureCollection } from "src/types";
+    import TerraDraw from "./TerraDraw.svelte";
 
     /* --- PROPS ---------------------------------------------------------- */
     // The currently active map layer. Passed from the parent component.
@@ -40,7 +43,14 @@
     // The data to be plotted on the map. This variable is only initialised
     // after the map DOM is created, because it depends on the app
     // initialisation code.
-    let mapData: GeoJSON.FeatureCollection = undefined;
+    let mapData: PMPFeatureCollection = undefined;
+    // Whether the polygon drawing tool is active
+    let terraDraw: boolean = false;
+    // Whether the polygon drawing tool was just exited. We need to keep track
+    // of this to prevent an extra click event from being fired when the
+    // polygon tool exits (which would deselect all the newly selected OAs).
+    let terraDrawJustEnded: boolean = false;
+    const terraDrawMode: "polygon" | "freehand" = "freehand";
 
     /* --- INITIALISATION ------------------------------------------------- */
     onMount(() => {
@@ -91,7 +101,16 @@
         // the defaultPrevented check, this function is only used to catch
         // clicks _outside_ the area of interest.
         map.on("click", function (e) {
+            if (terraDraw || terraDrawJustEnded) {
+                console.log("terraDraw or terraDrawJustEnded 0");
+                if (e.defaultPrevented) {
+                    console.log("terraDraw or terraDrawJustEnded 1");
+                    terraDrawJustEnded = false;
+                }
+                return;
+            }
             if (!e.defaultPrevented && !e.originalEvent.shiftKey) {
+                console.log("click3");
                 $clickedOAs = [];
             }
         });
@@ -99,7 +118,13 @@
         // Click functionality within the area of interest.
         // TODO60 Layer name is hardcoded
         map.on("click", "air_quality-layer", function (e) {
+            console.log("click");
             e.preventDefault();
+            if (terraDraw || terraDrawJustEnded) {
+                console.log("terraDraw or terraDrawJustEnded 2");
+                terraDrawJustEnded = false;
+                return;
+            }
             if (e.features.length > 0) {
                 const feat = e.features[0];
                 const n = feat.id as number;
@@ -463,6 +488,23 @@
         }
     }
 
+    function selectOAsFromPolygon(event: CustomEvent) {
+        const polygon = event.detail.feature;
+
+        // Get all OAs that intersect with the polygon
+        const selectedFeatures = mapData.features.filter((feat) => {
+            return intersect(feat, polygon) !== null;
+        });
+        $clickedOAs = selectedFeatures.map((feat) => ({
+            id: feat.id as number,
+            name: feat.properties[config.featureIdentifier],
+        }));
+
+        // Turn off polygon drawing
+        terraDraw = false;
+        terraDrawJustEnded = true;
+    }
+
     let oldClickedIds: number[] = [];
     let clickedIds: number[] = [];
     $: {
@@ -474,6 +516,7 @@
         }
 
         // Toggle map click state based on $clickedOAs store
+        $clickedOAs;
         oldClickedIds = clickedIds;
         oldClickedIds.forEach((id) =>
             map.setFeatureState({ source: SOURCE_ID, id: id }, { click: false })
@@ -486,3 +529,29 @@
 </script>
 
 <div id="map" />
+
+{#if $customScenarioInProgress}
+    <div id="terradraw-toggle">
+        <button
+            on:click={() => {
+                terraDraw = !terraDraw;
+            }}>{terraDraw ? `Stop drawing ${terraDrawMode}` : `Draw ${terraDrawMode}`}</button
+        >
+        {#if terraDraw}
+            <TerraDraw
+                {map}
+                on:finish={selectOAsFromPolygon}
+                mode={terraDrawMode}
+            />
+        {/if}
+    </div>
+{/if}
+
+<style>
+    #terradraw-toggle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 1;
+    }
+</style>
