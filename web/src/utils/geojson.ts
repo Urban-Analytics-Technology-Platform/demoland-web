@@ -188,6 +188,11 @@ export function getInputDiffBoundaries(
     return boundary;
 }
 
+// pairwiseReduce1(arr, fn) is equivalent to arr.reduce(fn), but adds elements
+// pairwise like (a + b) + (c + d) rather than (a + (b + (c + d))). This has the
+// same asymptotic complexity as reduce, but is notably more efficient when fn
+// is turf.union for unknown reasons (perhaps because it avoids building up a
+// larger and larger polygon as an intermediate computation).
 function pairwiseReduce1<T>(arr: T[], fn: (a: T, b: T) => T): T {
     const n = arr.length;
     if (n === 0) {
