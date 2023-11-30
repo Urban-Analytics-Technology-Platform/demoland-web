@@ -205,12 +205,13 @@ function pairwiseReduce1<T>(arr: T[], fn: (a: T, b: T) => T): T {
         return fn(arr[0], arr[1]);
     }
     else {
-        const newArr = [];
-        for (let i = 0; i <= n - 2; i = i + 2) {
-            newArr.push(fn(arr[i], arr[i + 1]));
+        const npairs = Math.floor(n / 2);
+        const newArr = new Array(Math.ceil(n / 2)).fill(null);
+        for (let i = 0; i < npairs; i++) {
+            newArr[i] = fn(arr[2 * i], arr[2 * i + 1]);
         }
         if (n % 2 === 1) {
-            newArr.push(arr[n - 1]);
+            newArr[npairs] = arr[n - 1];
         }
         return pairwiseReduce1(newArr, fn);
     }
