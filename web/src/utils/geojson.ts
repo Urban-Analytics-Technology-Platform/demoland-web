@@ -179,10 +179,34 @@ export function getInputDiffBoundaries(
     // because some of our features are MultiPolygons, and that doesn't work
     // with MultiPolygons. Instead, we can use union.
     if (boundary.features.length > 0) {
-        const unioned = boundary.features.reduce((acc, feature) => {
-            return union(acc, feature.geometry);
-        });
+        const unioned = pairwiseReduce1(
+            boundary.features,
+            (acc, feature) => { return union(acc, feature.geometry); }
+        );
         boundary.features = [unioned];
     }
     return boundary;
+}
+
+function pairwiseReduce1<T>(arr: T[], fn: (a: T, b: T) => T): T {
+    const n = arr.length;
+    if (n === 0) {
+        throw new Error("Cannot reduce empty array");
+    }
+    else if (n === 1) {
+        return arr[0];
+    }
+    else if (n === 2) {
+        return fn(arr[0], arr[1]);
+    }
+    else {
+        const newArr = [];
+        for (let i = 0; i <= n - 2; i = i + 2) {
+            newArr.push(fn(arr[i], arr[i + 1]));
+        }
+        if (n % 2 === 1) {
+            newArr.push(arr[n - 1]);
+        }
+        return pairwiseReduce1(newArr, fn);
+    }
 }
