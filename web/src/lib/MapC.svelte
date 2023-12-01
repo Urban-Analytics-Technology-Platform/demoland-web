@@ -17,6 +17,7 @@
         customScenarioInProgress,
         clickedOAs,
         hoveredId,
+        oaSelectionMethod,
     } from "src/stores";
     import { onMount, onDestroy } from "svelte";
     import type { PMPFeatureCollection } from "src/types";
@@ -44,8 +45,6 @@
     // after the map DOM is created, because it depends on the app
     // initialisation code.
     let mapData: PMPFeatureCollection = undefined;
-    // Whether the polygon drawing tool is active
-    let terraDraw: boolean = false;
     // Whether the polygon drawing tool was just exited. We need to keep track
     // of this to prevent an extra click event from being fired when the
     // polygon tool exits (which would deselect all the newly selected OAs).
@@ -101,10 +100,8 @@
         // the defaultPrevented check, this function is only used to catch
         // clicks _outside_ the area of interest.
         map.on("click", function (e) {
-            if (terraDraw || terraDrawJustEnded) {
-                console.log("terraDraw or terraDrawJustEnded 0");
+            if ($oaSelectionMethod === "draw" || terraDrawJustEnded) {
                 if (e.defaultPrevented) {
-                    console.log("terraDraw or terraDrawJustEnded 1");
                     terraDrawJustEnded = false;
                 }
                 return;
@@ -120,8 +117,7 @@
         map.on("click", "air_quality-layer", function (e) {
             console.log("click");
             e.preventDefault();
-            if (terraDraw || terraDrawJustEnded) {
-                console.log("terraDraw or terraDrawJustEnded 2");
+            if ($oaSelectionMethod === "draw" || terraDrawJustEnded) {
                 terraDrawJustEnded = false;
                 return;
             }
@@ -501,7 +497,7 @@
         }));
 
         // Turn off polygon drawing
-        terraDraw = false;
+        $oaSelectionMethod = "click";
         terraDrawJustEnded = true;
     }
 
@@ -532,12 +528,7 @@
 
 {#if $customScenarioInProgress}
     <div id="terradraw-toggle">
-        <button
-            on:click={() => {
-                terraDraw = !terraDraw;
-            }}>{terraDraw ? `Stop drawing ${terraDrawMode}` : `Draw ${terraDrawMode}`}</button
-        >
-        {#if terraDraw}
+        {#if $oaSelectionMethod === "draw"}
             <TerraDraw
                 {map}
                 on:finish={selectOAsFromPolygon}

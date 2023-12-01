@@ -11,3 +11,4 @@ export const validAreaNames: Writable<Set<string>> = writable(undefined);
 export const clickedOAs: Writable<{ id: number, name: string }[]> = writable([]);
 export const customScenarioInProgress: Writable<boolean> = writable(false);
 export const hoveredId: Writable<number | null> = writable(null);
+export const oaSelectionMethod: Writable<'click' | 'draw'> = writable('click');

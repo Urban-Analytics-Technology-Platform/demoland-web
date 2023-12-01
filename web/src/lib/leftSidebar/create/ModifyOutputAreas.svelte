@@ -1,5 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
+    import BackForwardButtons from "./BackForwardButtons.svelte";
+    import InputFieldsContainer from "./InputFieldsContainer.svelte";
+    import HorizontalRule from "./HorizontalRule.svelte";
     const dispatch = createEventDispatcher();
 
     import Slider from "./Slider.svelte";
@@ -9,6 +12,7 @@
         scenarioName,
         customScenarioInProgress,
         clickedOAs,
+        oaSelectionMethod,
     } from "src/stores";
     import {
         type MacroVar,
@@ -403,125 +407,133 @@
     // elements themselves using events.
 </script>
 
-<h3>Step 2: Modify output areas</h3>
+<InputFieldsContainer title={"Step 2: Modify output areas"}>
+    <BackForwardButtons
+        backText="Back to scenario selection"
+        forwardText="Continue to add metadata"
+        on:backClick={() => dispatch("returnToSelection", {})}
+        on:forwardClick={() => dispatch("proceedToMetadata", {})}
+    />
 
-<input
-    type="button"
-    value="Back to scenario selection"
-    on:click={() => dispatch("returnToSelection", {})}
-/>
-<input
-    type="button"
-    value="Continue to add metadata"
-    on:click={() => dispatch("proceedToMetadata", {})}
-/>
+    <HorizontalRule />
 
-{#if $clickedOAs.length === 0}
-    <p>
-        Click on the map to select an output area to modify. You can select
-        multiple output areas by holding down the Shift key.
-    </p>
-{:else}
-    <p>
-        Currently selected {$clickedOAs.length} OA{$clickedOAs.length > 1
-            ? "s"
-            : ""}.
-    </p>
-    <p>
-        (Shift-click to select more output areas, or click anywhere outside the
-        map to deselect all output areas.)
-    </p>
-
-    <div id="changes-grid">
-        <label for="sig-modified">Signature</label>
-        <input
-            type="checkbox"
-            id="sig-modified"
-            bind:checked={sigModified}
-            on:change={() => {
-                if (sigModified && sigState.kind !== "MultipleDifferent") {
-                    // Box was ticked, there is a single underlying signature -- set it
-                    sig = referenceSig;
-                } else if (
-                    sigModified &&
-                    sigState.kind === "MultipleDifferent"
-                ) {
-                    // Box was ticked, but there are multiple underlying signatures
-                    sig = null;
-                } else {
-                    // Box was unticked
-                    sig = null;
-                }
-                setOAChanges();
-            }}
-        />
-        {#if sigModified}
-            <select id="sig-dropdown" bind:value={sig} on:change={setOAChanges}>
-                {#each [...config.signatures.entries()] as [signatureId, signature]}
-                    <option value={signatureId}
-                        >{signatureId}: {signature.name}</option
-                    >
-                {/each}
-            </select>
-        {:else}
-            <select id="sig-dropdown" value={referenceSig} disabled>
-                {#each [...config.signatures.entries()] as [signatureId, signature]}
-                    <option value={signatureId}
-                        >{signatureId}: {signature.name}</option
-                    >
-                {/each}
-            </select>
-        {/if}
-
-        {#if showMacroVariables}
-            <Slider
-                title="Job types"
-                bind:modified={jobModified}
-                bind:value={job}
-                leftEdge={0}
-                rightEdge={1}
-                min={jobMin}
-                max={jobMax}
-                defaultVal={jobMin}
-                step={0.01}
-                on:change={setOAChanges}
-            />
-
-            <Slider
-                title="Building use"
-                bind:modified={useModified}
-                bind:value={use}
-                leftEdge={-1}
-                rightEdge={1}
-                min={useMin}
-                max={useMax}
-                defaultVal={useMin}
-                step={0.01}
-                on:change={setOAChanges}
-            />
-
-            <Slider
-                title="Greenspace"
-                bind:modified={greenModified}
-                bind:value={green}
-                leftEdge={0}
-                rightEdge={1}
-                min={0}
-                max={1}
-                defaultVal={0}
-                step={0.01}
-                on:change={setOAChanges}
-            />
-        {/if}
+    <div id="selection-method-choice">
+        <i>Selection method</i>
+        <select id="oa-selection-method" bind:value={$oaSelectionMethod}>
+            <option value="click">Click on map</option>
+            <option value="draw">Freehand draw</option>
+        </select>
     </div>
-{/if}
+    {#if $oaSelectionMethod === "click"}
+        <div class="smaller">
+            Click on the map to select an output area. You can shift-click to
+            select multiple, or click anywhere outside the map to deselect all.
+        </div>
+    {:else if $oaSelectionMethod === "draw"}
+        <div class="smaller">
+            Click and move your mouse on the map to draw a region of interest.
+            When you are done drawing, click again on the starting point to
+            select all OAs within the region.
+        </div>
+    {/if}
+
+    <HorizontalRule />
+    {#if $clickedOAs.length === 0}
+        <span>No output areas selected.</span>
+    {:else}
+        <span
+            >{$clickedOAs.length} output area{$clickedOAs.length === 1 ? "" : "s"} selected.</span
+        >
+        <div id="changes-grid">
+            <label for="sig-modified">Signature</label>
+            <input
+                type="checkbox"
+                id="sig-modified"
+                bind:checked={sigModified}
+                on:change={() => {
+                    if (sigModified && sigState.kind !== "MultipleDifferent") {
+                        // Box was ticked, there is a single underlying signature -- set it
+                        sig = referenceSig;
+                    } else if (
+                        sigModified &&
+                        sigState.kind === "MultipleDifferent"
+                    ) {
+                        // Box was ticked, but there are multiple underlying signatures
+                        sig = null;
+                    } else {
+                        // Box was unticked
+                        sig = null;
+                    }
+                    setOAChanges();
+                }}
+            />
+            {#if sigModified}
+                <select
+                    id="sig-dropdown"
+                    bind:value={sig}
+                    on:change={setOAChanges}
+                >
+                    {#each [...config.signatures.entries()] as [signatureId, signature]}
+                        <option value={signatureId}
+                            >{signatureId}: {signature.name}</option
+                        >
+                    {/each}
+                </select>
+            {:else}
+                <select id="sig-dropdown" value={referenceSig} disabled>
+                    {#each [...config.signatures.entries()] as [signatureId, signature]}
+                        <option value={signatureId}
+                            >{signatureId}: {signature.name}</option
+                        >
+                    {/each}
+                </select>
+            {/if}
+
+            {#if showMacroVariables}
+                <Slider
+                    title="Job types"
+                    bind:modified={jobModified}
+                    bind:value={job}
+                    leftEdge={0}
+                    rightEdge={1}
+                    min={jobMin}
+                    max={jobMax}
+                    defaultVal={jobMin}
+                    step={0.01}
+                    on:change={setOAChanges}
+                />
+
+                <Slider
+                    title="Building use"
+                    bind:modified={useModified}
+                    bind:value={use}
+                    leftEdge={-1}
+                    rightEdge={1}
+                    min={useMin}
+                    max={useMax}
+                    defaultVal={useMin}
+                    step={0.01}
+                    on:change={setOAChanges}
+                />
+
+                <Slider
+                    title="Greenspace"
+                    bind:modified={greenModified}
+                    bind:value={green}
+                    leftEdge={0}
+                    rightEdge={1}
+                    min={0}
+                    max={1}
+                    defaultVal={0}
+                    step={0.01}
+                    on:change={setOAChanges}
+                />
+            {/if}
+        </div>
+    {/if}
+</InputFieldsContainer>
 
 <style>
-    h3 {
-        font-size: 100%;
-        font-weight: bold;
-    }
-
     label {
         font-style: italic;
     }
@@ -538,5 +550,15 @@
 
     select#sig-dropdown {
         grid-column: 3 / span 2;
+    }
+
+    div#selection-method-choice {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    div.smaller {
+        font-size: 85%;
     }
 </style>

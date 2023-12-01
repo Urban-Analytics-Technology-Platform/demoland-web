@@ -63,10 +63,15 @@
         }
     }
 
-    function changeScenarioAndProceed() {
+    function changeScenario() {
+        // Change the scenario on the map, but don't proceed
         dispatch("changeScenario", {});
-        step = "modify"; // move on to the next step
         $clickedOAs = []; // deselect any OAs
+    }
+    function changeScenarioAndProceed() {
+        // Change the scenario on the map, and proceed to the next step
+        changeScenario();
+        step = "modify";
     }
 
     function handleResult(values: ValuesObject, changesJson: string) {
@@ -179,7 +184,10 @@
 Create your own scenario by modifying an existing one.
 
 {#if step === "choose"}
-    <ChooseStartingScenario on:changeScenario={changeScenarioAndProceed} />
+    <ChooseStartingScenario
+        on:changeScenario={changeScenario}
+        on:changeScenarioAndProceed={changeScenarioAndProceed}
+    />
 {/if}
 
 {#if step === "modify"}
