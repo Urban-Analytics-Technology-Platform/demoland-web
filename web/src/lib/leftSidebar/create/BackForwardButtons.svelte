@@ -25,6 +25,7 @@
     }
 
     button {
+        font-family: inherit;
         width: 47%;
         white-space: normal;
         font-size: 85%;
