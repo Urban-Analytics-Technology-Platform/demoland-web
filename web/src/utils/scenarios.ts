@@ -96,22 +96,20 @@ function fromValuesObject(
     const src = appendSource(source);
     const valuesMap = new Map();
     const foundAreaNames = new Set();
-    for (const [oa, map] of Object.entries(values)) {
+    for (const [oa, innerObj] of Object.entries(values)) {
         if (validAreaNames !== null && !validAreaNames.has(oa)) {
             throw new Error(`Invalid OA '${oa}' found in scenario values.${src}`);
         }
         else {
             valuesMap.set(oa, new Map());
             foundAreaNames.add(oa);
-            for (const [key, value] of Object.entries(map)) {
-                const layerName = key as LayerName;
-                if (config.allLayers.has(layerName)) {
-                    if (value === null) {
-                        throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
-                    }
-                    valuesMap.get(oa)
-                        .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
+            for (const layerName of config.allLayers.keys()) {
+                const value = innerObj[layerName];
+                if (value === null || value === undefined) {
+                    throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
                 }
+                valuesMap.get(oa)
+                    .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
             }
         }
     }
