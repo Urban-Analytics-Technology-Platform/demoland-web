@@ -246,6 +246,7 @@
 
     // Update changes for all selected OAs from the slider
     function setOAChanges() {
+        console.log("setOAChanges()", sig);
         if (!sigModified && !jobModified && !useModified && !greenModified) {
             // If no changes, remove it from the Map
             $clickedOAs.forEach((oa) => {
@@ -350,6 +351,7 @@
             useMax = roundToTwoDecimals(config.signatures[lsig].use_d9);
         }
 
+        console.log(sigState);
         switch (sigState.kind) {
             case "None":
                 showMacroVariables = false;
@@ -393,18 +395,6 @@
         sigState = determineSignatureState($clickedOAs);
         if (mounted) loadOAChangesToUI();
     }
-    // Update slider UI whenever underlying signature type is changed
-    $: {
-        sig, sigModified, sigState;
-        sigState = determineSignatureState($clickedOAs);
-        if (mounted) updateSliderUI();
-    }
-    // In general, we want to set changes (i.e. `setOAChanges()`) whenever any
-    // of the macrovariables are changed. However, we can't use reactive
-    // statements for this because the process of _loading_ the changes into
-    // the UI will trigger the reactive statement, which will then overwrite
-    // the changes we just loaded. So, the changes are set in the respective
-    // elements themselves using events.
 </script>
 
 <InputFieldsContainer title={"Step 2: Modify output areas"}>
@@ -442,7 +432,9 @@
         <span>No output areas selected.</span>
     {:else}
         <span
-            >{$clickedOAs.length} output area{$clickedOAs.length === 1 ? "" : "s"} selected.</span
+            >{$clickedOAs.length} output area{$clickedOAs.length === 1
+                ? ""
+                : "s"} selected.</span
         >
         <div id="changes-grid">
             <label for="sig-modified">Signature</label>
@@ -465,13 +457,19 @@
                         sig = null;
                     }
                     setOAChanges();
+                    sigState = determineSignatureState($clickedOAs);
+                    updateSliderUI();
                 }}
             />
             {#if sigModified}
                 <select
                     id="sig-dropdown"
                     bind:value={sig}
-                    on:change={setOAChanges}
+                    on:change={() => {
+                        setOAChanges();
+                        sigState = determineSignatureState($clickedOAs);
+                        updateSliderUI();
+                    }}
                 >
                     {#each [...config.signatures.entries()] as [signatureId, signature]}
                         <option value={signatureId}
