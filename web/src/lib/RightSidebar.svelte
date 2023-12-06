@@ -3,10 +3,8 @@
     import Chart from "src/lib/rightSidebar/Chart.svelte";
     import LayerSelector from "src/lib/rightSidebar/LayerSelector.svelte";
     import Collapsible from "src/lib/reusable/Collapsible.svelte";
-    import {
-        type LayerName,
-        allIndicators,
-    } from "src/constants";
+    import { type LayerName, config } from "src/data/config";
+    import { customScenarioInProgress } from "src/stores";
 
     export let activeLayer: LayerName;
     export let opacity: number;
@@ -33,13 +31,17 @@
             />
         </Collapsible>
 
-        {#each [...allIndicators.entries()] as [indiName, indi]}
-            <Collapsible title={indi.short} collapsed={activeLayer !== "signature_type" && indiName !== activeLayer}>
-                <Chart
-                    indicatorName={indiName}
-                />
-            </Collapsible>
-        {/each}
+        {#if !$customScenarioInProgress}
+            {#each [...config.allIndicators.entries()] as [indiName, indi]}
+                <Collapsible
+                    title={indi.short}
+                    collapsed={activeLayer !== "signature_type" &&
+                        indiName !== activeLayer}
+                >
+                    <Chart indicatorName={indiName} />
+                </Collapsible>
+            {/each}
+        {/if}
     </div>
 </Sidebar>
 

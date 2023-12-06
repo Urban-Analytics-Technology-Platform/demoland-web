@@ -1,9 +1,8 @@
-import geography from "src/data/geography.json";
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { allLayers, type LayerName, type ScenarioChanges, type Scenario } from "src/constants";
+import { config, type LayerName, type ScenarioChanges, type Scenario } from "src/data/config";
+import type { PMPFeatureCollection } from "src/types";
 import { getColor, getDiffColor } from "src/utils/colors";
-import config from "src/data/config";
 
 /** The indicator values are stored as a JSON file, separate from the
  * geometry data. This allows the geometry data to be reused for different
@@ -13,9 +12,8 @@ import config from "src/data/config";
  * It also proves easier to encode the colours for each indicator here, because
  * otherwise it results in some really complicated expressions in MapLibre.
  * 
- * @param {string} scenarioName: the name of the scenario being used.
- * @param {string} compareScenarioName: the name of the scenario being
- * compared against.
+ * @param {string} scenario: the Scenario being used.
+ * @param {string} compareScenario: the Scenario being compared against.
  *
  * @returns an updated GeoJSON file with the indicator values plus associated
  * colours added to the properties of each feature.
@@ -23,12 +21,12 @@ import config from "src/data/config";
 export function makeCombinedGeoJSON(
     scenario: Scenario,
     compareScenario: Scenario | null,
-): GeoJSON.FeatureCollection {
+): PMPFeatureCollection {
     // Precalculate differences between scenarios being compared, which gives us
     // the min and max values for the 'diff' colormap.
     const maxDiffExtents: Map<LayerName, number> = new Map();
     if (compareScenario !== null) {
-        for (const layerName of allLayers.keys()) {
+        for (const layerName of config.allLayers.keys()) {
             const diffs: number[] = [];
             for (const oa of scenario.values.keys()) {
                 diffs.push(scenario.values.get(oa).get(layerName) - compareScenario.values.get(oa).get(layerName));
@@ -38,7 +36,7 @@ export function makeCombinedGeoJSON(
         }
     }
 
-    const newGeography = JSON.parse(JSON.stringify(geography));
+    const newGeography: PMPFeatureCollection = JSON.parse(JSON.stringify(config.geography));
     // Merge geography with indicators
     newGeography.features = newGeography.features.map(function(feature) {
         const oaName = feature.properties[config.featureIdentifier];
@@ -46,7 +44,7 @@ export function makeCombinedGeoJSON(
         if (oaValues === undefined) {
             throw new Error(`${oaName} not found in values!`);
         }
-        for (const layerName of allLayers.keys()) {
+        for (const layerName of config.allLayers.keys()) {
             const value = oaValues.get(layerName);
             feature.properties[layerName] = value;
             feature.properties[`${layerName}-color`] = getColor(layerName, value);
@@ -56,7 +54,7 @@ export function makeCombinedGeoJSON(
             if (cOaValues === undefined) {
                 throw new Error(`Output area ${oaName} not found in compare values; this should not happen`);
             }
-            for (const layerName of allLayers.keys()) {
+            for (const layerName of config.allLayers.keys()) {
                 const value = oaValues.get(layerName);
                 const cmpValue = cOaValues.get(layerName);
                 feature.properties[`${layerName}-cmp`] = cmpValue;
@@ -65,14 +63,11 @@ export function makeCombinedGeoJSON(
                 feature.properties[`${layerName}-diff-color`] = getDiffColor(layerName, value, cmpValue, maxDiffExtents);
             }
         }
-
-        // @ts-ignore GeoJSON types don't seem to recognise feature id
         feature.id = feature.properties.id;
         return feature;
     });
 
-    // TODO: Figure out how to not cast here
-    return newGeography as GeoJSON.FeatureCollection;
+    return newGeography;
 }
 
 /**
@@ -139,28 +134,25 @@ function mapsAreEqual<K, V>(m1: Map<K, V>, m2: Map<K, V>): boolean {
  * collating the areas where the values differ, and then performing a union of
  * these areas.
  *
- * @param scenarioName First scenario
- * @param compareScenarioName Second scenario
+ * @param changes Changes from the first scenario
+ * @param compareChanges Changes from the second scenario
  * @returns A GeoJSON FeatureCollection containing the boundaries of the areas
  * as a MultiPolygon.
  */
 export function getInputDiffBoundaries(
-    scenario: Scenario,
-    compareScenario: Scenario | null
+    changes: ScenarioChanges,
+    compareChanges: ScenarioChanges | null
 ): GeoJSON.FeatureCollection {
-    const changes: ScenarioChanges = scenario.changes;
-    const cChanges: ScenarioChanges = compareScenario === null
-        ? new Map()
-        : compareScenario.changes;
+    if (compareChanges === null) compareChanges = new Map();
 
     // Determine OAs which are different
     const allPossibleOAs: Set<string> = new Set([
-        ...changes.keys(), ...cChanges.keys()
+        ...changes.keys(), ...compareChanges.keys()
     ]);
     const differentOAs: Set<string> = new Set();
     for (const oa of allPossibleOAs) {
         const m1 = changes.get(oa);
-        const m2 = cChanges.get(oa);
+        const m2 = compareChanges.get(oa);
         if (m1 === undefined && m2 === undefined) {
             // Both undefined - no changes occurred wrt baseline
             continue;
@@ -177,23 +169,50 @@ export function getInputDiffBoundaries(
 
     // Extract these OAs from the base geography
     const boundary = {
-        "type": "FeatureCollection",
-        "crs": geography.crs,
-        "features": geography.features.filter(
+        "type": "FeatureCollection" as const,
+        "features": config.geography.features.filter(
             feature => differentOAs.has(feature.properties[config.featureIdentifier])
         ),
-    } as GeoJSON.FeatureCollection;
+    };
 
-    // Dissolve the boundaries. But we can't actually use dissolve because that
-    // doesn't work with MultiPolygons. We instead use union in a nice,
-    // functional-style loop.
+    // Dissolve the boundaries. But we can't actually use turf's dissolve
+    // because some of our features are MultiPolygons, and that doesn't work
+    // with MultiPolygons. Instead, we can use union.
     if (boundary.features.length > 0) {
-        const unioned = boundary.features.reduce((acc, feature) => {
-            const featureGeometry = feature.geometry;
-            // @ts-ignore Not sure how to best coerce GeoJSON types right now. But it works.
-            return union(acc, featureGeometry);
-        });
+        const unioned = pairwiseReduce1(
+            boundary.features,
+            (acc, feature) => { return union(acc, feature.geometry); }
+        );
         boundary.features = [unioned];
     }
     return boundary;
+}
+
+// pairwiseReduce1(arr, fn) is equivalent to arr.reduce(fn), but adds elements
+// pairwise like (a + b) + (c + d) rather than (a + (b + (c + d))). This has the
+// same asymptotic complexity as reduce, but is notably more efficient when fn
+// is turf.union for unknown reasons (perhaps because it avoids building up a
+// larger and larger polygon as an intermediate computation).
+function pairwiseReduce1<T>(arr: T[], fn: (a: T, b: T) => T): T {
+    const n = arr.length;
+    if (n === 0) {
+        throw new Error("Cannot reduce empty array");
+    }
+    else if (n === 1) {
+        return arr[0];
+    }
+    else if (n === 2) {
+        return fn(arr[0], arr[1]);
+    }
+    else {
+        const npairs = Math.floor(n / 2);
+        const newArr = new Array(Math.ceil(n / 2)).fill(null);
+        for (let i = 0; i < npairs; i++) {
+            newArr[i] = fn(arr[2 * i], arr[2 * i + 1]);
+        }
+        if (n % 2 === 1) {
+            newArr[npairs] = arr[n - 1];
+        }
+        return pairwiseReduce1(newArr, fn);
+    }
 }

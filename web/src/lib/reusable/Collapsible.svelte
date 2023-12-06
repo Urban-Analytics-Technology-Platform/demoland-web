@@ -16,7 +16,7 @@
 <div class="collapsible">
 <label
     class="collapsible-toggle {collapsed ? 'closed' : 'opened'}"
-    transition:slide={{ duration: 400, easing: quintOut }}
+    transition:slide|local={{ duration: 400, easing: quintOut }}
     ><input type="button" on:click={toggle} />
     <img
         src={collapsed ? closeTriangle : openTriangle}
@@ -26,14 +26,14 @@
 </label>
 <label
     class="collapsible-title {collapsed ? 'closed' : 'opened'}"
-    transition:slide={{ duration: 400, easing: quintOut }}
+    transition:slide|local={{ duration: 400, easing: quintOut }}
     ><input type="button" on:click={toggle} />
     <h2>{title}</h2>
 </label>
 {#if !collapsed}
     <div
         class="collapsible-content opened"
-        transition:slide={{ duration: 400, easing: quintOut }}
+        transition:slide|local={{ duration: 400, easing: quintOut }}
     >
         <slot />
     </div>

@@ -1,14 +1,14 @@
 <script lang="ts">
     import "maplibre-gl/dist/maplibre-gl.css";
     import maplibregl from "maplibre-gl";
-    import config from "src/data/config";
     import {
         makeCombinedGeoJSON,
         getGeometryBounds,
         getInputDiffBoundaries,
     } from "src/utils/geojson";
+    import intersect from "@turf/intersect";
     import { makePopup } from "src/utils/hover";
-    import { allLayers, type LayerName } from "src/constants";
+    import { type LayerName, config } from "src/data/config";
     import {
         allScenarios,
         scenarioName,
@@ -17,8 +17,11 @@
         customScenarioInProgress,
         clickedOAs,
         hoveredId,
+        oaSelectionMethod,
     } from "src/stores";
     import { onMount, onDestroy } from "svelte";
+    import type { PMPFeatureCollection } from "src/types";
+    import TerraDraw from "./TerraDraw.svelte";
 
     /* --- PROPS ---------------------------------------------------------- */
     // The currently active map layer. Passed from the parent component.
@@ -41,7 +44,12 @@
     // The data to be plotted on the map. This variable is only initialised
     // after the map DOM is created, because it depends on the app
     // initialisation code.
-    let mapData: GeoJSON.FeatureCollection = undefined;
+    let mapData: PMPFeatureCollection = undefined;
+    // Whether the polygon drawing tool was just exited. We need to keep track
+    // of this to prevent an extra click event from being fired when the
+    // polygon tool exits (which would deselect all the newly selected OAs).
+    let terraDrawJustEnded: boolean = false;
+    const terraDrawMode: "polygon" | "freehand" = "freehand";
 
     /* --- INITIALISATION ------------------------------------------------- */
     onMount(() => {
@@ -92,7 +100,14 @@
         // the defaultPrevented check, this function is only used to catch
         // clicks _outside_ the area of interest.
         map.on("click", function (e) {
+            if ($oaSelectionMethod === "draw" || terraDrawJustEnded) {
+                if (e.defaultPrevented) {
+                    terraDrawJustEnded = false;
+                }
+                return;
+            }
             if (!e.defaultPrevented && !e.originalEvent.shiftKey) {
+                console.log("click3");
                 $clickedOAs = [];
             }
         });
@@ -100,7 +115,12 @@
         // Click functionality within the area of interest.
         // TODO60 Layer name is hardcoded
         map.on("click", "air_quality-layer", function (e) {
+            console.log("click");
             e.preventDefault();
+            if ($oaSelectionMethod === "draw" || terraDrawJustEnded) {
+                terraDrawJustEnded = false;
+                return;
+            }
             if (e.features.length > 0) {
                 const feat = e.features[0];
                 const n = feat.id as number;
@@ -267,7 +287,7 @@
         // The way around it is to use fill-opacity (which is not data-driven)
         // for four different layers. The only real drawback is (in principle)
         // performance, but I haven't really noticed any issues so far.
-        for (const layerName of allLayers.keys()) {
+        for (const layerName of config.allLayers.keys()) {
             const mapLayerId = `${layerName}-layer`;
             map.addLayer({
                 id: mapLayerId,
@@ -314,10 +334,10 @@
         // Generate the LineString layer showing the boundary of the changed
         // areas.
         const diffedBoundaries = getInputDiffBoundaries(
-            $allScenarios.get($scenarioName),
+            $allScenarios.get($scenarioName).changes,
             $compareScenarioName === null
                 ? null
-                : $allScenarios.get($compareScenarioName)
+                : $allScenarios.get($compareScenarioName).changes
         );
         map.addSource("boundary", {
             type: "geojson",
@@ -337,7 +357,7 @@
         // Fade in the layers that we want, after a small delay to allow for
         // loading.
         setTimeout(function () {
-            for (const layerName of allLayers.keys()) {
+            for (const layerName of config.allLayers.keys()) {
                 const mapLayerId = `${layerName}-layer`;
                 map.setPaintProperty(
                     mapLayerId,
@@ -361,12 +381,27 @@
         }
     }
 
+    export function updateBoundaryLayer() {
+        // Update the LineString layer showing the boundary of the changed
+        // areas.
+        const diffedBoundaries = getInputDiffBoundaries(
+            $allScenarios.get($scenarioName).changes,
+            $compareScenarioName === null
+                ? null
+                : $allScenarios.get($compareScenarioName).changes
+        );
+        const boundarySource = map.getSource(
+            "boundary"
+        ) as maplibregl.GeoJSONSource;
+        boundarySource.setData(diffedBoundaries);
+    }
+
     // Update layer styles. This is quite a general function --- it updates the
     // fill colours and opacity again according to the underlying data as well
     // as the opacity slider.
     export function updateLayers() {
         if (map) {
-            for (const layerName of allLayers.keys()) {
+            for (const layerName of config.allLayers.keys()) {
                 map.setPaintProperty(`${layerName}-layer`, "fill-color", [
                     "get",
                     $compareScenarioName === null
@@ -381,17 +416,8 @@
             }
             map.setPaintProperty("line-layer", "line-opacity", opacity);
         }
-        // Update the LineString layer
-        const diffedBoundaries = getInputDiffBoundaries(
-            $allScenarios.get($scenarioName),
-            $compareScenarioName === null
-                ? null
-                : $allScenarios.get($compareScenarioName)
-        );
-        const boundarySource = map.getSource(
-            "boundary"
-        ) as maplibregl.GeoJSONSource;
-        boundarySource.setData(diffedBoundaries);
+        // Update boundary layer.
+        updateBoundaryLayer();
         // Update the click popup if necessary. This bit is required because
         // the click popup contains e.g. indicator values
         if (clickPopup !== null) {
@@ -458,7 +484,23 @@
         }
     }
 
-    // Declare variables for $: block
+    function selectOAsFromPolygon(event: CustomEvent) {
+        const polygon = event.detail.feature;
+
+        // Get all OAs that intersect with the polygon
+        const selectedFeatures = mapData.features.filter((feat) => {
+            return intersect(feat, polygon) !== null;
+        });
+        $clickedOAs = selectedFeatures.map((feat) => ({
+            id: feat.id as number,
+            name: feat.properties[config.featureIdentifier],
+        }));
+
+        // Turn off polygon drawing
+        $oaSelectionMethod = "click";
+        terraDrawJustEnded = true;
+    }
+
     let oldClickedIds: number[] = [];
     let clickedIds: number[] = [];
     $: {
@@ -470,6 +512,7 @@
         }
 
         // Toggle map click state based on $clickedOAs store
+        $clickedOAs;
         oldClickedIds = clickedIds;
         oldClickedIds.forEach((id) =>
             map.setFeatureState({ source: SOURCE_ID, id: id }, { click: false })
@@ -482,3 +525,24 @@
 </script>
 
 <div id="map" />
+
+{#if $customScenarioInProgress}
+    <div id="terradraw-toggle">
+        {#if $oaSelectionMethod === "draw"}
+            <TerraDraw
+                {map}
+                on:finish={selectOAsFromPolygon}
+                mode={terraDrawMode}
+            />
+        {/if}
+    </div>
+{/if}
+
+<style>
+    #terradraw-toggle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 1;
+    }
+</style>

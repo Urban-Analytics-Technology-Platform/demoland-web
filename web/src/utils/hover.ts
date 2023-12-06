@@ -1,14 +1,12 @@
 import { getGeometryBounds } from "src/utils/geojson";
 import maplibregl from "maplibre-gl";
 import {
-    allIndicators,
     type Indicator,
     type IndicatorName,
     type LayerName,
-    signatures,
-} from "src/constants";
+    config
+} from "src/data/config";
 import { unscale } from "src/utils/scenarios";
-import config from "src/data/config";
 
 // Construct raw HTML for the hover popup. This is really ugly, but MapLibre
 // doesn't seem to let us do much else (?).
@@ -25,14 +23,14 @@ function makeHoverHtml(feat: GeoJSON.Feature,
     // Generate the HTML showing the signature type
     function makeSig(): string {
         const sig: number = feat.properties["signature_type"];
-        const sigName: string = signatures[sig].name;
-        const sigColor: string = signatures[sig].color;
+        const sigName: string = config.signatures[sig].name;
+        const sigColor: string = config.signatures[sig].color;
         if (compareScenarioName === null) {
             return activeFactor === "signature_type"
                 ? `<span class="oa-grid-item strong">${makeColoredBlock(sigColor)}&nbsp;${sigName}</span>`
                 : `<span class="oa-grid-item strong">${sigName}</span>`;
         } else {
-            const cmpSig = signatures[feat.properties["signature_type-cmp"]].name;
+            const cmpSig = config.signatures[feat.properties["signature_type-cmp"]].name;
             if (sigName === cmpSig) {
                 return activeFactor === "signature_type"
                     ? `<span class="oa-grid-item strong">${makeColoredBlock(sigColor)}&nbsp;${sigName}</span>`
@@ -65,10 +63,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
                 }${Math.abs(chg).toFixed(1)}%)`;
         }
         return [
-            `<span>${indi.short.replace(
-                "accessibility",
-                "access."
-            )}</span>`,
+            `<span>${indi.hover}</span>`,
             `<span class="right-align-grid-item ${activeFactor === name ? "strong" : ""
             }">`,
             activeFactor === name ? `${makeColoredBlock(color)}&nbsp;` : ``,
@@ -82,7 +77,7 @@ function makeHoverHtml(feat: GeoJSON.Feature,
         `<div class="hover-grid">`,
         `<span class="oa-grid-item oa-name">${feat.properties[config.featureIdentifier]}</span>`,
         makeSig(),
-        ...[...allIndicators.entries()].map(([name, indi]) => makeIndi(name, indi)),
+        ...[...config.allIndicators.entries()].map(([name, indi]) => makeIndi(name, indi)),
         `</div>`,
     ].join("");
 }

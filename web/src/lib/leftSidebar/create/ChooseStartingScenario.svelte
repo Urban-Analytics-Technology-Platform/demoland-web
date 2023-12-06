@@ -1,31 +1,65 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { allScenarios, scenarioName, compareScenarioName } from "src/stores";
+    import {
+        allScenarios,
+        scenarioName,
+        compareScenarioName,
+    } from "src/stores";
+    import { copyScenario } from "src/utils/scenarios";
     const dispatch = createEventDispatcher();
     dispatch("changeScenario", {});
+    import InputFieldsContainer from "./InputFieldsContainer.svelte";
+    import HorizontalRule from "./HorizontalRule.svelte";
 
-    function setScenario(event: Event) {
+    function previewScenario(event: Event) {
+        const buttons: NodeListOf<HTMLButtonElement> =
+            document.querySelectorAll(".scenario-button");
+        Array.from(buttons).forEach((button) => {
+            if (button !== event.target) {
+                button.style.backgroundColor = "#fff";
+            }
+        });
         let button = event.target as HTMLButtonElement;
+        button.style.backgroundColor = "#eaeaea";
         $scenarioName = button.value;
         $compareScenarioName = null;
-        dispatch("changeScenario", {});
+        dispatch("changeScenario");
+    }
+
+    function setScenarioAndProceed(event: Event) {
+        let button = event.target as HTMLButtonElement;
+        const customScenarioName = "custom_in_progress";
+        $allScenarios.set(
+            customScenarioName,
+            copyScenario($allScenarios.get(button.value))
+        );
+        $scenarioName = customScenarioName;
+        $compareScenarioName = null;
+        dispatch("changeScenarioAndProceed");
     }
 </script>
 
-<h3>Step 1: Choose starting scenario</h3>
-
-<div id="starting-scenario-buttons">
+<InputFieldsContainer title={"Step 1: Choose starting scenario"}>
+    <div class="smaller">
+        Hover over a scenario to load the changes to the map. When you&rsquo;re
+        ready, click on one to proceed: that will be used as the starting point
+        for your own modifications.
+    </div>
+    <HorizontalRule />
     {#each [...$allScenarios.entries()] as [name, scenario]}
-        <button value={name} on:click={setScenario}>{scenario.metadata.long}</button>
+        <button
+            class="scenario-button"
+            value={name}
+            on:click={setScenarioAndProceed}
+            on:focus={previewScenario}
+            on:mouseover={previewScenario}>{scenario.metadata.long}</button
+        >
     {/each}
-</div>
+</InputFieldsContainer>
 
 <style>
-    div#starting-scenario-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-        align-items: center;
+    div.smaller {
+        font-size: 90%;
     }
 
     button {
@@ -48,10 +82,5 @@
     button:active {
         background-color: #eaeaea;
         transition: none 0s;
-    }
-
-    h3 {
-        font-size: 100%;
-        font-weight: bold;
     }
 </style>

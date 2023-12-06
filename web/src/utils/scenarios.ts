@@ -1,10 +1,11 @@
 import {
     type LayerName, type MacroVar,
+    type ScenarioMetadata,
     type ScenarioChanges, type ScenarioValues, type Scenario,
     type ChangesObject, type ValuesObject, type ScenarioObject,
     type ScaleFactorMap,
-    GLOBALMIN, GLOBALMAX
-} from "src/constants";
+    config
+} from "src/data/config";
 
 export function rescale(
     layerName: LayerName,
@@ -21,7 +22,7 @@ export function rescale(
         } else {
             const min = scaleFactors.get(layerName).min;
             const max = scaleFactors.get(layerName).max;
-            return GLOBALMIN + (GLOBALMAX - GLOBALMIN) * (unscaledVal - min) / (max - min);
+            return config.scale.min + (config.scale.max - config.scale.min) * (unscaledVal - min) / (max - min);
         }
     }
 }
@@ -41,7 +42,7 @@ export function unscale(
         } else {
             const min = scaleFactors.get(layerName).min;
             const max = scaleFactors.get(layerName).max;
-            return min + (max - min) * (scaledVal - GLOBALMIN) / (GLOBALMAX - GLOBALMIN);
+            return min + (max - min) * (scaledVal - config.scale.min) / (config.scale.max - config.scale.min);
         }
     }
 }
@@ -95,18 +96,18 @@ function fromValuesObject(
     const src = appendSource(source);
     const valuesMap = new Map();
     const foundAreaNames = new Set();
-    for (const [oa, map] of Object.entries(values)) {
+    for (const [oa, innerObj] of Object.entries(values)) {
         if (validAreaNames !== null && !validAreaNames.has(oa)) {
             throw new Error(`Invalid OA '${oa}' found in scenario values.${src}`);
         }
         else {
             valuesMap.set(oa, new Map());
             foundAreaNames.add(oa);
-            for (const [key, value] of Object.entries(map)) {
-                if (value === null) {
+            for (const layerName of config.allLayers.keys()) {
+                const value = innerObj[layerName];
+                if (value === null || value === undefined) {
                     throw new Error(`Null value found in scenario values for OA '${oa}'.${src}`);
                 }
-                const layerName = key as LayerName;
                 valuesMap.get(oa)
                     .set(layerName, rescale(layerName, preprocess(value as number), scaleFactors));
             }
@@ -221,4 +222,24 @@ export function toScenarioObject(
         changes: toChangesObject(scenario.changes),
         values: toValuesObject(scenario.values, scaleFactors)
     };
+}
+
+export function copyScenario(
+    scenario: Scenario,
+): Scenario {
+    const metadata = {
+        name: scenario.metadata.name,
+        short: scenario.metadata.short,
+        long: scenario.metadata.long,
+        description: scenario.metadata.description
+    }
+    const changes = new Map();
+    for (const [oa, oaMap] of scenario.changes.entries()) {
+        changes.set(oa, new Map(oaMap));
+    }
+    const values = new Map();
+    for (const [oa, oaMap] of scenario.values.entries()) {
+        values.set(oa, new Map(oaMap));
+    }
+    return { metadata, changes, values };
 }

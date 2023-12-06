@@ -5,7 +5,7 @@
     import MapC from "src/lib/MapC.svelte";
     import InitialErrorScreen from "src/lib/InitialErrorScreen.svelte";
     import LoadingScreen from "src/lib/LoadingScreen.svelte";
-    import { type LayerName } from "src/constants";
+    import { type LayerName } from "src/data/config";
     import {
         allScenarios,
         scenarioName,
@@ -64,6 +64,9 @@
     function updateLayers() {
         mapC.updateLayers();
     }
+    function updateBoundaryLayer() {
+        mapC.updateBoundaryLayer();
+    }
     function recentreMap() {
         mapC.recentre();
     }
@@ -74,7 +77,10 @@
         <MapC bind:this={mapC} bind:offcentre bind:activeLayer bind:opacity />
 
         <div id="other-content-container">
-            <LeftSidebar on:changeScenario={updateScenario} />
+            <LeftSidebar
+                on:changeScenario={updateScenario}
+                on:updateBoundaryLayer={updateBoundaryLayer}
+            />
 
             <div id="recentre">
                 {#if offcentre}

@@ -1,10 +1,9 @@
 import {
     type Scenario,
     type ScaleFactorMap,
-    allLayers,
-} from "src/constants";
+    config
+} from "src/data/config";
 import { fromScenarioObject } from "src/utils/scenarios";
-import config from "src/data/config";
 
 /* This function reads the reference scenario from the file specified in the
  * config file, and returns a Scenario object. The values are not scaled, so
@@ -14,7 +13,7 @@ export function setupReferenceScenarioUnscaled(): Scenario {
     // `null` to avoid scaling. The ScaleFactorMap that we use for
     // everything else will be returned by this function. Likewise for the
     // validAreaNames parameter.
-    return fromScenarioObject(config.referenceScenarioFile, null, null, "reference scenario");
+    return fromScenarioObject(config.referenceScenarioObject, null, null, "reference scenario");
 }
 
 /* This function returns a set of all valid area names, as read from the
@@ -32,7 +31,7 @@ export function setupAreaNames(referenceScenario: Scenario): Set<string> {
 export function setupScaleFactors(referenceScenarioUnscaled: Scenario): ScaleFactorMap {
     // Calculate current minimum and maximum values
     const scaleFactors: ScaleFactorMap = new Map();
-    for (const layerName of allLayers.keys()) {
+    for (const layerName of config.allLayers.keys()) {
         const allValues = [];
         for (const oaValues of referenceScenarioUnscaled.values.values()) {
             allValues.push(oaValues.get(layerName));
@@ -52,8 +51,8 @@ export function setupScenarioMap(
     validAreaNames: Set<string>,
 ): Map<string, Scenario> {
     const allScenarioObjects = [
-        config.referenceScenarioFile,
-        ...config.otherScenarioFiles
+        config.referenceScenarioObject,
+        ...config.otherScenarioObjects
     ];
     const scenarioList = allScenarioObjects.map((scenarioObject, i) => {
         return fromScenarioObject(scenarioObject, scaleFactors, validAreaNames, `scenario #${i}`);

@@ -23,6 +23,7 @@
     "concurrently": "^8.2.1",
     "eslint": "^8.42.0",
     "eslint-plugin-svelte": "^2.30.0",
+    "isomorphic-fetch": "^3.0.0",
     "svelte": "^3.59.1",
     "svelte-check": "^2.10.3",
     "tslib": "^2.5.0",
@@ -31,6 +32,7 @@
     "vitest": "^0.31.4"
   },
   "dependencies": {
+    "@turf/intersect": "^6.5.0",
     "@turf/union": "^6.5.0",
     "@types/chart.js": "^2.9.37",
     "@types/colormap": "^2.3.1",
@@ -41,6 +43,8 @@
     "jszip": "^3.10.1",
     "maplibre-gl": "^2.4.0",
     "overlayscrollbars": "^2.2.1",
+    "pyodide": "^0.24.1",
+    "terra-draw": "0.0.1-alpha.51",
     "vite-tsconfig-paths": "^4.2.0"
   }
 }

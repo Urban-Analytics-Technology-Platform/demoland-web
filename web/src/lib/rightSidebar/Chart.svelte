@@ -3,9 +3,9 @@
     import {
         type IndicatorName,
         type Indicator,
-        allIndicators,
         type Scenario,
-    } from "src/constants";
+        config
+    } from "src/data/config";
     import {
         type ChartDataset,
         type ChartData,
@@ -157,7 +157,7 @@
     });
     onDestroy(destroyChart);
 
-    let indi: Indicator = allIndicators.get(indicatorName);
+    let indi: Indicator = config.allIndicators.get(indicatorName);
     let values: number[];
     let cmpValues: number[];
     let changes: number[];
