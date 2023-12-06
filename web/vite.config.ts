@@ -23,5 +23,10 @@ export default defineConfig({
                 rewrite: (path) => path.replace(/^\/api/, ''),
             }
         }
+    },
+    // Prevent Vite from reloading the first time Pyodide is requested,
+    // which is annoying as it cancels the custom scenario calculation.
+    optimizeDeps: {
+        exclude: ['pyodide', 'node-fetch'],
     }
 })
