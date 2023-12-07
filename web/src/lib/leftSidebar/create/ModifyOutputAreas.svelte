@@ -3,6 +3,7 @@
     import BackForwardButtons from "./BackForwardButtons.svelte";
     import InputFieldsContainer from "./InputFieldsContainer.svelte";
     import HorizontalRule from "./HorizontalRule.svelte";
+    import HoverableLabel from "./HoverableLabel.svelte";
     const dispatch = createEventDispatcher();
 
     import Slider from "./Slider.svelte";
@@ -437,7 +438,11 @@
                 : "s"} selected.</span
         >
         <div id="changes-grid">
-            <label for="sig-modified">Signature</label>
+            <HoverableLabel
+                forInputName="sig-modified"
+                labelText="Signature"
+                hoverText="Signatures [...]"
+            />
             <input
                 type="checkbox"
                 id="sig-modified"
@@ -490,6 +495,7 @@
             {#if showMacroVariables}
                 <Slider
                     title="Job types"
+                    description="Job types [...]"
                     bind:modified={jobModified}
                     bind:value={job}
                     leftEdge={0}
@@ -503,6 +509,7 @@
 
                 <Slider
                     title="Building use"
+                    description="Building use [...]"
                     bind:modified={useModified}
                     bind:value={use}
                     leftEdge={-1}
@@ -516,6 +523,7 @@
 
                 <Slider
                     title="Greenspace"
+                    description="Greenspace [...]"
                     bind:modified={greenModified}
                     bind:value={green}
                     leftEdge={0}
