@@ -3,9 +3,11 @@
     export let scenarioDescription: string = "";
     export let calculationMethod: "azure" | "wasm" | "local" = "azure";
     import { config } from "src/data/config";
-    import InputFieldsContainer from "./InputFieldsContainer.svelte";
-    import BackForwardButtons from "./BackForwardButtons.svelte";
-    import HorizontalRule from "./HorizontalRule.svelte";
+    import {
+        InputFieldsContainer,
+        BackForwardButtons,
+        HorizontalRule,
+    } from "src/lib/leftSidebar/create/ui";
 
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();

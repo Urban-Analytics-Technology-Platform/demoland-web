@@ -8,8 +8,10 @@
     import { copyScenario } from "src/utils/scenarios";
     const dispatch = createEventDispatcher();
     dispatch("changeScenario", {});
-    import InputFieldsContainer from "./InputFieldsContainer.svelte";
-    import HorizontalRule from "./HorizontalRule.svelte";
+    import {
+        InputFieldsContainer,
+        HorizontalRule,
+    } from "src/lib/leftSidebar/create/ui";
 
     function previewScenario(event: Event) {
         const buttons: NodeListOf<HTMLButtonElement> =

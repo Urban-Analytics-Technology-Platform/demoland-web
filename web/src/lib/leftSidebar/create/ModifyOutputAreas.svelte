@@ -1,12 +1,14 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import BackForwardButtons from "./BackForwardButtons.svelte";
-    import InputFieldsContainer from "./InputFieldsContainer.svelte";
-    import HorizontalRule from "./HorizontalRule.svelte";
-    import HoverableLabel from "./HoverableLabel.svelte";
+    import {
+        BackForwardButtons,
+        HoverableLabel,
+        InputFieldsContainer,
+        HorizontalRule,
+        Slider,
+    } from "src/lib/leftSidebar/create/ui";
     const dispatch = createEventDispatcher();
 
-    import Slider from "./Slider.svelte";
     import { onMount, onDestroy } from "svelte";
     import {
         allScenarios,
