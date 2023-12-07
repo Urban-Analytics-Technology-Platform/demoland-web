@@ -2,8 +2,10 @@
     import ChooseStartingScenario from "src/lib/leftSidebar/create/ChooseStartingScenario.svelte";
     import ModifyOutputAreas from "src/lib/leftSidebar/create/ModifyOutputAreas.svelte";
     import InputMetadata from "src/lib/leftSidebar/create/InputMetadata.svelte";
-    import CalculatingScreen from "src/lib/leftSidebar/create/CalculatingScreen.svelte";
-    import ErrorScreen from "src/lib/reusable/ErrorScreen.svelte";
+    import {
+        CalculatingScreen,
+        ErrorScreen,
+    } from "src/lib/leftSidebar/create/ui";
     import {
         type ValuesObject,
         type ScenarioObject,
