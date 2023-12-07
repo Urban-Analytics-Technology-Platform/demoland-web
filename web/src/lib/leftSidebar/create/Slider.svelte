@@ -3,6 +3,7 @@
     export let modified: boolean;
     export let value: number | null;
     export let title: string;
+    export let description: string;
     export let defaultVal: number; // Number shown when slider is activated
     export let leftEdge: number; // The number that the left edge of the div represents.
     export let rightEdge: number; // The number that the right edge of the div represents.
@@ -13,6 +14,7 @@
     let container: HTMLElement;
     let slider: HTMLInputElement;
 
+    import HoverableLabel from "./HoverableLabel.svelte";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -47,7 +49,11 @@
     }
 </script>
 
-<label for="{idTitle}-modified">{title}</label>
+<HoverableLabel
+    forInputName="{idTitle}-modified"
+    labelText={title}
+    hoverText={description}
+/>
 <input
     type="checkbox"
     id="{idTitle}-modified"
@@ -122,9 +128,6 @@
 {/if}
 
 <style>
-    label {
-        font-style: italic;
-    }
     input.range {
         margin-left: 2px;
         margin-right: 2px;
