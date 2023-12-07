@@ -542,10 +542,6 @@
 </InputFieldsContainer>
 
 <style>
-    label {
-        font-style: italic;
-    }
-
     div#changes-grid {
         width: 100%;
         display: grid;
