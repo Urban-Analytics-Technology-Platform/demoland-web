@@ -443,7 +443,7 @@
             <HoverableLabel
                 forInputName="sig-modified"
                 labelText="Signature"
-                hoverText="Signatures [...]"
+                hoverText="Signature types are used to describe different levels of urbanity, and also control the valid range of values for the other variables."
             />
             <input
                 type="checkbox"
@@ -497,7 +497,7 @@
             {#if showMacroVariables}
                 <Slider
                     title="Job types"
-                    description="Job types [...]"
+                    description="The balance between blue- and white-collar jobs in the area. A value of 0 indicates fully blue-collar, 1 fully white-collar."
                     bind:modified={jobModified}
                     bind:value={job}
                     leftEdge={0}
@@ -511,7 +511,7 @@
 
                 <Slider
                     title="Building use"
-                    description="Building use [...]"
+                    description="The ratio of residential to commercial buildings in the area. A value of -1 indicates fully residential, and 1 fully commercial. The default value of 0 uses a standard value derived from the underlying signature type."
                     bind:modified={useModified}
                     bind:value={use}
                     leftEdge={-1}
@@ -525,7 +525,7 @@
 
                 <Slider
                     title="Greenspace"
-                    description="Greenspace [...]"
+                    description="The proportion of the area that is formally classified as greenspace."
                     bind:modified={greenModified}
                     bind:value={green}
                     leftEdge={0}
