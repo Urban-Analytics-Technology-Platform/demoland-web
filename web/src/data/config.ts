@@ -64,14 +64,13 @@ import geography from "src/data/geography.json";
 const featureIdentifier = "OA11CD";
 
 // We need to add numeric IDs to each feature if not already present. This is to
-// satisfy MapLibre's requirement for hover/click behaviour
+// satisfy MapLibre's requirement for hover/click behaviour. The actual numbers
+// have no significance so we can simply use the index of the feature in the
+// FeatureCollection.
 function addNumericIDs(geography: PMPFeatureCollection): PMPFeatureCollection {
-    if (geography.features[0].properties.id === undefined) {
-        geography.features.forEach((feature, index) => {
-            feature.properties.id = index;
-        });
-    }
-    console.log("geography", geography);
+    geography.features.forEach((feature, index) => {
+        feature.properties.id = index;
+    });
     return geography;
 }
 
