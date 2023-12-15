@@ -58,10 +58,11 @@ export type ScaleFactorMap = Map<LayerName, { min: number, max: number }>;
 // This must be a FeatureCollection GeoJSON that covers the area of interest.
 // Here, we use a .json extension so that TypeScript can properly import it.
 import geography from "src/data/geography.json";
+import geo_config from "src/data/geo_config.json";
 
 // Each feature in the GeoJSON file must contain a property that gives a unique
 // identifier for each feature. The value of the identifier must be a string.
-const featureIdentifier = "OA11CD";
+const featureIdentifier: string = geo_config.featureIdentifier;
 
 // We need to add numeric IDs to each feature if not already present. This is to
 // satisfy MapLibre's requirement for hover/click behaviour. The actual numbers
@@ -75,11 +76,13 @@ function addNumericIDs(geography: PMPFeatureCollection): PMPFeatureCollection {
 }
 
 // Initial latitude of the map
-const initialLatitude = 54.94;
+const initialLatitude: number = geo_config.initialLatitude;
 // Initial longitude of the map
-const initialLongitude = -1.59;
+const initialLongitude: number = geo_config.initialLongitude;
 // Initial zoom level of the map
-const initialZoom = 10.05;
+const initialZoom: number = geo_config.initialZoom;
+// Name of the area of interest
+const areaName: string = geo_config.areaName;
 
 /* --------------------------------- */
 /* SCENARIOS                         */
@@ -369,9 +372,11 @@ interface Config {
     };
     baseUrl: string;
     webApiUrl: string;
+    areaName: string;
 }
 
 export const config: Config = {
+    areaName: areaName,
     initialLatitude: initialLatitude,
     initialLongitude: initialLongitude,
     initialZoom: initialZoom,

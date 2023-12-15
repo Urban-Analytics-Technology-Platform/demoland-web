@@ -9,6 +9,7 @@
     import Import from "src/lib/leftSidebar/Import.svelte";
     import Welcome from "src/lib/leftSidebar/Welcome.svelte";
     import Tabs from "src/lib/leftSidebar/Tabs.svelte";
+    import { config } from "src/data/config";
 
     import { scenarioName, compareScenarioName } from "src/stores";
     let welcomeVisible: boolean = !(
@@ -30,11 +31,11 @@
 <Welcome bind:welcomeVisible />
 <Sidebar>
     <div class="sidebar-contents">
-        <h1 class="title">Tyne and Wear development scenario modelling</h1>
+        <h1 class="title">{config.areaName} development scenario modelling</h1>
 
         <p>
-            Explore a modelled impact of various development scenarios in Tyne
-            and Wear on four indicators of quality of life.
+            Explore a modelled impact of various development scenarios in {config.areaName}
+            on four indicators of quality of life.
 
             <Tooltip --width="max-content" --transformy="35px">
                 <button

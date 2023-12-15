@@ -5,7 +5,7 @@
     import MapC from "src/lib/MapC.svelte";
     import InitialErrorScreen from "src/lib/InitialErrorScreen.svelte";
     import LoadingScreen from "src/lib/LoadingScreen.svelte";
-    import { type LayerName } from "src/data/config";
+    import { type LayerName, config } from "src/data/config";
     import {
         allScenarios,
         scenarioName,
@@ -42,9 +42,7 @@
         // scenario being compared against to nothing
         $scenarioName = referenceScenarioUnscaled.metadata.name;
         $compareScenarioName = null;
-        console.log(
-            `App initialised with ${$allScenarios.size} scenarios.`
-        );
+        console.log(`App initialised with ${$allScenarios.size} scenarios.`);
         console.log(`Scenario names: ${Array.from($allScenarios.keys())}`);
         console.log(`Initial scenario: ${$scenarioName}`);
         // Show the app
@@ -72,6 +70,9 @@
     }
 </script>
 
+<svelte:head>
+    <title>Land Use Demonstrator • {config.areaName}</title>
+</svelte:head>
 {#if appState === "ready"}
     <main>
         <MapC bind:this={mapC} bind:offcentre bind:activeLayer bind:opacity />
