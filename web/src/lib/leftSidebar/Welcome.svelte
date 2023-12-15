@@ -4,6 +4,7 @@
     import mapScreenshot from "src/assets/map.png";
     import changesScreenshot from "src/assets/changes.png";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
+    import { config } from "src/data/config";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =
@@ -76,7 +77,7 @@
             <p>
                 In this project, competing aspects of land use in an urban
                 environment are identified and quantified. We first do this for
-                present-day Tyne and Wear (called the
+                present-day {config.areaName} (called the
                 <i>baseline</i>), and then create specific <i>scenarios</i>
                 where the distribution of land use is modified. These land use characteristics
                 are then used to calculate four
@@ -105,9 +106,9 @@
             <div class="flex-navigation-help">
                 <div class="flex-help">
                     <span>
-                        The <b>map</b> shows the area of Tyne and Wear county as
-                        it is seen through the data today and in the seven development
-                        scenarios.
+                        The <b>map</b> shows the area of {config.areaName} as it
+                        is seen through the data today (or in any other development
+                        scenarios).
                     </span>
                     <span>
                         The county is subdivided into 3,795
@@ -136,7 +137,7 @@
                     </span>
                     <span>
                         The changes in each scenario (relative to the baseline)
-                        are contained within a specific area of Tyne and Wear.
+                        are contained within a specific area of {config.areaName}.
                         When a scenario is selected, this modified area is
                         outlined on the map in black:
                     </span>
