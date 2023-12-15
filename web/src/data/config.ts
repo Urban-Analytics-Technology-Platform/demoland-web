@@ -63,6 +63,18 @@ import geography from "src/data/geography.json";
 // identifier for each feature. The value of the identifier must be a string.
 const featureIdentifier = "OA11CD";
 
+// We need to add numeric IDs to each feature if not already present. This is to
+// satisfy MapLibre's requirement for hover/click behaviour
+function addNumericIDs(geography: PMPFeatureCollection): PMPFeatureCollection {
+    if (geography.features[0].properties.id === undefined) {
+        geography.features.forEach((feature, index) => {
+            feature.properties.id = index;
+        });
+    }
+    console.log("geography", geography);
+    return geography;
+}
+
 // Initial latitude of the map
 const initialLatitude = 54.94;
 // Initial longitude of the map
@@ -376,7 +388,7 @@ export const config: Config = {
     // assertion: { type: "FeatureCollection" as const, ...}. But presently
     // there is no way to do this with imported JSON files. See
     // https://github.com/microsoft/TypeScript/issues/32063.
-    geography: geography as PMPFeatureCollection,
+    geography: addNumericIDs(geography as PMPFeatureCollection),
     featureIdentifier: featureIdentifier,
     referenceScenarioObject: referenceScenarioObject,
     otherScenarioObjects: otherScenarioObjects,
