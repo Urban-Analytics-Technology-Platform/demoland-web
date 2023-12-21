@@ -15,14 +15,10 @@
 
 set -e
 
-function usage {
-    echo "Usage: npm run build <local|github|github_dev> [AREA_NAME]"
-    exit 1
-}
-
 # Consume the first argument
 if [ -z "$1" ]; then
-    usage
+    echo "Usage: npm run build <local|github|github_dev> [AREA_NAME]"
+    exit 1
 else
     if [ "$1" = "local" ]; then
         echo "Building for local deployment"
@@ -31,7 +27,8 @@ else
     elif [ "$1" = "github_dev" ]; then
         echo "Building for GitHub Pages dev branch deployment"
     else
-        usage
+        echo "Usage: npm run build <local|github|github_dev> [AREA_NAME]"
+        exit 1
     fi
     BUILD_TARGET=$1
 fi
