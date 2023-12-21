@@ -20,17 +20,15 @@ jobs:
       with:
         node-version: 21
 
-    # TODO: npm ci fails on GitHub runner. No idea why
-    - name: Install dependencies
-      run: npm install
-
     - name: Checkout main branch
       uses: actions/checkout@v3
       with:
         ref: main
 
     - name: Build main branch
-      run: npm run build_all github
+      run: |
+        npm ci
+        npm run build_all github
 
     - name: Checkout dev branch
       uses: actions/checkout@v3
@@ -38,7 +36,9 @@ jobs:
         ref: dev
 
     - name: Build dev branch
-      run: npm run build_all github_dev
+      run: |
+        npm ci
+        npm run build_all github_dev
 
     - name: Checkout v1.0 tag
       uses: actions/checkout@v3
