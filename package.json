@@ -4,10 +4,8 @@
   "version": "2.0.0-alpha",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "api-build": "cd demoland_engine; docker build -t demoland_api .",
-    "api": "cd demoland_engine; docker run -p 5174:80 demoland_api",
-    "dev+api": "concurrently \"npm run dev\" \"npm run api\"",
+    "load_area": "./scripts/load_area.sh",
+    "dev": "./scripts/dev.sh",
     "build": "vite build",
     "lint": "npx eslint .",
     "preview": "vite preview",
