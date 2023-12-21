@@ -15,7 +15,7 @@
 
 set -e
 
-function usage {
+usage () {
     echo "Usage: npm run build <local|github|github_dev> [AREA_NAME]"
     exit 1
 }
@@ -54,21 +54,20 @@ REPOSITORY_NAME="demoland-web"
 # Newcastle.
 npm run load_area $@
 
+# Build the site.
 if [ "${BUILD_TARGET}" = "local" ]; then
-    npx vite build \
-        --outDir="dist/${AREA_NAME}" \
-        --base="/${AREA_NAME}"
+    OUTDIR_BASE="dist"
+    DEPLOYMENT_BASE=""
 elif [ "${BUILD_TARGET}" = "github" ]; then
-    # This allows us to simply upload the entire contents of
-    # /tmp/${REPOSITORY_NAME} to the gh-pages branch.
-    npx vite build \
-        --outDir="/tmp/${REPOSITORY_NAME}/${AREA_NAME}" \
-        --base="/${REPOSITORY_NAME}/${AREA_NAME}"
+    OUTDIR_BASE="/tmp/${REPOSITORY_NAME}"
+    DEPLOYMENT_BASE="/${REPOSITORY_NAME}"
 elif [ "${BUILD_TARGET}" = "github_dev" ]; then
-    npx vite build \
-        --outDir="/tmp/${REPOSITORY_NAME}/dev/${AREA_NAME}" \
-        --base="/${REPOSITORY_NAME}/dev/${AREA_NAME}"
+    OUTDIR_BASE="/tmp/${REPOSITORY_NAME}/dev"
+    DEPLOYMENT_BASE="/${REPOSITORY_NAME}/dev"
 fi
+npx vite build \
+    --outDir="${OUTDIR_BASE}/${AREA_NAME}" \
+    --base="${DEPLOYMENT_BASE}/${AREA_NAME}"
 
 # Set up the main page to redirect to Newcastle (this is hardcoded in index.html)
-cp node_scripts/index.html dist/index.html
+cp "node_scripts/index.html" "${OUTDIR_BASE}/index.html"

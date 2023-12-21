@@ -10,7 +10,7 @@
     let doNotShowOnPageLoad: boolean =
         localStorage.getItem("doNotShowWelcome") === "true";
 
-    const bookUrl: string = "https://ciupava.github.io/LandUseDemonstrator";
+    const bookUrl: string = "https://urban-analytics-technology-platform.github.io/demoland-project";
 
     // Whether the welcome screen is visible (initialised based on page load
     // setting, but can be toggled if the user wants to re-display it)

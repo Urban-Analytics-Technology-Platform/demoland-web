@@ -8,7 +8,7 @@ on:
   push:
     branches:
       - main
-      - dev
+      # - dev  # Disable for now
 
 jobs:
   publish:
@@ -18,24 +18,17 @@ jobs:
     - name: Set up Node.JS
       uses: actions/setup-node@v3
       with:
-        node-version: 20
+        node-version: 21
 
     - name: Checkout main branch
       uses: actions/checkout@v3
       with:
         ref: main
 
-    # Vite ordinarily generates links that look like
-    # <script src="/assets/script.js">,
-    # which fail because the browser will look for them at
-    # https://alan-turing-institute.github.io/assets/script.js.
-    # The --base argument gets Vite to generate links of the form
-    # <script src="/demoland-web/assets/script.js"> which correctly resolve.
     - name: Build main branch
       run: |
-        cd web
         npm ci
-        npm run build -- --outDir='/tmp/demoland-web' --base='/demoland-web'
+        npm run build_all github
 
     - name: Checkout dev branch
       uses: actions/checkout@v3
@@ -44,6 +37,7 @@ jobs:
 
     - name: Build dev branch
       run: |
+        npm ci
         npm run build_all github_dev
 
     - name: Checkout v1.0 tag
@@ -53,7 +47,8 @@ jobs:
 
     - name: Build v1.0 tag
       run: |
-        # note: v1.0 did not have engine and web subdirectories, so no `cd web`
+        # note: just do this manually because the current shell scripts used
+        # for building were not in place at this time.
         npm ci
         npm run build -- --outDir='/tmp/demoland-web/v1.0' --base='/demoland-web/v1.0'
 
