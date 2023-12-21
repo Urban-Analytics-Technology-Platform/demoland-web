@@ -5,16 +5,18 @@
 # Usage:
 #
 # For local deployment (run a HTTP server from the /dist directory)
-#     build.sh local <AREA_NAME> 
+#     npm run build local <AREA_NAME> 
 # For GitHub Pages main branch deployment
-#     build.sh github <AREA_NAME>
+#     npm run build github <AREA_NAME>
 # For GitHub Pages dev branch deployment
-#     build.sh github-dev <AREA_NAME>
+#     npm run build github_dev <AREA_NAME>
 #
 # <AREA_NAME> defaults to "newcastle" if not given.
 
+set -e
+
 function usage {
-    echo "Usage: npm run build <local|github|github-dev> [AREA_NAME]"
+    echo "Usage: npm run build <local|github|github_dev> [AREA_NAME]"
     exit 1
 }
 
@@ -25,7 +27,9 @@ else
     if [ "$1" = "local" ]; then
         echo "Building for local deployment"
     elif [ "$1" = "github" ]; then
-        echo "Building for GitHub Pages deployment"
+        echo "Building for GitHub Pages main branch deployment"
+    elif [ "$1" = "github_dev" ]; then
+        echo "Building for GitHub Pages dev branch deployment"
     else
         usage
     fi
@@ -60,9 +64,9 @@ elif [ "${BUILD_TARGET}" = "github" ]; then
     npx vite build \
         --outDir="/tmp/${REPOSITORY_NAME}/${AREA_NAME}" \
         --base="/${REPOSITORY_NAME}/${AREA_NAME}"
-elif [ "${BUILD_TARGET}" = "github-dev" ]; then
+elif [ "${BUILD_TARGET}" = "github_dev" ]; then
     npx vite build \
-        --outDir="/tmp/${REPOSITORY_NAME}/${AREA_NAME}" \
+        --outDir="/tmp/${REPOSITORY_NAME}/dev/${AREA_NAME}" \
         --base="/${REPOSITORY_NAME}/dev/${AREA_NAME}"
 fi
 

@@ -7,6 +7,7 @@
     "load_area": "./node_scripts/load_area.sh",
     "dev": "./node_scripts/dev.sh",
     "build": "./node_scripts/build.sh",
+    "build_all": "./node_scripts/build_all.sh",
     "lint": "npx eslint .",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
