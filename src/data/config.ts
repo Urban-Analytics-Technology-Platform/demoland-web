@@ -1,4 +1,8 @@
 import type { PMPFeatureCollection } from "src/types";
+// NOTE: The following import will not work unless you have already loaded an
+// area using `npm run load_area <area_name>`. This generates the appropriate
+// TypeScript file at src/data/scenarios/index.ts.
+import { referenceScenarioObject, otherScenarioObjects } from "src/data/scenarios";
 
 /* --------------------------------- */
 /* TYPE DEFINITIONS                  */
@@ -88,38 +92,11 @@ const areaName: string = geo_config.areaName;
 /* SCENARIOS                         */
 /* --------------------------------- */
 
-// These are JSON files containing the spatial signature and indicator values
-// for each scenario.
-import baseline from "src/data/scenarios/baseline.json";
-import scenario1 from "src/data/scenarios/scenario1.json";
-import scenario2 from "src/data/scenarios/scenario2.json";
-import scenario3 from "src/data/scenarios/scenario3.json";
-import scenario4 from "src/data/scenarios/scenario4.json";
-import scenario5 from "src/data/scenarios/scenario5.json";
-import scenario6 from "src/data/scenarios/scenario6.json";
-import scenario7 from "src/data/scenarios/scenario7.json";
-
-// One of the scenarios is used as the 'reference', against which values are
-// scaled.
-const referenceScenarioObject = baseline;
-
 // Range to scale all indicator values between (for the baseline).
 const scale = {
     min: 0,
     max: 100,
 }
-
-// List all the other scenarios here.
-const otherScenarioObjects = [
-    scenario1,
-    scenario1,
-    scenario2,
-    scenario3,
-    scenario4,
-    scenario5,
-    scenario6,
-    scenario7
-]
 
 /* --------------------------------- */
 /* INDICATORS                        */
