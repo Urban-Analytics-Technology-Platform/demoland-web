@@ -1,3 +1,7 @@
+# Area-specific data is stored in the areas/ top-level directory and loaded
+# into the source tree only when needed.
+src/data/*
+
 # Logs
 logs
 *.log
