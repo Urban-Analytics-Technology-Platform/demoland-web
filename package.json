@@ -4,9 +4,9 @@
   "version": "2.0.0-alpha",
   "type": "module",
   "scripts": {
-    "load_area": "./scripts/load_area.sh",
-    "dev": "./scripts/dev.sh",
-    "build": "vite build",
+    "load_area": "./node_scripts/load_area.sh",
+    "dev": "./node_scripts/dev.sh",
+    "build": "./node_scripts/build.sh",
     "lint": "npx eslint .",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
