@@ -2,7 +2,7 @@
     export let scenarioShort: string = "";
     export let scenarioDescription: string = "";
     export let calculationMethod: "azure" | "wasm" | "local" = "azure";
-    import { config } from "src/data/config";
+    import { config } from "src/config";
     import {
         InputFieldsContainer,
         BackForwardButtons,

@@ -8,7 +8,7 @@
     } from "src/utils/geojson";
     import intersect from "@turf/intersect";
     import { makePopup } from "src/utils/hover";
-    import { type LayerName, config } from "src/data/config";
+    import { type LayerName, config } from "src/config";
     import {
         allScenarios,
         scenarioName,

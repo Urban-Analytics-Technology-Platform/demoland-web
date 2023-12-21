@@ -9,7 +9,7 @@
     import Import from "src/lib/leftSidebar/Import.svelte";
     import Welcome from "src/lib/leftSidebar/Welcome.svelte";
     import Tabs from "src/lib/leftSidebar/Tabs.svelte";
-    import { config } from "src/data/config";
+    import { config } from "src/config";
 
     import { scenarioName, compareScenarioName } from "src/stores";
     let welcomeVisible: boolean = !(

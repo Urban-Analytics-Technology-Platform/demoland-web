@@ -1,5 +1,5 @@
 import colormap from "colormap";
-import { type IndicatorName, type LayerName, config } from "src/data/config";
+import { type IndicatorName, type LayerName, config } from "src/config";
 
 export function makeColormap(indicator: IndicatorName | "diff", n: number): string[] {
     if (indicator === "diff") {

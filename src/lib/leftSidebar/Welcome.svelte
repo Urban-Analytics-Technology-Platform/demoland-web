@@ -4,7 +4,7 @@
     import mapScreenshot from "src/assets/map.png";
     import changesScreenshot from "src/assets/changes.png";
     import CloseButton from "src/lib/reusable/CloseButton.svelte";
-    import { config } from "src/data/config";
+    import { config } from "src/config";
 
     // Whether to show the welcome screen when the page is loaded
     let doNotShowOnPageLoad: boolean =

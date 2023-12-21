@@ -21,7 +21,7 @@
         type MacroVar,
         type ScenarioChanges,
         config,
-    } from "src/data/config";
+    } from "src/config";
 
     // The actual changes
     export let changes: ScenarioChanges =

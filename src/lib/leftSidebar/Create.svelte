@@ -11,7 +11,7 @@
         type ScenarioObject,
         type Scenario,
         config,
-    } from "src/data/config";
+    } from "src/config";
     import { toChangesObject, fromScenarioObject } from "src/utils/scenarios";
     import {
         allScenarios,

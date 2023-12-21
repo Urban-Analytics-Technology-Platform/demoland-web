@@ -5,7 +5,7 @@
         type Indicator,
         type Scenario,
         config
-    } from "src/data/config";
+    } from "src/config";
     import {
         type ChartDataset,
         type ChartData,

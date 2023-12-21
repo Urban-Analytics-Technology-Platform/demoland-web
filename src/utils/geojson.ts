@@ -1,6 +1,6 @@
 import maplibregl from "maplibre-gl";
 import union from "@turf/union";
-import { config, type LayerName, type ScenarioChanges, type Scenario } from "src/data/config";
+import { config, type LayerName, type ScenarioChanges, type Scenario } from "src/config";
 import type { PMPFeatureCollection } from "src/types";
 import { getColor, getDiffColor } from "src/utils/colors";
 
