@@ -15,7 +15,7 @@
 
 set -e
 
-function usage {
+usage () {
     echo "Usage: npm run build <local|github|github_dev> [AREA_NAME]"
     exit 1
 }

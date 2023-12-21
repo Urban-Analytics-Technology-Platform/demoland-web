@@ -13,7 +13,7 @@
 
 set -e
 
-function usage {
+usage () {
     echo "Usage: npm run build_all <local|github|github_dev>"
     exit 1
 }
