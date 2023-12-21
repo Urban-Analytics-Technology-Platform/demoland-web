@@ -54,23 +54,20 @@ REPOSITORY_NAME="demoland-web"
 # Newcastle.
 npm run load_area $@
 
+# Build the site.
 if [ "${BUILD_TARGET}" = "local" ]; then
     OUTDIR_BASE="dist"
-    npx vite build \
-        --outDir="${OUTDIR_BASE}/${AREA_NAME}" \
-        --base="/${AREA_NAME}"
+    DEPLOYMENT_BASE=""
 elif [ "${BUILD_TARGET}" = "github" ]; then
     OUTDIR_BASE="/tmp/${REPOSITORY_NAME}"
-    npx vite build \
-        --outDir="${OUTDIR_BASE}/${AREA_NAME}" \
-        --base="/${REPOSITORY_NAME}/${AREA_NAME}"
-    cp node_scripts/index.html dist/index.html
+    DEPLOYMENT_BASE="/${REPOSITORY_NAME}"
 elif [ "${BUILD_TARGET}" = "github_dev" ]; then
     OUTDIR_BASE="/tmp/${REPOSITORY_NAME}/dev"
-    npx vite build \
-        --outDir="${OUTDIR_BASE}/${AREA_NAME}" \
-        --base="/${REPOSITORY_NAME}/dev/${AREA_NAME}"
+    DEPLOYMENT_BASE="/${REPOSITORY_NAME}/dev"
 fi
+npx vite build \
+    --outDir="${OUTDIR_BASE}/${AREA_NAME}" \
+    --base="${DEPLOYMENT_BASE}/${AREA_NAME}"
 
 # Set up the main page to redirect to Newcastle (this is hardcoded in index.html)
 cp "node_scripts/index.html" "${OUTDIR_BASE}/index.html"
