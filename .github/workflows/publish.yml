@@ -44,9 +44,7 @@ jobs:
 
     - name: Build dev branch
       run: |
-        cd web
-        npm ci
-        npm run build -- --outDir='/tmp/demoland-web/dev' --base='/demoland-web/dev'
+        npm run build_all github_dev
 
     - name: Checkout v1.0 tag
       uses: actions/checkout@v3
