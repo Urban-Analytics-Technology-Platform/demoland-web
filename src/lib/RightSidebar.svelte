@@ -3,7 +3,7 @@
     import Chart from "src/lib/rightSidebar/Chart.svelte";
     import LayerSelector from "src/lib/rightSidebar/LayerSelector.svelte";
     import Collapsible from "src/lib/reusable/Collapsible.svelte";
-    import { type LayerName, config } from "src/data/config";
+    import { type LayerName, config } from "src/config";
     import { customScenarioInProgress } from "src/stores";
 
     export let activeLayer: LayerName;

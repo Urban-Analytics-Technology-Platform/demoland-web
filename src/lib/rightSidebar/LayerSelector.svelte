@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type LayerName, config } from "src/data/config";
+    import { type LayerName, config } from "src/config";
     import Tooltip from "src/lib/reusable/Tooltip.svelte";
     import showWelcomeIcon from "src/assets/show-welcome.svg";
     import { createEventDispatcher } from "svelte";

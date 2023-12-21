@@ -2,7 +2,7 @@ import {
     type Scenario,
     type ScaleFactorMap,
     config
-} from "src/data/config";
+} from "src/config";
 import { fromScenarioObject } from "src/utils/scenarios";
 
 /* This function reads the reference scenario from the file specified in the

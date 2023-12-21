@@ -5,7 +5,7 @@ import {
     type IndicatorName,
     type LayerName,
     config
-} from "src/data/config";
+} from "src/config";
 import { unscale } from "src/utils/scenarios";
 
 // Construct raw HTML for the hover popup. This is really ugly, but MapLibre

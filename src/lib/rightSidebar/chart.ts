@@ -1,4 +1,4 @@
-import { type IndicatorName, type Scenario, config } from "src/data/config";
+import { type IndicatorName, type Scenario, config } from "src/config";
 import { makeColormap } from "src/utils/colors";
 
 // Get all values for a given indicator in a given scenario.

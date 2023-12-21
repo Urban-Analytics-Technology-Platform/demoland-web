@@ -5,7 +5,7 @@ import {
     type ChangesObject, type ValuesObject, type ScenarioObject,
     type ScaleFactorMap,
     config
-} from "src/data/config";
+} from "src/config";
 
 export function rescale(
     layerName: LayerName,
