@@ -68,6 +68,10 @@ import geo_config from "src/data/geo_config.json";
 // identifier for each feature. The value of the identifier must be a string.
 const featureIdentifier: string = geo_config.featureIdentifier;
 
+// Each area must also contain a unique identifier which is used when
+// calculating new scenarios (for example, it is included in the POST body).
+const modelIdentifier: string = geo_config.modelIdentifier;
+
 // We need to add numeric IDs to each feature if not already present. This is to
 // satisfy MapLibre's requirement for hover/click behaviour. The actual numbers
 // have no significance so we can simply use the index of the feature in the
@@ -350,6 +354,7 @@ interface Config {
     baseUrl: string;
     webApiUrl: string;
     areaName: string;
+    modelIdentifier: string;
 }
 
 export const config: Config = {
@@ -380,4 +385,5 @@ export const config: Config = {
     scale: scale,
     baseUrl: baseUrl,
     webApiUrl: webApiUrl,
+    modelIdentifier: modelIdentifier,
 };

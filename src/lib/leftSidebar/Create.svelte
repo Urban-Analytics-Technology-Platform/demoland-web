@@ -29,7 +29,7 @@
     // Only displayed if there is actually an error
     let errorMessage: string = "An error occurred.";
     // Whether to run with Azure REST API, WASM, or local REST API
-    let runner: "azure";
+    let runner: "azure" | "wasm";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
@@ -141,6 +141,7 @@
             scenario_json: toChangesObject(
                 $allScenarios.get($scenarioName).changes
             ),
+            model_identifier: config.modelIdentifier,
         });
         console.log("changedJson", changedJson);
         step = "calc"; // move on
