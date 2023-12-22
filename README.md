@@ -18,63 +18,73 @@ The `dev` branch can be previewed at https://Urban-Analytics-Technology-Platform
 
 ## Running locally
 
-The easiest way is probably using Docker.
-Make sure to include the `--recursive` flag when cloning; this ensures that the backend submodule is properly initialised.
+The easiest way is probably using Docker:
 
 ```
-git clone --recursive git@github.com:Urban-Analytics-Technology-Platform/demoland-web.git
+git clone git@github.com:Urban-Analytics-Technology-Platform/demoland-web.git
 cd demoland-web
-make docker
+docker build -t demoland_web .
+docker run -p 80:80 demoland_web
 ```
 
-Then, navigate to http://localhost:5173.
+Then, navigate to http://localhost in your browser.
 
 
 ## Local development
 
-First, clone the repository as before:
+**npm run dev**
+
+For rapid prototyping and feature development, it's recommended to use Vite:
 
 ```
-git clone --recursive git@github.com:Urban-Analytics-Technology-Platform/demoland-web.git
+git clone git@github.com:Urban-Analytics-Technology-Platform/demoland-web.git
 cd demoland-web
+npm install
+npm run dev   # this invokes Vite
 ```
 
-For the frontend:
+Note that `npm run dev` only allows you to set up the app for one area at a time.
+Without any arguments, the default area of `tyne_and_wear` will be used.
+You can specify which area to work on by running `npm run dev [AREA_NAME]`.
+The valid values for `[AREA_NAME]` are the subdirectories of the `/areas` folder.
+
+Vite's HMR functionality means that the website you see is updated any time any of the files change.
+However, note that if you change files inside the `/areas` folder (e.g. by adding a new scenario), it will not reload automatically: you will have to restart the server to see the changes live.
+
+**npm run build**
+
+To build the project for one specific area, use:
 
 ```
-make fe-deps   # First time only
-make fe
+npm run build local [AREA_NAME]
 ```
 
-Vite (the build tool this app uses) defaults to port 5173, so the web app is again accessible via http://localhost:5173.
-Vite's hot module replacement feature also allows you to instantly view changes in the web browser when code is modified, which is a really nice touch.
-
-Most of the app works without the backend.
-However, to create your own scenarios and calculate their impacts, you will need to launch the backend as well.
-In a new terminal window, `cd` into the top-level repository and:
+(again, if unspecified, `[AREA_NAME]` defaults to `tyne_and_wear`.)
+The build output is placed inside `/dist`. You can then run
 
 ```
-make be-deps   # First time only
-make be
+npm run preview
 ```
 
-Note that this exposes the backend API on port 5174; this is where the frontend expects to find it.
-Specifically, the frontend looks for the `/api/` endpoint, which Vite reverse-proxies to port 5174.
+to launch a HTTP server from this directory on port 4173.
+You can then open http://localhost:4173/[AREA_NAME] in your browser.
 
-When running under Docker, the backend is not exposed to the host computer (it is only exposed to other containers).
-Running this locally is the only way to directly test the backend.
+Note that the build procedure is set up such that the website root (i.e. http://localhost:4173) redirects to the default area, i.e. http://localhost:4173/tyne_and_wear.
+If you have not built the files for `tyne_and_wear` before then this will give you a 404 error, which can be fixed by running `npm run build local tyne_and_wear`.
 
-Finally, to run both frontend and backend concurrently, do:
+**npm run build_all**
+
+To build the files for all areas at once (which is probably the more helpful option, unless you're specifically debugging issues with one area), use:
 
 ```
-make fe-deps   # First time only
-make be-deps   # First time only
-make local
+npm run build_all local
 ```
+
+You can then again use `npm run preview`, like above.
 
 ## Spinning up a new, customised copy of DemoLand
 
-See `web/src/data/README.md`.
+See `CUSTOM_AREA.md`.
 
 
 ## Related repositories
