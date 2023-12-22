@@ -11,7 +11,7 @@
 # For GitHub Pages dev branch deployment
 #     npm run build github_dev <AREA_NAME>
 #
-# <AREA_NAME> defaults to "newcastle" if not given.
+# <AREA_NAME> defaults to "tyne_and_wear" if not given.
 
 set -e
 
@@ -39,8 +39,9 @@ shift
 
 # This script needs to then also detect the area name too so that we can put
 # the built files in the appropriate output directory.
+DEFAULT_AREA_NAME="tyne_and_wear"
 if [ -z "$1" ]; then
-    AREA_NAME="newcastle"
+    AREA_NAME=$DEFAULT_AREA_NAME
 else
     AREA_NAME=$1
 fi
@@ -51,7 +52,7 @@ REPOSITORY_NAME="demoland-web"
 
 # We use $@ instead of $AREA_NAME so that in the case where the user does not
 # specify an area, load_area.sh notifies the user that we are defaulting to
-# Newcastle.
+# tyne_and_wear.
 npm run load_area $@
 
 # Build the site.
@@ -69,5 +70,5 @@ npx vite build \
     --outDir="${OUTDIR_BASE}/${AREA_NAME}" \
     --base="${DEPLOYMENT_BASE}/${AREA_NAME}"
 
-# Set up the main page to redirect to Newcastle (this is hardcoded in index.html)
-cp "node_scripts/index.html" "${OUTDIR_BASE}/index.html"
+# Set up the main page to redirect to tyne_and_wear (this is hardcoded in index.html)
+echo '<head><meta http-equiv="refresh" content="0; url='"${DEFAULT_AREA_NAME}"'/" /></head>' > "${OUTDIR_BASE}/index.html"

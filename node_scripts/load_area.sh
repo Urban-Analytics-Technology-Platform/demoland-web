@@ -2,7 +2,7 @@
 
 # This script 'loads' the area given as a positional argument by copying the
 # appropriate files from the 'areas' directory to 'src/data'. If no area name
-# is given the script defaults to 'newcastle'.
+# is given the script defaults to 'tyne_and_wear'.
 #
 # NOTE: This script is intended to be run via npm, not manually.
 
@@ -14,9 +14,10 @@ RESET="\033[0m"
 
 printf "Current directory: $(pwd)\n"
 
+DEFAULT_AREA_NAME="tyne_and_wear"
 if [ -z "$1" ]; then
-    printf "${BOLD}No DemoLand area name supplied, defaulting to 'newcastle'.${RESET}\n"
-    AREA_NAME="newcastle"
+    printf "${BOLD}No DemoLand area name supplied, defaulting to '${DEFAULT_AREA_NAME}'.${RESET}\n"
+    AREA_NAME=$DEFAULT_AREA_NAME
 else
     printf "${BOLD}Loading DemoLand area: $1${RESET}\n"
     AREA_NAME=$1
