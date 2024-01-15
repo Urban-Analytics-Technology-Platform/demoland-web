@@ -1,12 +1,13 @@
-# Adapted from
-# https://sveltesociety.dev/recipes/publishing-and-deploying/dockerize-a-svelte-app
+# This Dockerfile builds an image containing all available areas of the
+# DemoLand web app.
+# 
+# Adapted from https://sveltesociety.dev/recipes/publishing-and-deploying/dockerize-a-svelte-app
+# 
+# Usage:
+#     docker build -t demoland_web .
+#     docker run -p 80:80 demoland_web
+# then visit 'http://localhost:80' in your browser.
 
-# Running this image will expose the frontend on port 80. Note that when
-# running this container on its own, the backend is not present, i.e. custom
-# scenarios will not work! If you want both together, please cd to the root
-# directory of this repository and run
-#    docker-compose up
-# instead, which will use the compose.yaml file.
 
 FROM node:20.6.1 AS builder
 
@@ -14,7 +15,7 @@ WORKDIR .
 
 COPY package.json .
 COPY package-lock.json .
-RUN npm install
+RUN npm ci
 
 COPY index.html .
 COPY svelte.config.js .
@@ -22,8 +23,12 @@ COPY tsconfig.json .
 COPY tsconfig.node.json .
 COPY vite.config.ts .
 COPY src ./src
-RUN npm run build
+COPY areas ./areas
+COPY public ./public
+COPY node_scripts ./node_scripts
+RUN npm run build_all local
 
 FROM nginx:1.25.2
 COPY default.conf /etc/nginx/conf.d
 COPY --from=builder /dist /usr/share/nginx/html
+EXPOSE 80
