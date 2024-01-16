@@ -17,7 +17,7 @@ async function loadPyodideAndPackages(pathname: string) {
     const micropip = self.pyodide.pyimport("micropip");
     await micropip.install("lzma")
     await micropip.install("pyodide-http")
-    await micropip.install(pathname + "demoland_engine-0.1.dev1+g2b07f90-py3-none-any.whl");
+    await micropip.install(pathname + "demoland_engine-0.1.dev1+gfdbe659-py3-none-any.whl");
 }
 
 self.onmessage = async (event) => {
