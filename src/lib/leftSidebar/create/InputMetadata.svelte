@@ -64,8 +64,10 @@
                 target="_blank">Azure Functions</a
             > instance, i.e. a web service hosted on the cloud.
         {:else if calculationMethod === "local"}
-            To use this option, the API must be running on port 5174. This
-            should be used only for development purposes.
+            To use this option, the API must be running on port 5178. See the <a
+                href="https://urban-analytics-technology-platform.github.io/demoland-project/book/developer_notes.html#fastapi-local"
+                target="_blank">developer notes</a
+            > for details on how to set this up.
         {:else if calculationMethod === "wasm"}
             This uses the <a
                 href="https://pyodide.org/en/stable/"
@@ -108,7 +110,8 @@
     div.smaller {
         font-size: 85%;
     }
-    input, textarea {
+    input,
+    textarea {
         border: 1.5px solid #999;
         border-radius: 3px;
         padding: 3px;

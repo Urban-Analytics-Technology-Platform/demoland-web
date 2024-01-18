@@ -29,7 +29,7 @@
     // Only displayed if there is actually an error
     let errorMessage: string = "An error occurred.";
     // Whether to run with Azure REST API, WASM, or local REST API
-    let runner: "azure" | "wasm";
+    let runner: "azure" | "wasm" | "local";
     // Controller to abort the fetch request if the user cancels. This is in
     // the global scope so that it can be accessed by the abort button, but
     // only initialised inside acceptChangesAndCalculate()
@@ -170,8 +170,8 @@
             // REST API
             const url =
                 runner === "azure"
-                    ? config.webApiUrl // deployed to Azure
-                    : "/api/"; // Docker, or local dev: this is a proxy to the backend on localhost:5174
+                    ? `${config.webApiUrl}/api/scenario`    // Azure Functions
+                    : `${config.localApiUrl}/api/scenario`; // local FastAPI
             fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

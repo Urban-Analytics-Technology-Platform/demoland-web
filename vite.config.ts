@@ -15,15 +15,6 @@ export default defineConfig({
             'node-fetch': 'isomorphic-fetch',
         },
     },
-    server: {
-        proxy: {
-            // This proxies localhost:5173/api/ to localhost:5174
-            '/api/': {
-                target: 'http://localhost:5174',
-                rewrite: (path) => path.replace(/^\/api/, ''),
-            }
-        }
-    },
     // Prevent Vite from reloading the first time Pyodide is requested,
     // which is annoying as it cancels the custom scenario calculation.
     optimizeDeps: {

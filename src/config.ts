@@ -314,7 +314,9 @@ const baseUrl = "https://urban-analytics-technology-platform.github.io/demoland-
 // indicators for a new scenario. See the project book
 // (https://urban-analytics-technology-platform.github.io/demoland-project/book/developer_notes.html)
 // for the API specification.
-const webApiUrl = "https://demolandapi.azurewebsites.net/api/scenario";
+const webApiUrl = "https://demolandapi.azurewebsites.net";
+
+const localApiUrl = "http://localhost:5178";
 
 /* ----------------------------------------------------- */
 /* Everything after this does not need to be modified.   */
@@ -353,6 +355,7 @@ interface Config {
     };
     baseUrl: string;
     webApiUrl: string;
+    localApiUrl: string;
     areaName: string;
     modelIdentifier: string;
 }
@@ -385,5 +388,6 @@ export const config: Config = {
     scale: scale,
     baseUrl: baseUrl,
     webApiUrl: webApiUrl,
+    localApiUrl: localApiUrl,
     modelIdentifier: modelIdentifier,
 };
