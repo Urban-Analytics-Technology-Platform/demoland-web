@@ -42,7 +42,7 @@ self.onmessage = async (event) => {
     // package itself. We need to set this as a global variable here, which lets
     // us do `import pyodide_js; pyodide_js.globals.get("BASE_URL")` (in the
     // `cache.py` file).
-    self.pyodide.globals.set("BASE_URL", BASE_URL);
+    // self.pyodide.globals.set("BASE_URL", BASE_URL);
 
     try {
         await self.pyodide.loadPackagesFromImports(python);
