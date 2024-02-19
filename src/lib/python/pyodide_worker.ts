@@ -5,7 +5,7 @@ declare global {
     interface Window {
         pyodide: PyodideInterface;
         scenario_json: string;
-        BASE_URL: string;
+        model_identifier: string;
     }
 }
 
@@ -23,7 +23,7 @@ async function loadPyodideAndPackages(pathname: string) {
 self.onmessage = async (event) => {
     // The data passed in from the main thread must contain these fields.
     // TODO: Type this properly
-    const { id, python, pathname, scenario_json, BASE_URL } = event.data;
+    const { id, python, pathname, scenario_json, model_identifier } = event.data;
 
     // Load packages
     try {
@@ -38,11 +38,8 @@ self.onmessage = async (event) => {
     // So, on the TypeScript side (pyodide.ts) we can do `from js import
     // scenario_json`.
     self.scenario_json = scenario_json;
-    // The BASE_URL is more tricky because it must be accessed from the Python
-    // package itself. We need to set this as a global variable here, which lets
-    // us do `import pyodide_js; pyodide_js.globals.get("BASE_URL")` (in the
-    // `cache.py` file).
-    let model_identifier = BASE_URL.split("/").slice(-2, -1)[0];
+    // model_identifier sets the DEMOLAND environment variable in the Python
+    // code. That's how we can access the model identifier in the Python code.
     self.pyodide.globals.set("DEMOLAND", model_identifier);
 
     try {

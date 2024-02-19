@@ -95,7 +95,7 @@ export async function runScenario(scenario: string) {
     const result = await asyncRunScenario(pythonProgram, {
         scenario_json: scenario,
         pathname: window.location.pathname,
-        BASE_URL: window.location.origin + window.location.pathname
+        model_identifier: window.location.pathname.split("/").slice(-2, -1)[0],
     });
     if (result.error) {
         console.error(result.error);
