@@ -44,23 +44,23 @@ export async function asyncRunScenario(
 export async function runScenario(scenario: string) {
     const pythonProgram = `
     import pyodide_http
-    pyodide_http.patch_all() 
+    pyodide_http.patch_all()
     print(globals())
     from js import scenario_json
     import demoland_engine
     import json
     import time
-    
+
     start = time.time()
     scenario = json.loads(scenario_json)
-    
-    df = demoland_engine.get_empty()  
+
+    df = demoland_engine.get_empty()
 
     for oa_code, vals in scenario["scenario_json"].items():
         df.loc[oa_code] = list(vals.values())
 
     pred = demoland_engine.get_indicators(df, random_seed=42)
-    sig = demoland_engine.sampling.oa_key.primary_type.copy()
+    sig = demoland_engine.data.FILEVAULT["oa_key"].primary_type.copy()
 
     mapping = {
         "Wild countryside": 0,
