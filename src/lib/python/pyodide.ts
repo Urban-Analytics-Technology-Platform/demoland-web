@@ -44,12 +44,16 @@ export async function asyncRunScenario(
 export async function runScenario(scenario: string) {
     const pythonProgram = `
     import pyodide_http
+    import pyodide_js
+    import os
     pyodide_http.patch_all()
     print(globals())
     from js import scenario_json
-    import demoland_engine
     import json
     import time
+
+    os.environ["DEMOLAND"] = pyodide_js.globals.get("DEMOLAND")
+    import demoland_engine
 
     start = time.time()
     scenario = json.loads(scenario_json)
