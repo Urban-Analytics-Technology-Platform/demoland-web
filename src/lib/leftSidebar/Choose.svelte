@@ -81,7 +81,7 @@
     let allScenariosExceptCompare: string[];
     let decreaseScenarioOk: boolean;
     let increaseScenarioOk: boolean;
-    let allCompareScenariosExceptMain: Array<string | null>;
+    let allCompareScenariosExceptMain: Array<string | null> = [null];
     let decreaseCompareScenarioOk: boolean;
     let increaseCompareScenarioOk: boolean;
 
@@ -128,13 +128,15 @@
                 ? null
                 : $allScenarios.get($compareScenarioName);
 
-        descriptionLines = scenario.metadata.description.replace(/\r/g, "").split(/\n+/),
-        compareDescriptionLines =
-            $compareScenarioName === null
-                ? null
-                : compareScenario.metadata.description
-                      .replace(/\r/g, "")
-                      .split(/\n+/);
+        (descriptionLines = scenario.metadata.description
+            .replace(/\r/g, "")
+            .split(/\n+/)),
+            (compareDescriptionLines =
+                $compareScenarioName === null
+                    ? null
+                    : compareScenario.metadata.description
+                          .replace(/\r/g, "")
+                          .split(/\n+/));
 
         allScenariosExceptCompare = allScenarioNames.filter(
             (s) => s !== $compareScenarioName
@@ -223,75 +225,84 @@ modelled development strategies on any of the four indicators.
 {/if}
 
 <h3>Compare against</h3>
-<div class="controls-grid">
-    <button
-        class="controls"
-        on:click={decreaseCompareScenario}
-        disabled={!decreaseCompareScenarioOk}
-    >
-        <img
-            class="control-arrows"
-            src={decreaseCompareScenarioOk ? leftIcon : leftIconDisabled}
-            alt="Decrease compare scenario"
-        />
-    </button>
-    <select
-        id="compare"
-        bind:value={$compareScenarioName}
-        on:change={changeScenario}
-    >
-        <option value={null}>None</option>
-        {#each [...$allScenarios.entries()] as [name, compareScenario]}
-            {#if name !== $scenarioName}
-                <option value={name}>{compareScenario.metadata.long}</option>
-            {/if}
-        {/each}
-    </select>
-    <button
-        class="controls"
-        on:click={increaseCompareScenario}
-        disabled={!increaseCompareScenarioOk}
-    >
-        <img
-            class="control-arrows"
-            src={increaseCompareScenarioOk ? rightIcon : rightIconDisabled}
-            alt="Increase compare scenario"
-        />
-    </button>
-    {#if $compareScenarioName !== null}
+{#if allCompareScenariosExceptMain.length === 1 && $compareScenarioName === null}
+    <p class="no-bottom-margin">
+        There are currently no other scenarios to compare against. You can
+        create a new scenario, or import a previously defined scenario, using
+        the tabs above.
+    </p>
+{:else}
+    <div class="controls-grid">
         <button
-            class="toggle-description"
-            on:click={toggleCompareDescriptionVisible}
-            transition:slide|local={{ duration: 300 }}
+            class="controls"
+            on:click={decreaseCompareScenario}
+            disabled={!decreaseCompareScenarioOk}
         >
-            <span class="instruction"
-                >{compareDescriptionVisible
-                    ? "hide description"
-                    : "show description"}</span
-            >
-            <span class="small-icon"
-                >{compareDescriptionVisible ? "∧" : "∨"}</span
-            >
+            <img
+                class="control-arrows"
+                src={decreaseCompareScenarioOk ? leftIcon : leftIconDisabled}
+                alt="Decrease compare scenario"
+            />
         </button>
-    {/if}
-</div>
-
-{#if compareDescriptionVisible && $compareScenarioName !== null}
-    <div id="compare-scenario-description-container" transition:slide|local>
-        {#key $compareScenarioName}
-            <div
-                id="compare-scenario-description"
-                in:customFlyInCmp|local
-                out:customFlyOutCmp|local
-                on:outrostart={setMaxHeightToZero}
+        <select
+            id="compare"
+            bind:value={$compareScenarioName}
+            on:change={changeScenario}
+        >
+            <option value={null}>None</option>
+            {#each [...$allScenarios.entries()] as [name, compareScenario]}
+                {#if name !== $scenarioName}
+                    <option value={name}>{compareScenario.metadata.long}</option
+                    >
+                {/if}
+            {/each}
+        </select>
+        <button
+            class="controls"
+            on:click={increaseCompareScenario}
+            disabled={!increaseCompareScenarioOk}
+        >
+            <img
+                class="control-arrows"
+                src={increaseCompareScenarioOk ? rightIcon : rightIconDisabled}
+                alt="Increase compare scenario"
+            />
+        </button>
+        {#if $compareScenarioName !== null}
+            <button
+                class="toggle-description"
+                on:click={toggleCompareDescriptionVisible}
+                transition:slide|local={{ duration: 300 }}
             >
-                <p>{compareDescriptionLines[0]}</p>
-                {#each compareDescriptionLines.slice(1) as para}
-                    <p>{para}</p>
-                {/each}
-            </div>
-        {/key}
+                <span class="instruction"
+                    >{compareDescriptionVisible
+                        ? "hide description"
+                        : "show description"}</span
+                >
+                <span class="small-icon"
+                    >{compareDescriptionVisible ? "∧" : "∨"}</span
+                >
+            </button>
+        {/if}
     </div>
+
+    {#if compareDescriptionVisible && $compareScenarioName !== null}
+        <div id="compare-scenario-description-container" transition:slide|local>
+            {#key $compareScenarioName}
+                <div
+                    id="compare-scenario-description"
+                    in:customFlyInCmp|local
+                    out:customFlyOutCmp|local
+                    on:outrostart={setMaxHeightToZero}
+                >
+                    <p>{compareDescriptionLines[0]}</p>
+                    {#each compareDescriptionLines.slice(1) as para}
+                        <p>{para}</p>
+                    {/each}
+                </div>
+            {/key}
+        </div>
+    {/if}
 {/if}
 
 <style>
@@ -383,7 +394,8 @@ modelled development strategies on any of the four indicators.
         margin-top: 0 !important;
     }
     div#scenario-description > :last-child,
-    div#compare-scenario-description > :last-child {
+    div#compare-scenario-description > :last-child,
+    .no-bottom-margin {
         margin-bottom: 0 !important;
     }
 </style>
