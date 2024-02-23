@@ -1,0 +1,35 @@
+# This GitHub Action publishes the dev branch to
+# u-a-t-p.github.io/demoland-web/dev.
+
+name: publish-website-dev
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Node.JS
+      uses: actions/setup-node@v3
+      with:
+        node-version: 21
+
+    - name: Checkout dev branch
+      uses: actions/checkout@v3
+      with:
+        ref: dev
+
+    - name: Build dev branch
+      run: |
+        npm ci
+        npm run build_all github_dev
+
+    - name: Publish build files to gh-pages branch
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: /tmp/demoland-web/dev
+        destination_dir: dev
