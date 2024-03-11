@@ -31,6 +31,7 @@
     "vitest": "^0.31.4"
   },
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@turf/intersect": "^6.5.0",
     "@turf/union": "^6.5.0",
     "@types/chart.js": "^2.9.37",
@@ -43,6 +44,7 @@
     "maplibre-gl": "^2.4.0",
     "overlayscrollbars": "^2.2.1",
     "pyodide": "^0.24.1",
+    "svelte-fa": "^4.0.2",
     "terra-draw": "0.0.1-alpha.51",
     "vite-tsconfig-paths": "^4.2.0"
   }
