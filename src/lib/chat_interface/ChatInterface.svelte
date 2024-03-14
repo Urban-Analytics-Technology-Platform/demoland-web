@@ -3,6 +3,7 @@
   import Sidebar from "../Sidebar.svelte";
   import ChatMessage from "./ChatMessage.svelte";
   import store from "./store.js";
+  import Thoughts from "./Thoughts.svelte";
 
   let nameMe = "Me";
   let profilePicMe =
@@ -14,6 +15,8 @@
   let messages = [];
   let message = "";
   let listElement;
+
+  $: displayedThoughts = null;
 
   $: waiting = false;
 
@@ -45,6 +48,16 @@
     }
   }
 
+  function closeThoughts(e) {
+    displayedThoughts = null;
+  }
+
+  function showThoughts(e) {
+    displayedThoughts = e.detail.thoughts;
+    console.log("Show thoughts");
+    console.log(e.detail.thoughts);
+  }
+
   $: console.log("message ", message);
   $: console.log("messages ", messages);
 </script>
@@ -52,30 +65,34 @@
 <Sidebar>
   <div id="chat-window">
     <h2>Talk to the Demoland...</h2>
-    <div class="messages" bind:this={listElement}>
-      {#each messages as message, i}
-        <ChatMessage
-          message={message.text}
-          {nameChatPartner}
-          {nameMe}
-          {profilePicMe}
-          {profilePicChatPartner}
-          timestamp={message.timestamp}
-          sentByMe={message.isUser}
-        />
-      {/each}
-      {#if waiting}
-        <ChatMessage
-          message={""}
-          timestamp={""}
-          placeholder={true}
-          {profilePicMe}
-          {nameMe}
-          {nameChatPartner}
-          {profilePicChatPartner}
-          sentByMe={false}
-        />
-      {/if}
+    {#if !displayedThoughts}
+      <div class="messages" bind:this={listElement}>
+        {#each messages as message, i}
+          <ChatMessage
+            message={message.text}
+            {nameChatPartner}
+            {nameMe}
+            {profilePicMe}
+            {profilePicChatPartner}
+            timestamp={message.timestamp}
+            sentByMe={message.isUser}
+            steps={message.steps}
+            on:showThoughts={showThoughts}
+          />
+        {/each}
+        {#if waiting}
+          <ChatMessage
+            message={""}
+            timestamp={""}
+            placeholder={true}
+            {profilePicMe}
+            {nameMe}
+            {nameChatPartner}
+            {profilePicChatPartner}
+            sentByMe={false}
+          />
+        {/if}
+      </div>
       <div class="card-footer">
         <div class="input-group">
           <input
@@ -97,7 +114,9 @@
           </span>
         </div>
       </div>
-    </div>
+    {:else}
+      <Thoughts thoughts={displayedThoughts} on:close={closeThoughts} />
+    {/if}
   </div>
 </Sidebar>
 

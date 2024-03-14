@@ -8,7 +8,7 @@ import datetime
 print("loading baseline")
 baseline  = load_scenario("../src/data/scenarios/baseline.json")
 print("loading sceanrio1")
-scenario1 = load_scenario("../src/data/scenarios/scenario1.json", baseline)
+scenario1 = load_scenario("../src/data/scenarios/scenario7.json", baseline)
 
 app = FastAPI()
 
@@ -68,7 +68,6 @@ async def websocket_endpoint(websocket: WebSocket):
         "isUser": False, 
         "timestamp": str(datetime.datetime.now())
     } 
-    
 
     await websocket.send_json(inital_message)
 
@@ -76,9 +75,12 @@ async def websocket_endpoint(websocket: WebSocket):
         prompt = await websocket.receive_json()
         print("Got prompt ", prompt)
         result = agent.query(prompt["text"])
+        print(result)
+
         response = {
             "text" : result["output"], 
             "isUser": False, 
-            "timestamp": str(datetime.datetime.now()) 
+            "timestamp": str(datetime.datetime.now()), 
+            "steps": [ {"action":step[0].log} for step in result["intermediate_steps"]]
         } 
         await websocket.send_json(response)

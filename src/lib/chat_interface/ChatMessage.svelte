@@ -4,6 +4,7 @@
   import { fade } from "svelte/transition";
   import Hal from "../../assets/hal.jpg";
   import Dave from "../../assets/dave.jpg";
+  import { createEventDispatcher } from "svelte";
 
   export let sentByMe;
   export let nameChatPartner;
@@ -13,10 +14,19 @@
   export let message;
   export let placeholder = false;
   export let timestamp;
+  export let steps = null;
+
+  const dispatch = createEventDispatcher();
+  function showThoughts(thoughts) {
+    console.log("dispatching show thoguths");
+    dispatch("showThoughts", {
+      thoughts,
+    });
+  }
 </script>
 
 <div
-  transition:fade={{ delay: sentByMe ? 0 : 1000, duration: 500 }}
+  in:fade={{ delay: sentByMe ? 0 : 1000, duration: 500 }}
   class="direct-chat-msg"
   class:right={sentByMe}
   class:left={!sentByMe}
@@ -39,6 +49,11 @@
           hour12: false,
         })}
       </span>
+    {/if}
+    {#if steps}
+      <button on:click={() => showThoughts(steps)} class="thought-button">
+        See thoughts
+      </button>
     {/if}
   </div>
   <img class="direct-chat-img" src={sentByMe == true ? Dave : Hal} alt="pic" />
@@ -112,11 +127,20 @@
     border-right-color: transparent;
     border-left-color: #d2d6de;
   }
+  button.thought-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
   img {
     border-radius: 50%;
     float: left;
     width: 40px;
     height: 40px;
+    z-index: 0;
   }
   .right img {
     float: right;
@@ -130,7 +154,7 @@
   }
   .direct-chat-timestamp {
     margin-left: 50px;
-    margin-right: 50px;
+    margin-right: 0px;
     color: #999;
 
     margin-bottom: 0;

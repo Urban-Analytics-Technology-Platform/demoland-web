@@ -10,14 +10,17 @@ python = "^3.11"
 fastapi = "^0.110.0"
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
 websockets = "^12.0"
-langchain = "^0.1.9"
-langchain-community = "^0.0.24"
+langchain = "^0.1.12"
+langchain-community = "^0.0.28"
+# langchain-experimental="^0.0.54"
 geopandas = "^0.14.3"
 pandas = "^2.2.1"
 langchain-openai = "^0.0.8"
 ipython = "^8.22.1"
 python-dotenv = "^1.0.1"
 overpy = "^0.7"
+langchain-experimental = "^0.0.54"
+tabulate = "^0.9.0"
 
 
 [build-system]
