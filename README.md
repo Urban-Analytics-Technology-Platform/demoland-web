@@ -5,8 +5,6 @@ Web app for visualisation of modelling and results from the Land Use Demonstrato
 - [The Geospatial Commission's blog post](https://www.landusedialogues.gov.uk/2023/03/13/using-spatial-data-science-to-deliver-more-from-the-same-land/) about the project
 - [A page on the Alan Turing Institute's intranet, Mathison](https://mathison.turing.ac.uk/page/2864), about the project.
 
-The frontend (Svelte/TypeScript) is in the `web` directory; the backend (Python) is in the [`demoland_engine` submodule](https://github.com/martinfleis/demoland_engine).
-
 
 ## View online
 
