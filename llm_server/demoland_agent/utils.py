@@ -29,6 +29,7 @@ def load_pen_portaits():
         return CACHE["portraits"]    
     with open("./data/pen_portraits.json") as f:
         sig_descriptions = json.load(f)
+    sig_descriptions = pd.DataFrame({"signature_name": list()})
     CACHE["portraits"] = sig_descriptions
     return sig_descriptions
 
@@ -44,9 +45,9 @@ def load_signatures():
 def load_regions():
     if("regions" in CACHE):
         return CACHE["regions"]    
-    regions = gp.read_file("./data/counties.geojson")
-    regions["name"] = [val[0] for val in regions["ctyua_name"].values]
+    regions = gp.read_file("./data/counties_newcastle.geojson")
     regions = regions.to_crs("EPSG:4326")
+    regions = regions.rename(columns={"name":"county_name"})
     CACHE["regions"]=regions
     return regions
 
@@ -58,20 +59,33 @@ def load_geography():
     CACHE["geography"]=gp.read_file("./data/geograph.json")
     return CACHE["geography"]
 
+def load_IMD():
+    if("imd" in CACHE):
+        return CACHE["imd"]
+    CACHE["imd"]=gp.read_file("./data/IMD.geojson")
+    return CACHE["imd"]
+
 def load_scenario(file, baseline=None):
     if file in CACHE:
         return CACHE[file]
 
     geography = load_geography()
+    counties = load_regions()
+    print(counties)
+    
     with open(file) as f:
         scenario= json.load(f)
-    result =  pd.DataFrame.from_records(scenario["values"]).T
-    result.signature_type = result.signature_type.apply(lambda x: sig_lookup[x])
+    scenario_df =  pd.DataFrame.from_records(scenario["values"]).T
+    scenario_df.signature_type =scenario_df.signature_type.apply(lambda x: sig_lookup[x])
     if(baseline is not None):
         diff_cols = ["air_quality", "house_price", "job_accessibility", "greenspace_accessibility"] 	
-        diffs=(result[diff_cols] - baseline[diff_cols]).rename(columns = lambda x: "diff_"+x)
-        result = pd.merge(result, diffs, left_index=True, right_index=True)
-    result = gp.GeoDataFrame(pd.merge( result, geography.set_index("OA11CD"), left_index=True, right_index=True).drop("id", axis=1))
-    CACHE[file]= result 
-    return result
+        diffs=(scenario_df [diff_cols] - baseline[diff_cols]).rename(columns = lambda x: "change_in_"+x)
+        scenario_df  = pd.merge(scenario_df , diffs, left_index=True, right_index=True)
+    scenario_df  = gp.GeoDataFrame(pd.merge( scenario_df , geography.set_index("OA11CD"), left_index=True, right_index=True).drop("id", axis=1))
+    imd = load_IMD()
+    imd_scores = imd.sjoin(scenario_df , op="contains", how='right')[["IMDScore"]]
+    counties= counties.sjoin(scenario_df , op="contains", how='right')[["county_name"]]
+    scenario_df= scenario_df.assign(imd_score= imd_scores, county_name=counties)
+    CACHE[file]= scenario_df
+    return scenario_df
     

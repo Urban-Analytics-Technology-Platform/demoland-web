@@ -125,7 +125,7 @@
     margin-top: 0px;
   }
   div#chat-window {
-    min-width: 280px;
+    min-width: 350px;
   }
   .messages {
     max-height: 300px;
