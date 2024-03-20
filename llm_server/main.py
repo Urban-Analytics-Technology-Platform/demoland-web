@@ -8,7 +8,7 @@ import datetime
 print("loading baseline")
 baseline  = load_scenario("../src/data/scenarios/baseline.json")
 print("loading sceanrio1")
-scenario1 = load_scenario("../src/data/scenarios/scenario7.json", baseline)
+scenario1 = load_scenario("../src/data/scenarios/scenario3.json", baseline)
 
 app = FastAPI()
 
