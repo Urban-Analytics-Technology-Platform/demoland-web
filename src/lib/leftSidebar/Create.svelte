@@ -10,6 +10,7 @@
         type ValuesObject,
         type ScenarioObject,
         type Scenario,
+        type ScenarioChanges,
         config,
     } from "src/config";
     import { toChangesObject, fromScenarioObject } from "src/utils/scenarios";
@@ -76,7 +77,7 @@
         step = "modify";
     }
 
-    function handleResult(values: ValuesObject, changesJson: string) {
+    function handleResult(values: ValuesObject, changes: ScenarioChanges) {
         console.log("handleResult called");
         const obj: ScenarioObject = {
             metadata: {
@@ -85,7 +86,10 @@
                 long: "Custom: " + scenarioShort,
                 description: scenarioDescription,
             },
-            changes: JSON.parse(changesJson)["scenario_json"],
+            // Slightly unfortunate that `changes` is already a
+            // `ScenarioChanges` and we have to do the round-trip conversion
+            // through a `ChangesObject`
+            changes: toChangesObject(changes),
             values: values,
         };
         console.log("obj", obj);
@@ -137,13 +141,6 @@
     }
 
     function acceptChangesAndCalculate() {
-        const changedJson = JSON.stringify({
-            scenario_json: toChangesObject(
-                $allScenarios.get($scenarioName).changes
-            ),
-            model_identifier: config.modelIdentifier,
-        });
-        console.log("changedJson", changedJson);
         step = "calc"; // move on
         $clickedOAs = []; // deselect any OAs
 
@@ -154,20 +151,28 @@
 
         // WASM
         if (runner === "wasm") {
-            runScenario(changedJson)
+            const changes = $allScenarios.get($scenarioName).changes;
+            runScenario(changes, config.modelIdentifier)
                 .then((result) => {
                     console.log("result", result);
                     if (result.error) {
                         handleError(new Error(result.error));
                     } else {
                         console.log(result);
-                        handleResult(result, changedJson);
+                        handleResult(result, changes);
                         console.log("scenario result is ", result);
                     }
                 })
                 .catch((err) => handleError(err));
         } else if (runner === "azure" || runner === "local") {
             // REST API
+            const requestBody = JSON.stringify({
+                scenario_json: toChangesObject(
+                    $allScenarios.get($scenarioName).changes
+                ),
+                model_identifier: config.modelIdentifier,
+            });
+            console.log("requestBody", requestBody);
             const url =
                 runner === "azure"
                     ? `${config.webApiUrl}/api/scenario`    // Azure Functions
@@ -175,10 +180,10 @@
             fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: changedJson,
+                body: requestBody,
                 signal: controller.signal,
             })
-                .then((resp) => handleApiResponse(resp, changedJson))
+                .then((resp) => handleApiResponse(resp, requestBody))
                 .catch((err) => handleError(err));
         }
     }

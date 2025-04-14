@@ -1,3 +1,6 @@
+import { type ScenarioChanges } from "src/config";
+import { toChangesObject } from "src/utils/scenarios";
+
 let syncWorker: Worker | undefined = undefined;
 const callbacks = {};
 let id = 0; // identify a Promise
@@ -41,7 +44,7 @@ export async function asyncRunScenario(
 }
 
 // TODO convert scenario here?
-export async function runScenario(scenario: string) {
+export async function runScenario(changes: ScenarioChanges, modelIdentifier: string) {
     const pythonProgram = `
     import pyodide_http
     import pyodide_js
@@ -60,7 +63,7 @@ export async function runScenario(scenario: string) {
 
     df = demoland_engine.get_empty()
 
-    for oa_code, vals in scenario["scenario_json"].items():
+    for oa_code, vals in scenario.items():
         df.loc[oa_code] = list(vals.values())
 
     pred = demoland_engine.get_indicators(df, random_seed=42)
@@ -92,10 +95,11 @@ export async function runScenario(scenario: string) {
     print(f"{time.time() - start}s to run")
     json.dumps(prediction)
     `
+    const wheel_path = `${window.location.pathname}/demoland_engine-0.1.dev1+g9a14337-py3-none-any.whl`;
     const result = await asyncRunScenario(pythonProgram, {
-        scenario_json: scenario,
-        pathname: window.location.pathname,
-        model_identifier: window.location.pathname.split("/").slice(-2, -1)[0],
+        scenario_json: JSON.stringify(toChangesObject(changes)),
+        wheel_path: wheel_path,
+        model_identifier: modelIdentifier,
     });
     if (result.error) {
         console.error(result.error);

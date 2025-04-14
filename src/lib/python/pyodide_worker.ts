@@ -9,7 +9,7 @@ declare global {
     }
 }
 
-async function loadPyodideAndPackages(pathname: string) {
+async function loadPyodideAndPackages(wheel_path: string) {
     self.pyodide = await loadPyodide({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
     });
@@ -17,17 +17,25 @@ async function loadPyodideAndPackages(pathname: string) {
     const micropip = self.pyodide.pyimport("micropip");
     await micropip.install("lzma")
     await micropip.install("pyodide-http")
-    await micropip.install(pathname + "demoland_engine-0.1.dev1+g9a14337-py3-none-any.whl");
+    try {
+        await micropip.install(wheel_path);
+    } catch (error) {
+        // If run using npm run dev, the wheel isn't copied to the
+        // /model_identifier/...whl, it's only at the root of the project.
+        // This is a workaround to make it work in dev mode.
+        const wheel_filename = wheel_path.split("/").slice(-1)[0];
+        await micropip.install("/" + wheel_filename);
+    }
 }
 
 self.onmessage = async (event) => {
     // The data passed in from the main thread must contain these fields.
     // TODO: Type this properly
-    const { id, python, pathname, scenario_json, model_identifier } = event.data;
+    const { id, python, wheel_path, scenario_json, model_identifier } = event.data;
 
     // Load packages
     try {
-        await loadPyodideAndPackages(pathname);
+        await loadPyodideAndPackages(wheel_path);
     } catch (error) {
         console.error(error);
         self.postMessage({ error: error.message });
