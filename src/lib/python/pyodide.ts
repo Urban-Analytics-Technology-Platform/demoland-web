@@ -43,7 +43,6 @@ export async function asyncRunScenario(
     });
 }
 
-// TODO convert scenario here?
 export async function runScenario(changes: ScenarioChanges, modelIdentifier: string) {
     const pythonProgram = `
     import pyodide_http
