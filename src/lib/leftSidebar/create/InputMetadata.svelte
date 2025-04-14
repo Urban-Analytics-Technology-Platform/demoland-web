@@ -50,11 +50,11 @@
     <div id="calculation-method-choice">
         <i>Calculation method</i>
         <select bind:value={calculationMethod}>
+            <option value="wasm">In-browser</option>
             <option value="azure">Azure REST API</option>
             {#if !deployed}
                 <option value="local">Local REST API</option>
             {/if}
-            <option value="wasm">In-browser</option>
         </select>
     </div>
     <div class="smaller">
